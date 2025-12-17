@@ -102,3 +102,21 @@ go test ./pkg/interpreter
 # Run integration tests
 cd test && go test -v
 ```
+
+## Releases
+
+This project uses GitHub Actions to automatically build and release binaries for multiple platforms whenever a new version tag is pushed.
+
+To trigger a new release:
+
+1.  **Tag the commit**:
+    ```bash
+    git tag v1.0.0
+    ```
+
+2.  **Push the tag**:
+    ```bash
+    git push origin v1.0.0
+    ```
+
+The workflow will build binaries for macOS (Intel & Silicon), Linux (AMD64 & ARM64), and Windows, and attach them to a new GitHub Release.
