@@ -1,8 +1,10 @@
-package main
+package interpreter
 
 import (
 	"fmt"
+	"io"
 	"math"
+	"os"
 	"strings"
 	"time"
 )
@@ -32,15 +34,20 @@ type Evaluator struct {
 	CurrentLineIndex int
 	LoopStack        []*LoopContext
     OutputColumn     int // To track for TAB
+	Out              io.Writer
 }
 
-func NewEvaluator(p *Program) *Evaluator {
+func NewEvaluator(p *Program, out io.Writer) *Evaluator {
+	if out == nil {
+		out = os.Stdout
+	}
 	return &Evaluator{
 		Env:              NewEnvironment(),
 		Program:          p,
 		CurrentLineIndex: 0,
 		LoopStack:        []*LoopContext{},
         OutputColumn:     0,
+		Out:              out,
 	}
 }
 
@@ -111,7 +118,7 @@ func (e *Evaluator) evalPrintStatement(stmt *PrintStmt) {
             }
         }
         
-        fmt.Print(str)
+        fmt.Fprint(e.Out, str)
         e.OutputColumn += len(str)
     }
     
@@ -124,7 +131,7 @@ func (e *Evaluator) evalPrintStatement(stmt *PrintStmt) {
     }
     
     if !lastIsSeparator {
-        fmt.Println()
+        fmt.Fprintln(e.Out)
         e.OutputColumn = 0
     }
 }

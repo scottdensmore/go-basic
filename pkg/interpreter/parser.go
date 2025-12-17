@@ -1,4 +1,4 @@
-package main
+package interpreter
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ type Parser struct {
 	l      *Lexer
 	curTok Token
 	peekTok Token
-	errors []string
+	Errors []string
 
 	prefixParseFns map[TokenType]prefixParseFn
 	infixParseFns  map[TokenType]infixParseFn
@@ -86,7 +86,7 @@ func (p *Parser) ParseProgram() *Program {
 		if p.curTok.Type == NUMBER {
 			lineNum, err := strconv.Atoi(p.curTok.Literal)
 			if err != nil {
-				p.errors = append(p.errors, fmt.Sprintf("Invalid line number: %s", p.curTok.Literal))
+				p.Errors = append(p.Errors, fmt.Sprintf("Invalid line number: %s", p.curTok.Literal))
 				p.nextToken()
 				continue
 			}
