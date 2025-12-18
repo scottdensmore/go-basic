@@ -65,6 +65,10 @@ GOOS=darwin GOARCH=amd64 go build -o go-basic-mac-amd64 ./cmd/go-basic
 
 Once built, you can run BASIC scripts by passing the file path as an argument.
 
+### Flags
+
+-   `-version`: Prints the version information and exits.
+
 ### Example
 
 There are sample scripts located in `test/scripts/`.
@@ -77,6 +81,11 @@ There are sample scripts located in `test/scripts/`.
 **Windows:**
 ```powershell
 .\go-basic.exe test\scripts\test.bas
+```
+
+**Check Version:**
+```bash
+./go-basic -version
 ```
 
 ### Sample Output

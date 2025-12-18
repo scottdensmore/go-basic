@@ -45,7 +45,7 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
-          go build -v -o ${{ matrix.asset_name }} ./cmd/go-basic
+          go build -v -ldflags "-X main.Version=${{ github.ref_name }}" -o ${{ matrix.asset_name }} ./cmd/go-basic
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2

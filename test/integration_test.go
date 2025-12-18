@@ -30,7 +30,7 @@ import (
 
 func TestIntegration(t *testing.T) {
     // Ensure binary is built
-    cmd := exec.Command("go", "build", "-o", "../go-basic", "../cmd/go-basic")
+    cmd := exec.Command("go", "build", "-ldflags", "-X main.Version=test", "-o", "../go-basic", "../cmd/go-basic")
     if err := cmd.Run(); err != nil {
         t.Fatalf("Failed to build binary: %v", err)
     }
