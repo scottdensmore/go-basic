@@ -6,9 +6,9 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 
 -   **Variables**: Integer and floating-point variables.
 -   **Math Operations**: `+`, `-`, `*`, `/`, `SIN`.
--   **Control Flow**: `FOR`...`NEXT` loops with `STEP`, `GOTO` (implicit in loops), `SLEEP`.
+-   **Control Flow**: `FOR`...`NEXT` loops with `STEP` and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` separator and `TAB` function support.
--   **Comments**: (Implicit support via ignoring unparsed lines/tokens, or standard REM if implemented).
+-   **Diagnostics**: Parse and runtime errors include BASIC source line context.
 -   **Cross-Platform**: Compiles and runs on macOS, Linux, and Windows.
 
 ## Project Structure
@@ -19,7 +19,7 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 
 ## Prerequisites
 
--   [Go](https://go.dev/dl/) (version 1.18 or higher recommended)
+-   [Go](https://go.dev/dl/) 1.25.5 or newer
 
 ## Building
 
@@ -102,15 +102,26 @@ Hello World
 
 ## Testing
 
-To run the unit and integration tests:
+The project follows test-driven development: write a failing behavior test, make
+the smallest product change that passes it, then refactor while the suite stays
+green.
 
 ```bash
-# Run unit tests
-go test ./pkg/interpreter
-
-# Run integration tests
-cd test && go test -v
+make test        # race-enabled unit and CLI integration tests
+make check       # formatting, vet, coverage, and golangci-lint
+make fuzz        # bounded lexer and parser fuzzing
+make vuln        # Go vulnerability database scan
 ```
+
+Install the pinned local tool versions under `.tools/` with:
+
+```bash
+make tools
+```
+
+CI enforces an 80% total statement-coverage minimum. Tests should assert
+interpreter or CLI behavior; use native tools for source, workflow, and release
+validation.
 
 ## Releases
 

@@ -9,8 +9,25 @@ permissions:
   contents: write
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Run quality gate
+        run: make fmt-check vet coverage-check
+
   build-and-release:
     name: Build and Release
+    needs: test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,12 +50,13 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: 'stable'
+          go-version-file: go.mod
+          cache: false
 
       - name: Build binary
         env:

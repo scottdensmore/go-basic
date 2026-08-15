@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -9,268 +10,356 @@ import (
 	"time"
 )
 
+// Environment stores BASIC variables using case-insensitive names.
 type Environment struct {
-	Vars map[string]float64 // Basic variables are usually numbers. Strings supported too? 
-    // "program.bas" only uses 'a' as number.
-    // But print has string literal "*".
-    // Let's use interface{}
-    Store map[string]interface{}
+	Store map[string]any
 }
 
+// NewEnvironment creates an empty BASIC variable environment.
 func NewEnvironment() *Environment {
-	return &Environment{Store: make(map[string]interface{})}
+	return &Environment{Store: make(map[string]any)}
 }
 
+// LoopContext stores the execution state of an active FOR/NEXT loop.
 type LoopContext struct {
-	VarName         string
-	End             float64
-	Step            float64
-	BodyLineIndex   int // Index in LineNumbers where the loop body starts (the line AFTER ForStmt)
+	VarName       string
+	End           float64
+	Step          float64
+	BodyLineIndex int
 }
 
+// EvaluatorOption customizes evaluator dependencies.
+type EvaluatorOption func(*Evaluator)
+
+// WithSleep injects the function used by SLEEP statements.
+func WithSleep(sleep func(time.Duration)) EvaluatorOption {
+	return func(evaluator *Evaluator) {
+		if sleep != nil {
+			evaluator.sleep = sleep
+		}
+	}
+}
+
+// Evaluator executes a parsed BASIC program.
 type Evaluator struct {
 	Env              *Environment
 	Program          *Program
 	CurrentLineIndex int
 	LoopStack        []*LoopContext
-    OutputColumn     int // To track for TAB
+	OutputColumn     int
 	Out              io.Writer
+	sleep            func(time.Duration)
 }
 
-func NewEvaluator(p *Program, out io.Writer) *Evaluator {
-	if out == nil {
-		out = os.Stdout
+// NewEvaluator creates an evaluator with injectable output and options.
+func NewEvaluator(program *Program, output io.Writer, options ...EvaluatorOption) *Evaluator {
+	if output == nil {
+		output = os.Stdout
 	}
-	return &Evaluator{
-		Env:              NewEnvironment(),
-		Program:          p,
-		CurrentLineIndex: 0,
-		LoopStack:        []*LoopContext{},
-        OutputColumn:     0,
-		Out:              out,
+	evaluator := &Evaluator{
+		Env:       NewEnvironment(),
+		Program:   program,
+		LoopStack: []*LoopContext{},
+		Out:       output,
+		sleep:     time.Sleep,
 	}
+	for _, option := range options {
+		option(evaluator)
+	}
+	return evaluator
 }
 
-func (e *Evaluator) Run() {
+// Run executes the program until completion or the first runtime error.
+func (e *Evaluator) Run() error {
+	if e.Program == nil {
+		return errors.New("program is nil")
+	}
 	for e.CurrentLineIndex < len(e.Program.LineNumbers) {
-		lineNum := e.Program.LineNumbers[e.CurrentLineIndex]
-		stmt := e.Program.Lines[lineNum]
-        
-        startIdx := e.CurrentLineIndex
-		e.evalStatement(stmt)
-        
-        if e.CurrentLineIndex == startIdx {
-            e.CurrentLineIndex++
-        }
-	}
-}
-
-func (e *Evaluator) evalStatement(stmt Statement) {
-	switch s := stmt.(type) {
-	case *LetStatement:
-		val := e.evalExpression(s.Value)
-		e.Env.Store[strings.ToLower(s.Name.Value)] = val
-	case *PrintStmt:
-		e.evalPrintStatement(s)
-	case *ForStatement:
-		e.evalForStatement(s)
-	case *NextStatement:
-		e.evalNextStatement(s)
-	case *SleepStatement:
-		e.evalSleepStatement(s)
-	}
-}
-
-func (e *Evaluator) evalPrintStatement(stmt *PrintStmt) {
-    for _, item := range stmt.Items {
-        if item.IsSeparator {
-            // Semicolon: do nothing (suppress newline, which is default at end)
-            // But if it's in middle? `PRINT A; B` -> A then B immediately.
-            // TAB relies on OutputColumn.
-            continue
-        }
-        
-        val := e.evalExpression(item.Expr)
-        var str string
-        
-        if tab, ok := val.(TabValue); ok {
-            // TAB(n)
-            target := tab.Pos
-            if target > e.OutputColumn {
-                str = strings.Repeat(" ", target - e.OutputColumn)
-            }
-        } else {
-            str = fmt.Sprintf("%v", val)
-            // Basic numbers often print with a leading space if positive? 6502 style.
-            // MS Basic: Numbers are printed with a preceding space if positive, or minus if negative, and a trailing space.
-            // Let's stick to simple fmt for now unless requested.
-            // If it's a number
-            if f, ok := val.(float64); ok {
-                // If integer, print as integer
-                if f == math.Trunc(f) {
-                     str = fmt.Sprintf("%d", int64(f))
-                } else {
-                     str = fmt.Sprintf("%g", f)
-                }
-                
-                // Add explicit spacing if this is what strict basic does, but `program.bas` uses TAB mostly.
-                // However, `print tab(...); "*"` uses semi-colon.
-            }
-        }
-        
-        fmt.Fprint(e.Out, str)
-        e.OutputColumn += len(str)
-    }
-    
-    // Check if last item is separator
-    lastIsSeparator := false
-    if len(stmt.Items) > 0 {
-        if stmt.Items[len(stmt.Items)-1].IsSeparator {
-            lastIsSeparator = true
-        }
-    }
-    
-    if !lastIsSeparator {
-        fmt.Fprintln(e.Out)
-        e.OutputColumn = 0
-    }
-}
-
-func (e *Evaluator) evalForStatement(stmt *ForStatement) {
-	startVal := e.evalExpression(stmt.Start)
-	endVal := e.evalExpression(stmt.End)
-	stepVal := e.evalExpression(stmt.Step)
-
-	var start, end, step float64
-	start = toFloat(startVal)
-	end = toFloat(endVal)
-	step = toFloat(stepVal)
-
-	varName := strings.ToLower(stmt.Var.Value)
-	e.Env.Store[varName] = start
-    
-    // Push context
-    // The body starts at the NEXT line index
-    e.LoopStack = append(e.LoopStack, &LoopContext{
-        VarName: varName,
-        End: end,
-        Step: step,
-        BodyLineIndex: e.CurrentLineIndex + 1,
-    })
-}
-
-func (e *Evaluator) evalNextStatement(stmt *NextStatement) {
-	if len(e.LoopStack) == 0 {
-		return // Error: NEXT without FOR
-	}
-	// Peek stack
-	ctx := e.LoopStack[len(e.LoopStack)-1]
-    
-    // Check if var matches (if provided)
-    if stmt.Var != nil {
-        if strings.ToLower(stmt.Var.Value) != ctx.VarName {
-            // Mismatch variable. In strict BASIC this is error or it pops until match.
-            // We'll ignore for now or pop?
-            // Let's assume correct nesting.
-        }
-    }
-
-	val := toFloat(e.Env.Store[ctx.VarName])
-	val += ctx.Step
-	e.Env.Store[ctx.VarName] = val
-
-	// Check condition
-    // If Step > 0: continue if val <= End
-    // If Step < 0: continue if val >= End
-    loop := false
-    if ctx.Step > 0 {
-        if val <= ctx.End + 1e-9 { // epsilon for float comparison
-            loop = true
-        }
-    } else {
-        if val >= ctx.End - 1e-9 {
-            loop = true
-        }
-    }
-
-	if loop {
-		// Jump back to body
-		e.CurrentLineIndex = ctx.BodyLineIndex
-        // We modified CurrentLineIndex, so the main loop won't increment it further (due to our check logic)
-        // Wait, my logic in Run() was: if changed, don't increment.
-        // So we set it to body index.
-        // The main loop will then execute the body.
-	} else {
-		// Loop finished, pop stack
-		e.LoopStack = e.LoopStack[:len(e.LoopStack)-1]
-        // Execution falls through to next statement (CurrentLineIndex increments naturally in Run)
-	}
-}
-
-func (e *Evaluator) evalSleepStatement(stmt *SleepStatement) {
-	dur := toFloat(e.evalExpression(stmt.Duration))
-	time.Sleep(time.Duration(dur * float64(time.Second)))
-}
-
-type TabValue struct {
-    Pos int
-}
-
-func (e *Evaluator) evalExpression(expr Expression) interface{} {
-	switch n := expr.(type) {
-	case *IntegerLiteral:
-		return float64(n.Value)
-	case *FloatLiteral:
-		return n.Value
-	case *StringLiteral:
-		return n.Value
-	case *Identifier:
-		val, ok := e.Env.Store[strings.ToLower(n.Value)]
-		if !ok {
-			return float64(0) // Default 0
+		lineNumber := e.Program.LineNumbers[e.CurrentLineIndex]
+		statement := e.Program.Lines[lineNumber]
+		startIndex := e.CurrentLineIndex
+		if err := e.evalStatement(statement); err != nil {
+			return fmt.Errorf("BASIC line %d: %w", lineNumber, err)
 		}
-		return val
-    case *PrefixExpression:
-        right := e.evalExpression(n.Right)
-        if n.Operator == "-" {
-            return -toFloat(right)
-        }
-        return right
-	case *InfixExpression:
-		left := toFloat(e.evalExpression(n.Left))
-		right := toFloat(e.evalExpression(n.Right))
-		switch n.Operator {
-		case "+":
-			return left + right
-		case "-":
-			return left - right
-		case "*":
-			return left * right
-		case "/":
-			return left / right
+		if e.CurrentLineIndex == startIndex {
+			e.CurrentLineIndex++
 		}
-    case *CallExpression:
-        fn := strings.ToUpper(n.Function)
-        if fn == "TAB" {
-             arg := toFloat(e.evalExpression(n.Arguments[0]))
-             return TabValue{Pos: int(arg)}
-        }
-        if fn == "SIN" {
-             arg := toFloat(e.evalExpression(n.Arguments[0]))
-             return math.Sin(arg)
-        }
 	}
 	return nil
 }
 
-func toFloat(val interface{}) float64 {
-	switch v := val.(type) {
-	case float64:
-		return v
-	case int:
-		return float64(v)
-	case int64:
-		return float64(v)
+func (e *Evaluator) evalStatement(statement Statement) error {
+	switch value := statement.(type) {
+	case *LetStatement:
+		if value == nil || value.Name == nil || value.Value == nil {
+			return errors.New("invalid statement")
+		}
+		result, err := e.evalExpression(value.Value)
+		if err != nil {
+			return err
+		}
+		e.Env.Store[normalizeName(value.Name.Value)] = result
+		return nil
+	case *PrintStmt:
+		if value == nil {
+			return errors.New("invalid statement")
+		}
+		return e.evalPrintStatement(value)
+	case *ForStatement:
+		if value == nil {
+			return errors.New("invalid statement")
+		}
+		return e.evalForStatement(value)
+	case *NextStatement:
+		if value == nil {
+			return errors.New("invalid statement")
+		}
+		return e.evalNextStatement(value)
+	case *SleepStatement:
+		if value == nil {
+			return errors.New("invalid statement")
+		}
+		return e.evalSleepStatement(value)
+	default:
+		return fmt.Errorf("invalid statement %T", statement)
 	}
-	return 0
+}
+
+func (e *Evaluator) evalPrintStatement(statement *PrintStmt) error {
+	for _, item := range statement.Items {
+		if item.IsSeparator {
+			continue
+		}
+		if item.Expr == nil {
+			return errors.New("invalid PRINT expression")
+		}
+		value, err := e.evalExpression(item.Expr)
+		if err != nil {
+			return err
+		}
+		text := formatValue(value)
+		if tab, ok := value.(TabValue); ok {
+			text = ""
+			if tab.Pos > e.OutputColumn {
+				text = strings.Repeat(" ", tab.Pos-e.OutputColumn)
+			}
+		}
+		if _, err := io.WriteString(e.Out, text); err != nil {
+			return fmt.Errorf("write output: %w", err)
+		}
+		e.OutputColumn += len(text)
+	}
+
+	if len(statement.Items) == 0 || !statement.Items[len(statement.Items)-1].IsSeparator {
+		if _, err := io.WriteString(e.Out, "\n"); err != nil {
+			return fmt.Errorf("write output: %w", err)
+		}
+		e.OutputColumn = 0
+	}
+	return nil
+}
+
+func (e *Evaluator) evalForStatement(statement *ForStatement) error {
+	if statement.Var == nil || statement.Start == nil || statement.End == nil || statement.Step == nil {
+		return errors.New("invalid FOR statement")
+	}
+	start, err := e.evalNumber(statement.Start)
+	if err != nil {
+		return fmt.Errorf("FOR start: %w", err)
+	}
+	end, err := e.evalNumber(statement.End)
+	if err != nil {
+		return fmt.Errorf("FOR end: %w", err)
+	}
+	step, err := e.evalNumber(statement.Step)
+	if err != nil {
+		return fmt.Errorf("FOR step: %w", err)
+	}
+	if step == 0 {
+		return errors.New("STEP cannot be zero")
+	}
+
+	variable := normalizeName(statement.Var.Value)
+	e.Env.Store[variable] = start
+	e.LoopStack = append(e.LoopStack, &LoopContext{
+		VarName:       variable,
+		End:           end,
+		Step:          step,
+		BodyLineIndex: e.CurrentLineIndex + 1,
+	})
+	return nil
+}
+
+func (e *Evaluator) evalNextStatement(statement *NextStatement) error {
+	if len(e.LoopStack) == 0 {
+		return errors.New("NEXT without FOR")
+	}
+	context := e.LoopStack[len(e.LoopStack)-1]
+	if statement.Var != nil && normalizeName(statement.Var.Value) != context.VarName {
+		return fmt.Errorf("NEXT %s does not match FOR %s", statement.Var.Value, context.VarName)
+	}
+	current, err := numericValue(e.Env.Store[context.VarName])
+	if err != nil {
+		return fmt.Errorf("loop variable %s: %w", context.VarName, err)
+	}
+	current += context.Step
+	e.Env.Store[context.VarName] = current
+
+	continues := context.Step > 0 && current <= context.End+1e-9 || context.Step < 0 && current >= context.End-1e-9
+	if continues {
+		e.CurrentLineIndex = context.BodyLineIndex
+	} else {
+		e.LoopStack = e.LoopStack[:len(e.LoopStack)-1]
+	}
+	return nil
+}
+
+func (e *Evaluator) evalSleepStatement(statement *SleepStatement) error {
+	seconds, err := e.evalNumber(statement.Duration)
+	if err != nil {
+		return fmt.Errorf("SLEEP duration: %w", err)
+	}
+	if seconds < 0 {
+		return errors.New("SLEEP duration cannot be negative")
+	}
+	e.sleep(time.Duration(seconds * float64(time.Second)))
+	return nil
+}
+
+// TabValue represents a target output column from TAB.
+type TabValue struct {
+	Pos int
+}
+
+func (e *Evaluator) evalExpression(expression Expression) (any, error) {
+	switch value := expression.(type) {
+	case *IntegerLiteral:
+		if value == nil {
+			return nil, errors.New("invalid integer expression")
+		}
+		return float64(value.Value), nil
+	case *FloatLiteral:
+		if value == nil {
+			return nil, errors.New("invalid float expression")
+		}
+		return value.Value, nil
+	case *StringLiteral:
+		if value == nil {
+			return nil, errors.New("invalid string expression")
+		}
+		return value.Value, nil
+	case *Identifier:
+		if value == nil {
+			return nil, errors.New("invalid identifier expression")
+		}
+		stored, ok := e.Env.Store[normalizeName(value.Value)]
+		if !ok {
+			return float64(0), nil
+		}
+		return stored, nil
+	case *PrefixExpression:
+		if value == nil || value.Right == nil {
+			return nil, errors.New("invalid prefix expression")
+		}
+		right, err := e.evalNumber(value.Right)
+		if err != nil {
+			return nil, err
+		}
+		if value.Operator != "-" {
+			return nil, fmt.Errorf("unsupported prefix operator %q", value.Operator)
+		}
+		return -right, nil
+	case *InfixExpression:
+		return e.evalInfixExpression(value)
+	case *CallExpression:
+		return e.evalCallExpression(value)
+	default:
+		return nil, fmt.Errorf("invalid expression %T", expression)
+	}
+}
+
+func (e *Evaluator) evalInfixExpression(expression *InfixExpression) (any, error) {
+	if expression == nil || expression.Left == nil || expression.Right == nil {
+		return nil, errors.New("invalid infix expression")
+	}
+	left, err := e.evalNumber(expression.Left)
+	if err != nil {
+		return nil, err
+	}
+	right, err := e.evalNumber(expression.Right)
+	if err != nil {
+		return nil, err
+	}
+	switch expression.Operator {
+	case "+":
+		return left + right, nil
+	case "-":
+		return left - right, nil
+	case "*":
+		return left * right, nil
+	case "/":
+		if right == 0 {
+			return nil, errors.New("division by zero")
+		}
+		return left / right, nil
+	default:
+		return nil, fmt.Errorf("unsupported infix operator %q", expression.Operator)
+	}
+}
+
+func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) {
+	if expression == nil || len(expression.Arguments) != 1 || expression.Arguments[0] == nil {
+		return nil, errors.New("invalid function call")
+	}
+	argument, err := e.evalNumber(expression.Arguments[0])
+	if err != nil {
+		return nil, err
+	}
+	switch strings.ToUpper(expression.Function) {
+	case "TAB":
+		if argument < 0 {
+			return nil, errors.New("TAB position cannot be negative")
+		}
+		return TabValue{Pos: int(argument)}, nil
+	case "SIN":
+		return math.Sin(argument), nil
+	default:
+		return nil, fmt.Errorf("unsupported function %q", expression.Function)
+	}
+}
+
+func (e *Evaluator) evalNumber(expression Expression) (float64, error) {
+	value, err := e.evalExpression(expression)
+	if err != nil {
+		return 0, err
+	}
+	return numericValue(value)
+}
+
+func numericValue(value any) (float64, error) {
+	number, ok := value.(float64)
+	if !ok {
+		return 0, fmt.Errorf("expected number, got %T", value)
+	}
+	return number, nil
+}
+
+func normalizeName(name string) string {
+	return strings.ToLower(name)
+}
+
+func formatValue(value any) string {
+	switch typed := value.(type) {
+	case float64:
+		if typed == math.Trunc(typed) {
+			return fmt.Sprintf("%d", int64(typed))
+		}
+		return fmt.Sprintf("%g", typed)
+	case string:
+		return typed
+	case TabValue:
+		return ""
+	default:
+		return fmt.Sprint(typed)
+	}
 }

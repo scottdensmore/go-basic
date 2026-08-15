@@ -2,95 +2,116 @@ package interpreter
 
 import "strings"
 
+// Lexer converts BASIC source text into tokens.
 type Lexer struct {
 	input        string
-	position     int  // current position in input (points to current char)
-	readPosition int  // current reading position in input (after current char)
-	ch           byte // current char under examination
+	position     int
+	readPosition int
+	ch           byte
+	line         int
+	column       int
 }
 
+// NewLexer creates a lexer positioned at the start of input.
 func NewLexer(input string) *Lexer {
-	l := &Lexer{input: input}
+	lexer := &Lexer{input: input, line: 1}
+	lexer.readChar()
+	return lexer
+}
+
+// NextToken returns the next token from the input.
+func (l *Lexer) NextToken() Token {
+	l.skipWhitespace()
+
+	line, column := l.line, l.column
+	switch l.ch {
+	case '=':
+		return l.singleCharacterToken(ASSIGN, line, column)
+	case '+':
+		return l.singleCharacterToken(PLUS, line, column)
+	case '-':
+		return l.singleCharacterToken(MINUS, line, column)
+	case '*':
+		return l.singleCharacterToken(ASTERISK, line, column)
+	case '/':
+		return l.singleCharacterToken(SLASH, line, column)
+	case ';':
+		return l.singleCharacterToken(SEMICOLON, line, column)
+	case '(':
+		return l.singleCharacterToken(LPAREN, line, column)
+	case ')':
+		return l.singleCharacterToken(RPAREN, line, column)
+	case '"':
+		literal, terminated := l.readString()
+		tokenType := STRING
+		if !terminated {
+			tokenType = ILLEGAL
+		}
+		return Token{Type: tokenType, Literal: literal, Line: line, Column: column}
+	case 0:
+		return Token{Type: EOF, Line: line, Column: column}
+	case '\n':
+		token := Token{Type: EOL, Literal: "\n", Line: line, Column: column}
+		l.readChar()
+		return token
+	case '\r':
+		token := Token{Type: EOL, Literal: "\n", Line: line, Column: column}
+		if l.peekChar() == '\n' {
+			l.readChar()
+		} else {
+			l.ch = '\n'
+		}
+		l.readChar()
+		return token
+	default:
+		if isDigit(l.ch) || l.ch == '.' && isDigit(l.peekChar()) {
+			return Token{Type: NUMBER, Literal: l.readNumber(), Line: line, Column: column}
+		}
+		if isLetter(l.ch) {
+			literal := l.readIdentifier()
+			return Token{
+				Type:    LookupIdent(strings.ToLower(literal)),
+				Literal: literal,
+				Line:    line,
+				Column:  column,
+			}
+		}
+
+		token := Token{Type: ILLEGAL, Literal: string(l.ch), Line: line, Column: column}
+		l.readChar()
+		return token
+	}
+}
+
+func (l *Lexer) singleCharacterToken(tokenType TokenType, line, column int) Token {
+	token := Token{Type: tokenType, Literal: string(l.ch), Line: line, Column: column}
 	l.readChar()
-	return l
+	return token
 }
 
 func (l *Lexer) readChar() {
+	if l.ch == '\n' {
+		l.line++
+		l.column = 0
+	} else if l.ch != 0 {
+		l.column++
+	}
+	if l.column == 0 {
+		l.column = 1
+	}
+
 	if l.readPosition >= len(l.input) {
 		l.ch = 0
 	} else {
 		l.ch = l.input[l.readPosition]
 	}
 	l.position = l.readPosition
-	l.readPosition += 1
-}
-
-func (l *Lexer) NextToken() Token {
-	var tok Token
-
-	l.skipWhitespace()
-
-	switch l.ch {
-	case '=':
-		tok = newToken(ASSIGN, l.ch)
-	case '+':
-		tok = newToken(PLUS, l.ch)
-	case '-':
-		tok = newToken(MINUS, l.ch)
-	case '*':
-		tok = newToken(ASTERISK, l.ch)
-	case '/':
-		tok = newToken(SLASH, l.ch)
-	case ';':
-		tok = newToken(SEMICOLON, l.ch)
-	case '(':
-		tok = newToken(LPAREN, l.ch)
-	case ')':
-		tok = newToken(RPAREN, l.ch)
-	case '"':
-		tok.Type = STRING
-		tok.Literal = l.readString()
-	case 0:
-		tok.Literal = ""
-		tok.Type = EOF
-	case '\n', '\r':
-        // Handle EOL. basic statements are line-based.
-        // We might want to unify \r\n, \n, \r into a single EOL
-        tok = newToken(EOL, '\n')
-        // Consume subsequent newlines if any, to avoid multiple EOLs for empty lines?
-        // Actually, let's just return EOL and let parser handle it.
-        // But we need to handle \r\n correctly.
-        if l.ch == '\r' {
-             if l.peekChar() == '\n' {
-                 l.readChar()
-             }
-             tok = newToken(EOL, '\n')
-        }
-	default:
-		if isDigit(l.ch) || l.ch == '.' {
-			tok.Type = NUMBER
-			tok.Literal = l.readNumber()
-			return tok
-		} else if isLetter(l.ch) {
-			tok.Literal = l.readIdentifier()
-			tok.Type = LookupIdent(strings.ToLower(tok.Literal)) // Case insensitive keywords
-			return tok
-		} else {
-			tok = newToken(ILLEGAL, l.ch)
-		}
-	}
-
-	l.readChar()
-	return tok
-}
-
-func newToken(tokenType TokenType, ch byte) Token {
-	return Token{Type: tokenType, Literal: string(ch)}
+	l.readPosition++
 }
 
 func (l *Lexer) readIdentifier() string {
 	position := l.position
-	for isLetter(l.ch) || isDigit(l.ch) { // Identifiers can contain digits
+	for isLetter(l.ch) || isDigit(l.ch) {
 		l.readChar()
 	}
 	return l.input[position:l.position]
@@ -110,15 +131,19 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.position]
 }
 
-func (l *Lexer) readString() string {
+func (l *Lexer) readString() (string, bool) {
 	position := l.position + 1
 	for {
 		l.readChar()
-		if l.ch == '"' || l.ch == 0 {
-			break
+		switch l.ch {
+		case '"':
+			literal := l.input[position:l.position]
+			l.readChar()
+			return literal, true
+		case 0, '\n', '\r':
+			return l.input[position:l.position], false
 		}
 	}
-	return l.input[position:l.position]
 }
 
 func (l *Lexer) skipWhitespace() {

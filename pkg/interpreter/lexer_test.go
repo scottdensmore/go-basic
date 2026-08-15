@@ -1,55 +1,76 @@
 package interpreter
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestNextToken(t *testing.T) {
-	input := `
-10 for a=1 to 10
-20 print "test"; a
-30 next a
-`
+func TestLexerTokenizesSupportedSyntax(t *testing.T) {
+	t.Parallel()
 
-	tests := []struct {
-		expectedType    TokenType
-		expectedLiteral string
-	}{
-		{EOL, "\n"},
-		{NUMBER, "10"},
-		{FOR, "for"},
-		{IDENT, "a"},
-		{ASSIGN, "="},
-		{NUMBER, "1"},
-		{TO, "to"},
-		{NUMBER, "10"},
-		{EOL, "\n"},
-		{NUMBER, "20"},
-		{PRINT, "print"},
-		{STRING, "test"},
-		{SEMICOLON, ";"},
-		{IDENT, "a"},
-		{EOL, "\n"},
-		{NUMBER, "30"},
-		{NEXT, "next"},
-		{IDENT, "a"},
-		{EOL, "\n"},
-		{EOF, ""},
+	input := "10 FOR Count1=.5 TO 2 STEP .5\r\n20 PRINT TAB(4); \"x\"; SIN(-1)\n"
+	want := []Token{
+		{Type: NUMBER, Literal: "10", Line: 1, Column: 1},
+		{Type: FOR, Literal: "FOR", Line: 1, Column: 4},
+		{Type: IDENT, Literal: "Count1", Line: 1, Column: 8},
+		{Type: ASSIGN, Literal: "=", Line: 1, Column: 14},
+		{Type: NUMBER, Literal: ".5", Line: 1, Column: 15},
+		{Type: TO, Literal: "TO", Line: 1, Column: 18},
+		{Type: NUMBER, Literal: "2", Line: 1, Column: 21},
+		{Type: STEP, Literal: "STEP", Line: 1, Column: 23},
+		{Type: NUMBER, Literal: ".5", Line: 1, Column: 28},
+		{Type: EOL, Literal: "\n", Line: 1, Column: 30},
+		{Type: NUMBER, Literal: "20", Line: 2, Column: 1},
+		{Type: PRINT, Literal: "PRINT", Line: 2, Column: 4},
+		{Type: TAB, Literal: "TAB", Line: 2, Column: 10},
+		{Type: LPAREN, Literal: "(", Line: 2, Column: 13},
+		{Type: NUMBER, Literal: "4", Line: 2, Column: 14},
+		{Type: RPAREN, Literal: ")", Line: 2, Column: 15},
+		{Type: SEMICOLON, Literal: ";", Line: 2, Column: 16},
+		{Type: STRING, Literal: "x", Line: 2, Column: 18},
+		{Type: SEMICOLON, Literal: ";", Line: 2, Column: 21},
+		{Type: SIN, Literal: "SIN", Line: 2, Column: 23},
+		{Type: LPAREN, Literal: "(", Line: 2, Column: 26},
+		{Type: MINUS, Literal: "-", Line: 2, Column: 27},
+		{Type: NUMBER, Literal: "1", Line: 2, Column: 28},
+		{Type: RPAREN, Literal: ")", Line: 2, Column: 29},
+		{Type: EOL, Literal: "\n", Line: 2, Column: 30},
+		{Type: EOF, Literal: "", Line: 3, Column: 1},
 	}
 
-	l := NewLexer(input)
-
-	for i, tt := range tests {
-		tok := l.NextToken()
-
-		if tok.Type != tt.expectedType {
-			t.Fatalf("tests[%d] - tokentype wrong. expected=%q, got=%q",
-				i, tt.expectedType, tok.Type)
-		}
-
-		if tok.Literal != tt.expectedLiteral {
-			t.Fatalf("tests[%d] - literal wrong. expected=%q, got=%q",
-				i, tt.expectedLiteral, tok.Literal)
+	lexer := NewLexer(input)
+	for i, expected := range want {
+		actual := lexer.NextToken()
+		if actual != expected {
+			t.Fatalf("token %d: got %#v, want %#v", i, actual, expected)
 		}
 	}
+}
+
+func TestLexerReportsIllegalCharacters(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("10 PRINT @\n")
+	for token := lexer.NextToken(); token.Type != EOF; token = lexer.NextToken() {
+		if token.Type == ILLEGAL {
+			if token.Literal != "@" || token.Line != 1 || token.Column != 10 {
+				t.Fatalf("unexpected illegal token: %#v", token)
+			}
+			return
+		}
+	}
+	t.Fatal("expected an ILLEGAL token")
+}
+
+func FuzzLexerTerminates(f *testing.F) {
+	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, input string) {
+		lexer := NewLexer(input)
+		for i := 0; i <= len(input)+1; i++ {
+			if lexer.NextToken().Type == EOF {
+				return
+			}
+		}
+		t.Fatal("lexer did not reach EOF within the input bound")
+	})
 }
