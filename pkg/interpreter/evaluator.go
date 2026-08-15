@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"bufio"
+	"encoding/csv"
 	"errors"
 	"fmt"
 	"io"
@@ -16,12 +17,19 @@ import (
 
 // Environment stores BASIC variables using case-insensitive names.
 type Environment struct {
-	Store map[string]any
+	Store  map[string]any
+	Arrays map[string]*BasicArray
 }
 
 // NewEnvironment creates an empty BASIC variable environment.
 func NewEnvironment() *Environment {
-	return &Environment{Store: make(map[string]any)}
+	return &Environment{Store: make(map[string]any), Arrays: make(map[string]*BasicArray)}
+}
+
+// BasicArray stores a numeric array with inclusive bounds.
+type BasicArray struct {
+	Bounds []int
+	Values []float64
 }
 
 // LoopContext stores the execution state of an active FOR/NEXT loop.
@@ -130,6 +138,13 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 		if err != nil {
 			return err
 		}
+		if len(value.Indices) != 0 {
+			number, err := numericValue(result)
+			if err != nil {
+				return fmt.Errorf("array %s assignment: %w", value.Name.Value, err)
+			}
+			return e.assignArray(value.Name.Value, value.Indices, number)
+		}
 		return e.assignScalar(value.Name.Value, result)
 	case *PrintStmt:
 		if value == nil {
@@ -138,6 +153,8 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 		return e.evalPrintStatement(value)
 	case *InputStatement:
 		return e.evalInputStatement(value)
+	case *DimStatement:
+		return e.evalDimStatement(value)
 	case *ForStatement:
 		if value == nil {
 			return errors.New("invalid statement")
@@ -188,6 +205,8 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 			return errors.New("invalid GOTO statement")
 		}
 		return e.jumpTo(value.TargetLine)
+	case *OnGotoStatement:
+		return e.evalOnGotoStatement(value)
 	case *EndStatement:
 		if value == nil {
 			return errors.New("invalid statement")
@@ -206,7 +225,7 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 }
 
 func (e *Evaluator) evalInputStatement(statement *InputStatement) error {
-	if statement == nil || statement.Var == nil {
+	if statement == nil || len(statement.Variables) == 0 {
 		return errors.New("invalid INPUT statement")
 	}
 	prompt := "? "
@@ -222,18 +241,14 @@ func (e *Evaluator) evalInputStatement(statement *InputStatement) error {
 		if err != nil && len(line) == 0 {
 			return fmt.Errorf("read input: %w", err)
 		}
-		text := strings.TrimSpace(line)
-		name := normalizeName(statement.Var.Value)
-		if strings.HasSuffix(name, "$") {
-			if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
-				text = text[1 : len(text)-1]
+		values, valid := parseInputValues(line, statement.Variables)
+		if valid {
+			for index, variable := range statement.Variables {
+				if err := e.assignScalar(variable.Value, values[index]); err != nil {
+					return err
+				}
 			}
-			return e.assignScalar(name, text)
-		}
-
-		number, parseErr := strconv.ParseFloat(text, 64)
-		if parseErr == nil {
-			return e.assignScalar(name, number)
+			return nil
 		}
 		if err := e.writeInputText("?REDO FROM START\n? "); err != nil {
 			return err
@@ -242,6 +257,104 @@ func (e *Evaluator) evalInputStatement(statement *InputStatement) error {
 			return fmt.Errorf("read input: %w", err)
 		}
 	}
+}
+
+func parseInputValues(line string, variables []*Identifier) ([]any, bool) {
+	record := strings.TrimRight(line, "\r\n")
+	if record == "" && len(variables) == 1 && strings.HasSuffix(variables[0].Value, "$") {
+		return []any{""}, true
+	}
+	reader := csv.NewReader(strings.NewReader(record))
+	reader.FieldsPerRecord = -1
+	reader.TrimLeadingSpace = true
+	fields, err := reader.Read()
+	if err != nil || len(fields) != len(variables) {
+		return nil, false
+	}
+	values := make([]any, len(fields))
+	for index, field := range fields {
+		if strings.HasSuffix(variables[index].Value, "$") {
+			values[index] = field
+			continue
+		}
+		number, err := strconv.ParseFloat(strings.TrimSpace(field), 64)
+		if err != nil {
+			return nil, false
+		}
+		values[index] = number
+	}
+	return values, true
+}
+
+const maxArrayElements = 1_000_000
+
+func (e *Evaluator) evalDimStatement(statement *DimStatement) error {
+	if statement == nil || len(statement.Arrays) == 0 {
+		return errors.New("invalid DIM statement")
+	}
+	pending := make(map[string]*BasicArray, len(statement.Arrays))
+	for _, declaration := range statement.Arrays {
+		if declaration.Name == nil || len(declaration.Dimensions) == 0 {
+			return errors.New("invalid DIM statement")
+		}
+		name := declaration.Name.Value
+		if strings.HasSuffix(name, "$") {
+			return fmt.Errorf("string arrays are not supported: %s", name)
+		}
+		normalized := normalizeName(name)
+		if _, exists := e.Env.Arrays[normalized]; exists {
+			return fmt.Errorf("array %s is already dimensioned", name)
+		}
+		if _, exists := pending[normalized]; exists {
+			return fmt.Errorf("array %s is already dimensioned", name)
+		}
+
+		bounds := make([]int, len(declaration.Dimensions))
+		size := 1
+		for index, dimension := range declaration.Dimensions {
+			bound, err := e.evalNumber(dimension)
+			if err != nil {
+				return fmt.Errorf("array %s bound %d: %w", name, index+1, err)
+			}
+			if bound != math.Trunc(bound) {
+				return fmt.Errorf("array %s bound %d must be an integer", name, index+1)
+			}
+			if bound < 0 {
+				return fmt.Errorf("array %s bound %d must be non-negative", name, index+1)
+			}
+			if bound >= maxArrayElements || size > maxArrayElements/(int(bound)+1) {
+				return fmt.Errorf("array %s exceeds the maximum size of %d elements", name, maxArrayElements)
+			}
+			bounds[index] = int(bound)
+			size *= bounds[index] + 1
+		}
+		pending[normalized] = &BasicArray{Bounds: bounds, Values: make([]float64, size)}
+	}
+	for name, array := range pending {
+		e.Env.Arrays[name] = array
+	}
+	return nil
+}
+
+func (e *Evaluator) evalOnGotoStatement(statement *OnGotoStatement) error {
+	if statement == nil || statement.Selector == nil || len(statement.Targets) == 0 {
+		return errors.New("invalid ON GOTO statement")
+	}
+	selector, err := e.evalNumber(statement.Selector)
+	if err != nil {
+		return fmt.Errorf("ON GOTO selector: %w", err)
+	}
+	if selector != math.Trunc(selector) {
+		return errors.New("ON GOTO selector must be an integer")
+	}
+	if selector < 0 {
+		return errors.New("ON GOTO selector must be non-negative")
+	}
+	index := int(selector) - 1
+	if index < 0 || index >= len(statement.Targets) {
+		return nil
+	}
+	return e.jumpTo(statement.Targets[index])
 }
 
 func (e *Evaluator) assignScalar(name string, value any) error {
@@ -418,6 +531,11 @@ func (e *Evaluator) evalExpression(expression Expression) (any, error) {
 			return float64(0), nil
 		}
 		return stored, nil
+	case *ArrayReference:
+		if value == nil || value.Name == nil || len(value.Indices) == 0 {
+			return nil, errors.New("invalid array expression")
+		}
+		return e.readArray(value.Name.Value, value.Indices)
 	case *PrefixExpression:
 		if value == nil || value.Right == nil {
 			return nil, errors.New("invalid prefix expression")
@@ -474,9 +592,71 @@ func (e *Evaluator) evalInfixExpression(expression *InfixExpression) (any, error
 			return nil, errors.New("division by zero")
 		}
 		return leftNumber / rightNumber, nil
+	case "AND":
+		leftInteger, err := logicalInteger(leftNumber)
+		if err != nil {
+			return nil, fmt.Errorf("left AND operand: %w", err)
+		}
+		rightInteger, err := logicalInteger(rightNumber)
+		if err != nil {
+			return nil, fmt.Errorf("right AND operand: %w", err)
+		}
+		return float64(leftInteger & rightInteger), nil
 	default:
 		return nil, fmt.Errorf("unsupported infix operator %q", expression.Operator)
 	}
+}
+
+func logicalInteger(number float64) (int16, error) {
+	if math.IsNaN(number) || math.IsInf(number, 0) || number != math.Trunc(number) {
+		return 0, errors.New("operand must be an integer")
+	}
+	if number < math.MinInt16 || number > math.MaxInt16 {
+		return 0, errors.New("operand is outside the 16-bit integer range")
+	}
+	return int16(number), nil
+}
+
+func (e *Evaluator) readArray(name string, indices []Expression) (float64, error) {
+	array, offset, err := e.arrayOffset(name, indices)
+	if err != nil {
+		return 0, err
+	}
+	return array.Values[offset], nil
+}
+
+func (e *Evaluator) assignArray(name string, indices []Expression, value float64) error {
+	array, offset, err := e.arrayOffset(name, indices)
+	if err != nil {
+		return err
+	}
+	array.Values[offset] = value
+	return nil
+}
+
+func (e *Evaluator) arrayOffset(name string, indices []Expression) (*BasicArray, int, error) {
+	array, exists := e.Env.Arrays[normalizeName(name)]
+	if !exists {
+		return nil, 0, fmt.Errorf("array %s is not dimensioned", name)
+	}
+	if len(indices) != len(array.Bounds) {
+		return nil, 0, fmt.Errorf("array %s expects %d subscripts, got %d", name, len(array.Bounds), len(indices))
+	}
+	offset := 0
+	for index, expression := range indices {
+		subscript, err := e.evalNumber(expression)
+		if err != nil {
+			return nil, 0, fmt.Errorf("array %s subscript %d: %w", name, index+1, err)
+		}
+		if subscript != math.Trunc(subscript) {
+			return nil, 0, fmt.Errorf("array %s subscript %d must be an integer", name, index+1)
+		}
+		if subscript < 0 || subscript > float64(array.Bounds[index]) {
+			return nil, 0, fmt.Errorf("array %s subscript %d out of range 0..%d", name, index+1, array.Bounds[index])
+		}
+		offset = offset*(array.Bounds[index]+1) + int(subscript)
+	}
+	return array, offset, nil
 }
 
 func isComparisonOperator(operator string) bool {

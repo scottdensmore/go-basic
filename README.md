@@ -4,12 +4,12 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 
 ## Features
 
--   **Variables**: Numeric variables and scalar string variables ending in `$`.
--   **Math Operations**: `+`, `-`, `*`, `/`, numeric and string comparisons, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
+-   **Variables**: Numeric variables, scalar string variables ending in `$`, and dimensioned numeric arrays.
+-   **Math Operations**: `+`, `-`, `*`, `/`, `AND`, numeric and string comparisons, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
 -   **Functions**: Single-argument numeric functions defined with `DEF FN`.
--   **Control Flow**: `FOR`...`NEXT`, `IF`...`THEN`, `GOTO`, `END`, and `SLEEP`.
+-   **Control Flow**: `FOR`...`NEXT`, `IF`...`THEN`, `GOTO`, `ON`...`GOTO`, `END`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` separator and `TAB` function support.
--   **Input**: Prompted or unprompted single-value `INPUT` for numeric and string variables.
+-   **Input**: Prompted or unprompted `INPUT` for comma-separated numeric and string variables.
 -   **Source Lines**: `REM` comments and colon-separated statements.
 -   **Diagnostics**: Parse and runtime errors include BASIC source line context.
 -   **Cross-Platform**: Compiles and runs on macOS, Linux, and Windows.
@@ -112,6 +112,7 @@ changes and verifies their complete output transcripts:
 - [`78_Sine_Wave/sinewave.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/78_Sine_Wave/sinewave.bas)
 - [`87_3-D_Plot/3dplot.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/87_3-D_Plot/3dplot.bas)
 - [`01_Acey_Ducey/aceyducey.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/01_Acey_Ducey/aceyducey.bas)
+- [`02_Amazing/amazing.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/02_Amazing/amazing.bas)
 
 ## Testing
 

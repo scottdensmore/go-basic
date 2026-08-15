@@ -131,6 +131,35 @@ func TestParserBuildsAceyDuceyInputStatements(t *testing.T) {
 	}
 }
 
+func TestParserBuildsAmazingStatements(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource(`10 INPUT "SIZE";H,V
+20 IF H<>1 AND V<>1 THEN 50
+30 DIM W(H,V),V(H,V)
+40 W(1,2)=7
+50 PRINT W(1,2)
+60 ON W(1,2) GOTO 100,200,300
+`)
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+
+	want := map[int]string{
+		10: "INPUT ...",
+		20: "IF ((H <> 1) AND (V <> 1)) THEN 50",
+		30: "DIM ...",
+		40: "W(...) = 7",
+		50: "PRINT ...",
+		60: "ON W(...) GOTO ...",
+	}
+	for line, wantString := range want {
+		if got := program.Lines[line].String(); got != wantString {
+			t.Fatalf("line %d: got %q, want %q", line, got, wantString)
+		}
+	}
+}
+
 func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 	t.Parallel()
 
@@ -141,6 +170,10 @@ func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 		basicLine int
 	}{
 		{name: "input missing variable", source: "10 INPUT \"PROMPT\";\n", wantError: "expected IDENT", basicLine: 10},
+		{name: "input trailing comma", source: "10 INPUT A,\n", wantError: "expected IDENT", basicLine: 10},
+		{name: "dimension missing bound", source: "10 DIM A()\n", wantError: "expected expression", basicLine: 10},
+		{name: "array missing subscript", source: "10 PRINT A()\n", wantError: "expected expression", basicLine: 10},
+		{name: "on goto missing target", source: "10 ON X GOTO\n", wantError: "expected NUMBER", basicLine: 10},
 		{name: "missing line number", source: "PRINT 1\n", wantError: "expected BASIC line number"},
 		{name: "malformed assignment", source: "10 value 42\n", wantError: "expected =", basicLine: 10},
 		{name: "missing expression", source: "10 PRINT 1 +\n", wantError: "expected expression", basicLine: 10},
@@ -229,6 +262,8 @@ func isNilStatement(statement Statement) bool {
 		return value == nil
 	case *InputStatement:
 		return value == nil
+	case *DimStatement:
+		return value == nil
 	case *ForStatement:
 		return value == nil
 	case *NextStatement:
@@ -242,6 +277,8 @@ func isNilStatement(statement Statement) bool {
 	case *IfStatement:
 		return value == nil
 	case *GotoStatement:
+		return value == nil
+	case *OnGotoStatement:
 		return value == nil
 	case *EndStatement:
 		return value == nil

@@ -61,6 +61,18 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("generates a maze with the original Amazing program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "1", filepath.Join("scripts", "amazing.bas"))
+		command.Stdin = strings.NewReader("4,4\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), amazingOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%s\nwant:\n%s", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -194,5 +206,23 @@ func aceyDuceyOutput() string {
 	output.WriteString("WHAT IS YOUR BET? KING\nSORRY, YOU LOSE\n\n\n")
 	output.WriteString("SORRY, FRIEND, BUT YOU BLEW YOUR WAD.\n\n\n")
 	output.WriteString("TRY AGAIN (YES OR NO)? \n\nO.K., HOPE YOU HAD FUN!\n")
+	return output.String()
+}
+
+func amazingOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 28) + "AMAZING PROGRAM\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n\n")
+	output.WriteString("WHAT ARE YOUR WIDTH AND LENGTH? \n\n\n\n")
+	output.WriteString(".--.--.  .--.\n")
+	output.WriteString("I     I  I  I\n")
+	output.WriteString(":  :--:  :  .\n")
+	output.WriteString("I  I        I\n")
+	output.WriteString(":  :  :  :--.\n")
+	output.WriteString("I     I     I\n")
+	output.WriteString(":  :--:--:  .\n")
+	output.WriteString("I     I     I\n")
+	output.WriteString(":--:--:  :--.\n")
 	return output.String()
 }

@@ -59,6 +59,17 @@ type GotoStatement struct {
 func (gs *GotoStatement) statementNode() {}
 func (gs *GotoStatement) String() string { return fmt.Sprintf("GOTO %d", gs.TargetLine) }
 
+// OnGotoStatement transfers control using a one-based computed target index.
+type OnGotoStatement struct {
+	Selector Expression
+	Targets  []int
+}
+
+func (os *OnGotoStatement) statementNode() {}
+func (os *OnGotoStatement) String() string {
+	return fmt.Sprintf("ON %s GOTO ...", os.Selector.String())
+}
+
 // EndStatement terminates program execution successfully.
 type EndStatement struct{}
 
@@ -79,14 +90,32 @@ func (ds *DefFnStatement) String() string {
 
 // LetStatement assigns an expression to a variable.
 type LetStatement struct {
-	Name  *Identifier
-	Value Expression
+	Name    *Identifier
+	Indices []Expression
+	Value   Expression
 }
 
 func (ls *LetStatement) statementNode() {}
 func (ls *LetStatement) String() string {
+	if len(ls.Indices) != 0 {
+		return fmt.Sprintf("%s(...) = %s", ls.Name.String(), ls.Value.String())
+	}
 	return fmt.Sprintf("%s = %s", ls.Name.String(), ls.Value.String())
 }
+
+// ArrayDeclaration defines the inclusive bounds of one numeric array.
+type ArrayDeclaration struct {
+	Name       *Identifier
+	Dimensions []Expression
+}
+
+// DimStatement declares one or more arrays.
+type DimStatement struct {
+	Arrays []ArrayDeclaration
+}
+
+func (ds *DimStatement) statementNode() {}
+func (ds *DimStatement) String() string { return "DIM ..." }
 
 // PrintElement is either an expression or a semicolon separator.
 type PrintElement struct {
@@ -104,8 +133,8 @@ func (ps *PrintStmt) String() string { return "PRINT ..." }
 
 // InputStatement reads one scalar value, optionally after displaying a prompt.
 type InputStatement struct {
-	Prompt *StringLiteral
-	Var    *Identifier
+	Prompt    *StringLiteral
+	Variables []*Identifier
 }
 
 func (is *InputStatement) statementNode() {}
@@ -152,6 +181,15 @@ type Identifier struct {
 
 func (i *Identifier) expressionNode() {}
 func (i *Identifier) String() string  { return i.Value }
+
+// ArrayReference reads an indexed array element.
+type ArrayReference struct {
+	Name    *Identifier
+	Indices []Expression
+}
+
+func (ar *ArrayReference) expressionNode() {}
+func (ar *ArrayReference) String() string  { return fmt.Sprintf("%s(...)", ar.Name.String()) }
 
 // IntegerLiteral is an integer-valued numeric literal.
 type IntegerLiteral struct {
