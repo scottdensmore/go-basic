@@ -1,28 +1,32 @@
+// Package interpreter lexes, parses, and executes supported BASIC programs.
 package interpreter
 
 import "fmt"
 
+// Node is implemented by all BASIC syntax tree nodes.
 type Node interface {
 	String() string
 }
 
+// Statement is implemented by all BASIC statements.
 type Statement interface {
 	Node
 	statementNode()
 }
 
+// Expression is implemented by all BASIC expressions.
 type Expression interface {
 	Node
 	expressionNode()
 }
 
+// Program stores one statement per sorted BASIC source line.
 type Program struct {
-	Lines map[int]Statement
-	LineNumbers []int // Sorted line numbers
+	Lines       map[int]Statement
+	LineNumbers []int
 }
 
-// Statements
-
+// LetStatement assigns an expression to a variable.
 type LetStatement struct {
 	Name  *Identifier
 	Value Expression
@@ -33,33 +37,26 @@ func (ls *LetStatement) String() string {
 	return fmt.Sprintf("%s = %s", ls.Name.String(), ls.Value.String())
 }
 
-type PrintStatement struct {
-	Elements []Expression // Can be strings, numbers, calls. Semicolons might need handling?
-	// Actually in BASIC `PRINT A; B` usually treats ; as a separator that doesn't print a newline.
-	// We might need to represent separators in the AST or handle them in the parser.
-	// For simplicity, let's say PrintStatement has a list of printable expressions.
-	// If an expression is nil, it might represent a bare semicolon or we handle formatting in evaluator.
-	// Let's store expressions and flags.
-}
-
-// Simplified Print: just a list of expressions. If we need formatting, we'll see.
+// PrintElement is either an expression or a semicolon separator.
 type PrintElement struct {
-    Expr Expression
-    IsSeparator bool // true if this is just a semicolon/separator
+	Expr        Expression
+	IsSeparator bool
 }
 
+// PrintStmt writes expressions and optionally suppresses the trailing newline.
 type PrintStmt struct {
-    Items []PrintElement
+	Items []PrintElement
 }
 
 func (ps *PrintStmt) statementNode() {}
 func (ps *PrintStmt) String() string { return "PRINT ..." }
 
+// ForStatement begins a numeric FOR/NEXT loop.
 type ForStatement struct {
 	Var   *Identifier
 	Start Expression
 	End   Expression
-	Step  Expression // Optional, default to 1
+	Step  Expression
 }
 
 func (fs *ForStatement) statementNode() {}
@@ -67,13 +64,20 @@ func (fs *ForStatement) String() string {
 	return fmt.Sprintf("FOR %s = %s TO %s STEP %s", fs.Var.String(), fs.Start.String(), fs.End.String(), fs.Step.String())
 }
 
+// NextStatement advances the innermost FOR/NEXT loop.
 type NextStatement struct {
 	Var *Identifier
 }
 
 func (ns *NextStatement) statementNode() {}
-func (ns *NextStatement) String() string { return fmt.Sprintf("NEXT %s", ns.Var.String()) }
+func (ns *NextStatement) String() string {
+	if ns.Var == nil {
+		return "NEXT"
+	}
+	return fmt.Sprintf("NEXT %s", ns.Var.String())
+}
 
+// SleepStatement pauses execution for a number of seconds.
 type SleepStatement struct {
 	Duration Expression
 }
@@ -81,15 +85,7 @@ type SleepStatement struct {
 func (ss *SleepStatement) statementNode() {}
 func (ss *SleepStatement) String() string { return fmt.Sprintf("SLEEP %s", ss.Duration.String()) }
 
-type ExpressionStatement struct {
-    Expression Expression
-}
-func (es *ExpressionStatement) statementNode() {}
-func (es *ExpressionStatement) String() string { return es.Expression.String() }
-
-
-// Expressions
-
+// Identifier names a BASIC variable.
 type Identifier struct {
 	Value string
 }
@@ -97,6 +93,7 @@ type Identifier struct {
 func (i *Identifier) expressionNode() {}
 func (i *Identifier) String() string  { return i.Value }
 
+// IntegerLiteral is an integer-valued numeric literal.
 type IntegerLiteral struct {
 	Value int64
 }
@@ -104,20 +101,23 @@ type IntegerLiteral struct {
 func (il *IntegerLiteral) expressionNode() {}
 func (il *IntegerLiteral) String() string  { return fmt.Sprintf("%d", il.Value) }
 
+// FloatLiteral is a floating-point numeric literal.
 type FloatLiteral struct {
 	Value float64
 }
 
 func (fl *FloatLiteral) expressionNode() {}
-func (fl *FloatLiteral) String() string  { return fmt.Sprintf("%f", fl.Value) }
+func (fl *FloatLiteral) String() string  { return fmt.Sprintf("%g", fl.Value) }
 
+// StringLiteral is a quoted string literal.
 type StringLiteral struct {
 	Value string
 }
 
 func (sl *StringLiteral) expressionNode() {}
-func (sl *StringLiteral) String() string  { return fmt.Sprintf("\"%s\"", sl.Value) }
+func (sl *StringLiteral) String() string  { return fmt.Sprintf("%q", sl.Value) }
 
+// PrefixExpression applies a unary operator to an expression.
 type PrefixExpression struct {
 	Operator string
 	Right    Expression
@@ -128,6 +128,7 @@ func (pe *PrefixExpression) String() string {
 	return fmt.Sprintf("(%s%s)", pe.Operator, pe.Right.String())
 }
 
+// InfixExpression applies a binary operator to two expressions.
 type InfixExpression struct {
 	Left     Expression
 	Operator string
@@ -139,12 +140,11 @@ func (ie *InfixExpression) String() string {
 	return fmt.Sprintf("(%s %s %s)", ie.Left.String(), ie.Operator, ie.Right.String())
 }
 
+// CallExpression invokes a built-in BASIC function.
 type CallExpression struct {
-	Function string // TAB, SIN
+	Function  string
 	Arguments []Expression
 }
 
 func (ce *CallExpression) expressionNode() {}
-func (ce *CallExpression) String() string {
-	return fmt.Sprintf("%s(...)", ce.Function)
-}
+func (ce *CallExpression) String() string  { return fmt.Sprintf("%s(...)", ce.Function) }

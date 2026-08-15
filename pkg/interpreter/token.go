@@ -1,42 +1,66 @@
 package interpreter
 
+// TokenType identifies a lexical token in a BASIC program.
 type TokenType string
 
 const (
-	ILLEGAL = "ILLEGAL"
-	EOF     = "EOF"
-	EOL     = "EOL"
+	// ILLEGAL marks an unsupported or malformed source character.
+	ILLEGAL TokenType = "ILLEGAL"
+	// EOF marks the end of the source input.
+	EOF TokenType = "EOF"
+	// EOL marks the end of a BASIC source line.
+	EOL TokenType = "EOL"
 
-	// Identifiers + literals
-	IDENT  = "IDENT"  // a, b, etc.
-	NUMBER = "NUMBER" // 123, 123.45
-	STRING = "STRING" // "abc"
+	// IDENT identifies a variable name.
+	IDENT TokenType = "IDENT"
+	// NUMBER identifies an integer or floating-point literal.
+	NUMBER TokenType = "NUMBER"
+	// STRING identifies a quoted string literal.
+	STRING TokenType = "STRING"
 
-	// Operators
-	ASSIGN = "="
-	PLUS   = "+"
-	MINUS  = "-"
-	ASTERISK = "*"
-	SLASH  = "/"
-	SEMICOLON = ";"
-	LPAREN = "("
-	RPAREN = ")"
+	// ASSIGN is the assignment operator.
+	ASSIGN TokenType = "="
+	// PLUS is the addition operator.
+	PLUS TokenType = "+"
+	// MINUS is the subtraction or unary negation operator.
+	MINUS TokenType = "-"
+	// ASTERISK is the multiplication operator.
+	ASTERISK TokenType = "*"
+	// SLASH is the division operator.
+	SLASH TokenType = "/"
+	// SEMICOLON separates PRINT elements and can suppress its newline.
+	SEMICOLON TokenType = ";"
+	// LPAREN begins a grouped expression or function argument.
+	LPAREN TokenType = "("
+	// RPAREN ends a grouped expression or function argument.
+	RPAREN TokenType = ")"
 
-	// Keywords
-	FOR   = "FOR"
-	TO    = "TO"
-	STEP  = "STEP"
-	NEXT  = "NEXT"
-	PRINT = "PRINT"
-	SLEEP = "SLEEP"
-	TAB   = "TAB"
-	SIN   = "SIN"
+	// FOR begins a numeric loop.
+	FOR TokenType = "FOR"
+	// TO separates the initial and final values of a FOR loop.
+	TO TokenType = "TO"
+	// STEP introduces a FOR loop increment.
+	STEP TokenType = "STEP"
+	// NEXT advances a FOR loop.
+	NEXT TokenType = "NEXT"
+	// PRINT writes values to standard output.
+	PRINT TokenType = "PRINT"
+	// SLEEP pauses execution for a number of seconds.
+	SLEEP TokenType = "SLEEP"
+	// TAB moves PRINT output to a target column.
+	TAB TokenType = "TAB"
+	// SIN computes a sine value.
+	SIN TokenType = "SIN"
+	// INPUT is recognized so the parser can report that it is unsupported.
+	INPUT TokenType = "INPUT"
 )
 
+// Token records a token's type, source spelling, and one-based position.
 type Token struct {
 	Type    TokenType
 	Literal string
-	Line    int // Source line number (if we track it, or just for error reporting)
+	Line    int
+	Column  int
 }
 
 var keywords = map[string]TokenType{
@@ -48,11 +72,13 @@ var keywords = map[string]TokenType{
 	"sleep": SLEEP,
 	"tab":   TAB,
 	"sin":   SIN,
+	"input": INPUT,
 }
 
+// LookupIdent returns the keyword token for ident, or IDENT otherwise.
 func LookupIdent(ident string) TokenType {
-	if tok, ok := keywords[ident]; ok {
-		return tok
+	if tokenType, ok := keywords[ident]; ok {
+		return tokenType
 	}
 	return IDENT
 }

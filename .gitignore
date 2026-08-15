@@ -5,8 +5,10 @@
 *.so
 *.dylib
 
-# Specific binary
-go-basic
+# Root-level binary
+/go-basic
+bin/
+.tools/
 
 # Test binary, built with 'go test -c'
 *.test

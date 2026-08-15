@@ -1,31 +1,154 @@
 package interpreter
 
 import (
+	"strings"
 	"testing"
 )
 
-func TestParseProgram(t *testing.T) {
-	input := `
-10 for a=1 to 10
-20 print "test"
-30 next a
-`
-	l := NewLexer(input)
-	p := NewParser(l)
-	program := p.ParseProgram()
+func TestParserBuildsSupportedStatements(t *testing.T) {
+	t.Parallel()
 
-	if len(program.Lines) != 3 {
-		t.Fatalf("program.Lines does not contain 3 statements. got=%d",
-			len(program.Lines))
+	program, errors := parseSource(`10 total = 1 + 2 * 3
+20 FOR i = 3 TO 1 STEP -1
+30 PRINT TAB(2); "value="; total / 2
+40 NEXT i
+50 SLEEP .25
+`)
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	if got, want := program.LineNumbers, []int{10, 20, 30, 40, 50}; !equalInts(got, want) {
+		t.Fatalf("line numbers: got %v, want %v", got, want)
 	}
 
-	stmt, ok := program.Lines[10]
+	assignment, ok := program.Lines[10].(*LetStatement)
 	if !ok {
-		t.Fatalf("statement at line 10 not found")
+		t.Fatalf("line 10 type: got %T", program.Lines[10])
+	}
+	if got, want := assignment.Value.String(), "(1 + (2 * 3))"; got != want {
+		t.Fatalf("assignment expression: got %q, want %q", got, want)
 	}
 
-	_, ok = stmt.(*ForStatement)
-	if !ok {
-		t.Fatalf("stmt is not *ForStatement. got=%T", stmt)
+	loop, ok := program.Lines[20].(*ForStatement)
+	if !ok || loop.Step.String() != "(-1)" {
+		t.Fatalf("line 20: got %#v", program.Lines[20])
+	}
+
+	printStmt, ok := program.Lines[30].(*PrintStmt)
+	if !ok || len(printStmt.Items) != 5 || !printStmt.Items[1].IsSeparator {
+		t.Fatalf("line 30: got %#v", program.Lines[30])
+	}
+}
+
+func TestParserSortsSourceLines(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("30 PRINT 3\n10 PRINT 1\n20 PRINT 2\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	if got, want := program.LineNumbers, []int{10, 20, 30}; !equalInts(got, want) {
+		t.Fatalf("line numbers: got %v, want %v", got, want)
+	}
+}
+
+func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		source    string
+		wantError string
+		basicLine int
+	}{
+		{name: "unsupported statement", source: "10 INPUT A\n", wantError: "unsupported statement INPUT", basicLine: 10},
+		{name: "missing line number", source: "PRINT 1\n", wantError: "expected BASIC line number"},
+		{name: "malformed assignment", source: "10 value 42\n", wantError: "expected =", basicLine: 10},
+		{name: "missing expression", source: "10 PRINT 1 +\n", wantError: "expected expression", basicLine: 10},
+		{name: "missing parenthesis", source: "10 PRINT SIN(1\n", wantError: "expected )", basicLine: 10},
+		{name: "duplicate line", source: "10 PRINT 1\n10 PRINT 2\n", wantError: "duplicate BASIC line 10", basicLine: 10},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			program, errors := parseSource(test.source)
+			if !containsError(errors, test.wantError) {
+				t.Fatalf("errors %v do not contain %q", errors, test.wantError)
+			}
+			if test.basicLine != 0 {
+				if stmt, exists := program.Lines[test.basicLine]; exists && isNilStatement(stmt) {
+					t.Fatalf("line %d contains a typed-nil statement", test.basicLine)
+				}
+			}
+		})
+	}
+}
+
+func FuzzParserDoesNotPanic(f *testing.F) {
+	for _, seed := range []string{
+		"",
+		"10 PRINT \"HELLO\"\n",
+		"10 FOR I=1 TO 3\n20 NEXT I\n",
+		"10 INPUT A\n",
+		"not BASIC",
+	} {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, source string) {
+		parser := NewParser(NewLexer(source))
+		program := parser.ParseProgram()
+		if program == nil {
+			t.Fatal("parser returned a nil program")
+		}
+		for _, line := range program.LineNumbers {
+			if isNilStatement(program.Lines[line]) {
+				t.Fatalf("BASIC line %d contains a typed-nil statement", line)
+			}
+		}
+	})
+}
+
+func parseSource(source string) (*Program, []string) {
+	parser := NewParser(NewLexer(source))
+	return parser.ParseProgram(), parser.Errors
+}
+
+func containsError(errors []string, want string) bool {
+	for _, err := range errors {
+		if strings.Contains(err, want) {
+			return true
+		}
+	}
+	return false
+}
+
+func equalInts(left, right []int) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for i := range left {
+		if left[i] != right[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func isNilStatement(statement Statement) bool {
+	switch value := statement.(type) {
+	case *LetStatement:
+		return value == nil
+	case *PrintStmt:
+		return value == nil
+	case *ForStatement:
+		return value == nil
+	case *NextStatement:
+		return value == nil
+	case *SleepStatement:
+		return value == nil
+	default:
+		return statement == nil
 	}
 }
