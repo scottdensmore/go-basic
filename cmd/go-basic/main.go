@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"strings"
 
@@ -15,15 +16,16 @@ import (
 var Version = "dev"
 
 func main() {
-	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }
 
-func run(arguments []string, stdout, stderr io.Writer) int {
+func run(arguments []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("go-basic", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	showVersion := flags.Bool("version", false, "print version and exit")
+	seed := flags.Int64("seed", 0, "seed RND for reproducible runs")
 	flags.Usage = func() {
-		_, _ = fmt.Fprintln(stderr, "usage: go-basic [-version] source.bas")
+		_, _ = fmt.Fprintln(stderr, "usage: go-basic [-version] [-seed number] source.bas")
 	}
 	if err := flags.Parse(arguments); err != nil {
 		return 2
@@ -51,7 +53,16 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintf(stderr, "go-basic: parse %s:\n%s\n", path, strings.Join(parser.Errors, "\n"))
 		return 1
 	}
-	if err := interpreter.NewEvaluator(program, stdout).Run(); err != nil {
+	options := []interpreter.EvaluatorOption{interpreter.WithInput(stdin)}
+	seeded := false
+	flags.Visit(func(flag *flag.Flag) {
+		seeded = seeded || flag.Name == "seed"
+	})
+	if seeded {
+		generator := rand.New(rand.NewSource(*seed))
+		options = append(options, interpreter.WithRandom(generator.Float64))
+	}
+	if err := interpreter.NewEvaluator(program, stdout, options...).Run(); err != nil {
 		_, _ = fmt.Fprintf(stderr, "go-basic: run %s: %v\n", path, err)
 		return 1
 	}

@@ -113,6 +113,35 @@ func TestLexerRecognizesThreeDPlotSyntax(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesAceyDuceyStringIdentifiers(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("10 INPUT\"TRY AGAIN\";A$\n20 IF A$=\"YES\" THEN 10\n")
+	want := []Token{
+		{Type: NUMBER, Literal: "10", Line: 1, Column: 1},
+		{Type: INPUT, Literal: "INPUT", Line: 1, Column: 4},
+		{Type: STRING, Literal: "TRY AGAIN", Line: 1, Column: 9},
+		{Type: SEMICOLON, Literal: ";", Line: 1, Column: 20},
+		{Type: IDENT, Literal: "A$", Line: 1, Column: 21},
+		{Type: EOL, Literal: "\n", Line: 1, Column: 23},
+		{Type: NUMBER, Literal: "20", Line: 2, Column: 1},
+		{Type: IF, Literal: "IF", Line: 2, Column: 4},
+		{Type: IDENT, Literal: "A$", Line: 2, Column: 7},
+		{Type: ASSIGN, Literal: "=", Line: 2, Column: 9},
+		{Type: STRING, Literal: "YES", Line: 2, Column: 10},
+		{Type: THEN, Literal: "THEN", Line: 2, Column: 16},
+		{Type: NUMBER, Literal: "10", Line: 2, Column: 21},
+		{Type: EOL, Literal: "\n", Line: 2, Column: 23},
+		{Type: EOF, Line: 3, Column: 1},
+	}
+
+	for index, expected := range want {
+		if actual := lexer.NextToken(); actual != expected {
+			t.Fatalf("token %d: got %#v, want %#v", index, actual, expected)
+		}
+	}
+}
+
 func FuzzLexerTerminates(f *testing.F) {
 	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "5 DEF FNA(Z)=EXP(SQR(Z))\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
 		f.Add(seed)

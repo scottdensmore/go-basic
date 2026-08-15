@@ -1,12 +1,15 @@
 package interpreter
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"math"
+	"math/rand"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -41,6 +44,24 @@ func WithSleep(sleep func(time.Duration)) EvaluatorOption {
 	}
 }
 
+// WithInput injects the stream read by INPUT statements.
+func WithInput(input io.Reader) EvaluatorOption {
+	return func(evaluator *Evaluator) {
+		if input != nil {
+			evaluator.input = bufio.NewReader(input)
+		}
+	}
+}
+
+// WithRandom injects the source used by RND for values in the range [0, 1).
+func WithRandom(random func() float64) EvaluatorOption {
+	return func(evaluator *Evaluator) {
+		if random != nil {
+			evaluator.random = random
+		}
+	}
+}
+
 // Evaluator executes a parsed BASIC program.
 type Evaluator struct {
 	Env              *Environment
@@ -52,6 +73,10 @@ type Evaluator struct {
 	functions        map[string]*DefFnStatement
 	halted           bool
 	jumped           bool
+	input            *bufio.Reader
+	lastRandom       float64
+	hasRandom        bool
+	random           func() float64
 	sleep            func(time.Duration)
 }
 
@@ -66,6 +91,8 @@ func NewEvaluator(program *Program, output io.Writer, options ...EvaluatorOption
 		LoopStack: []*LoopContext{},
 		Out:       output,
 		functions: make(map[string]*DefFnStatement),
+		input:     bufio.NewReader(os.Stdin),
+		random:    rand.Float64,
 		sleep:     time.Sleep,
 	}
 	for _, option := range options {
@@ -103,13 +130,14 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 		if err != nil {
 			return err
 		}
-		e.Env.Store[normalizeName(value.Name.Value)] = result
-		return nil
+		return e.assignScalar(value.Name.Value, result)
 	case *PrintStmt:
 		if value == nil {
 			return errors.New("invalid statement")
 		}
 		return e.evalPrintStatement(value)
+	case *InputStatement:
+		return e.evalInputStatement(value)
 	case *ForStatement:
 		if value == nil {
 			return errors.New("invalid statement")
@@ -177,6 +205,70 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 	}
 }
 
+func (e *Evaluator) evalInputStatement(statement *InputStatement) error {
+	if statement == nil || statement.Var == nil {
+		return errors.New("invalid INPUT statement")
+	}
+	prompt := "? "
+	if statement.Prompt != nil {
+		prompt = statement.Prompt.Value + "? "
+	}
+	if err := e.writeInputText(prompt); err != nil {
+		return err
+	}
+
+	for {
+		line, err := e.input.ReadString('\n')
+		if err != nil && len(line) == 0 {
+			return fmt.Errorf("read input: %w", err)
+		}
+		text := strings.TrimSpace(line)
+		name := normalizeName(statement.Var.Value)
+		if strings.HasSuffix(name, "$") {
+			if len(text) >= 2 && text[0] == '"' && text[len(text)-1] == '"' {
+				text = text[1 : len(text)-1]
+			}
+			return e.assignScalar(name, text)
+		}
+
+		number, parseErr := strconv.ParseFloat(text, 64)
+		if parseErr == nil {
+			return e.assignScalar(name, number)
+		}
+		if err := e.writeInputText("?REDO FROM START\n? "); err != nil {
+			return err
+		}
+		if err != nil {
+			return fmt.Errorf("read input: %w", err)
+		}
+	}
+}
+
+func (e *Evaluator) assignScalar(name string, value any) error {
+	normalized := normalizeName(name)
+	if strings.HasSuffix(normalized, "$") {
+		if _, ok := value.(string); !ok {
+			return fmt.Errorf("string variable %s requires a string value", name)
+		}
+	} else if _, ok := value.(float64); !ok {
+		return fmt.Errorf("numeric variable %s requires a number", name)
+	}
+	e.Env.Store[normalized] = value
+	return nil
+}
+
+func (e *Evaluator) writeInputText(text string) error {
+	if _, err := io.WriteString(e.Out, text); err != nil {
+		return fmt.Errorf("write output: %w", err)
+	}
+	if lastNewline := strings.LastIndexByte(text, '\n'); lastNewline >= 0 {
+		e.OutputColumn = len(text) - lastNewline - 1
+	} else {
+		e.OutputColumn += len(text)
+	}
+	return nil
+}
+
 func (e *Evaluator) jumpTo(targetLine int) error {
 	index := sort.SearchInts(e.Program.LineNumbers, targetLine)
 	if index == len(e.Program.LineNumbers) || e.Program.LineNumbers[index] != targetLine {
@@ -224,6 +316,9 @@ func (e *Evaluator) evalPrintStatement(statement *PrintStmt) error {
 func (e *Evaluator) evalForStatement(statement *ForStatement) error {
 	if statement.Var == nil || statement.Start == nil || statement.End == nil || statement.Step == nil {
 		return errors.New("invalid FOR statement")
+	}
+	if strings.HasSuffix(statement.Var.Value, "$") {
+		return fmt.Errorf("FOR variable %s must be numeric", statement.Var.Value)
 	}
 	start, err := e.evalNumber(statement.Start)
 	if err != nil {
@@ -317,6 +412,9 @@ func (e *Evaluator) evalExpression(expression Expression) (any, error) {
 		}
 		stored, ok := e.Env.Store[normalizeName(value.Value)]
 		if !ok {
+			if strings.HasSuffix(value.Value, "$") {
+				return "", nil
+			}
 			return float64(0), nil
 		}
 		return stored, nil
@@ -345,40 +443,86 @@ func (e *Evaluator) evalInfixExpression(expression *InfixExpression) (any, error
 	if expression == nil || expression.Left == nil || expression.Right == nil {
 		return nil, errors.New("invalid infix expression")
 	}
-	left, err := e.evalNumber(expression.Left)
+	left, err := e.evalExpression(expression.Left)
 	if err != nil {
 		return nil, err
 	}
-	right, err := e.evalNumber(expression.Right)
+	right, err := e.evalExpression(expression.Right)
+	if err != nil {
+		return nil, err
+	}
+	if isComparisonOperator(expression.Operator) {
+		return compareValues(left, right, expression.Operator)
+	}
+	leftNumber, err := numericValue(left)
+	if err != nil {
+		return nil, err
+	}
+	rightNumber, err := numericValue(right)
 	if err != nil {
 		return nil, err
 	}
 	switch expression.Operator {
 	case "+":
-		return left + right, nil
+		return leftNumber + rightNumber, nil
 	case "-":
-		return left - right, nil
+		return leftNumber - rightNumber, nil
 	case "*":
-		return left * right, nil
+		return leftNumber * rightNumber, nil
 	case "/":
-		if right == 0 {
+		if rightNumber == 0 {
 			return nil, errors.New("division by zero")
 		}
-		return left / right, nil
-	case "=":
-		return basicBoolean(left == right), nil
-	case "<>":
-		return basicBoolean(left != right), nil
-	case "<":
-		return basicBoolean(left < right), nil
-	case "<=":
-		return basicBoolean(left <= right), nil
-	case ">":
-		return basicBoolean(left > right), nil
-	case ">=":
-		return basicBoolean(left >= right), nil
+		return leftNumber / rightNumber, nil
 	default:
 		return nil, fmt.Errorf("unsupported infix operator %q", expression.Operator)
+	}
+}
+
+func isComparisonOperator(operator string) bool {
+	switch operator {
+	case "=", "<>", "<", "<=", ">", ">=":
+		return true
+	default:
+		return false
+	}
+}
+
+func compareValues(left, right any, operator string) (any, error) {
+	if leftString, ok := left.(string); ok {
+		rightString, ok := right.(string)
+		if !ok {
+			return nil, errors.New("type mismatch in comparison")
+		}
+		return basicBoolean(compareOrdered(leftString, rightString, operator)), nil
+	}
+	leftNumber, err := numericValue(left)
+	if err != nil {
+		return nil, err
+	}
+	rightNumber, err := numericValue(right)
+	if err != nil {
+		return nil, err
+	}
+	return basicBoolean(compareOrdered(leftNumber, rightNumber, operator)), nil
+}
+
+func compareOrdered[T float64 | string](left, right T, operator string) bool {
+	switch operator {
+	case "=":
+		return left == right
+	case "<>":
+		return left != right
+	case "<":
+		return left < right
+	case "<=":
+		return left <= right
+	case ">":
+		return left > right
+	case ">=":
+		return left >= right
+	default:
+		return false
 	}
 }
 
@@ -410,6 +554,20 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 		if math.IsInf(result, 0) {
 			return nil, errors.New("EXP overflow")
 		}
+		return result, nil
+	case "RND":
+		if argument < 0 {
+			return nil, errors.New("negative RND arguments are not supported")
+		}
+		if argument == 0 && e.hasRandom {
+			return e.lastRandom, nil
+		}
+		result := e.random()
+		if math.IsNaN(result) || result < 0 || result >= 1 {
+			return nil, errors.New("RND source returned a value outside [0, 1)")
+		}
+		e.lastRandom = result
+		e.hasRandom = true
 		return result, nil
 	default:
 		return e.evalUserFunction(expression.Function, argument)

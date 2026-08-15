@@ -4,11 +4,12 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 
 ## Features
 
--   **Variables**: Integer and floating-point variables.
--   **Math Operations**: `+`, `-`, `*`, `/`, numeric comparisons, `INT`, `SIN`, `SQR`, and `EXP`.
+-   **Variables**: Numeric variables and scalar string variables ending in `$`.
+-   **Math Operations**: `+`, `-`, `*`, `/`, numeric and string comparisons, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
 -   **Functions**: Single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, `IF`...`THEN`, `GOTO`, `END`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` separator and `TAB` function support.
+-   **Input**: Prompted or unprompted single-value `INPUT` for numeric and string variables.
 -   **Source Lines**: `REM` comments and colon-separated statements.
 -   **Diagnostics**: Parse and runtime errors include BASIC source line context.
 -   **Cross-Platform**: Compiles and runs on macOS, Linux, and Windows.
@@ -70,6 +71,7 @@ Once built, you can run BASIC scripts by passing the file path as an argument.
 ### Flags
 
 -   `-version`: Prints the version information and exits.
+-   `-seed number`: Seeds `RND` for reproducible runs and tests.
 
 ### Example
 
@@ -109,6 +111,7 @@ changes and verifies their complete output transcripts:
 
 - [`78_Sine_Wave/sinewave.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/78_Sine_Wave/sinewave.bas)
 - [`87_3-D_Plot/3dplot.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/87_3-D_Plot/3dplot.bas)
+- [`01_Acey_Ducey/aceyducey.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/01_Acey_Ducey/aceyducey.bas)
 
 ## Testing
 
