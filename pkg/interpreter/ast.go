@@ -20,11 +20,50 @@ type Expression interface {
 	expressionNode()
 }
 
-// Program stores one statement per sorted BASIC source line.
+// Program stores one statement or statement sequence per sorted BASIC source line.
 type Program struct {
 	Lines       map[int]Statement
 	LineNumbers []int
 }
+
+// SequenceStatement executes colon-separated statements from left to right.
+type SequenceStatement struct {
+	Statements []Statement
+}
+
+func (ss *SequenceStatement) statementNode() {}
+func (ss *SequenceStatement) String() string { return "... : ..." }
+
+// RemStatement represents a comment and has no runtime effect.
+type RemStatement struct{}
+
+func (rs *RemStatement) statementNode() {}
+func (rs *RemStatement) String() string { return "REM" }
+
+// IfStatement transfers control when its numeric condition is nonzero.
+type IfStatement struct {
+	Condition  Expression
+	TargetLine int
+}
+
+func (is *IfStatement) statementNode() {}
+func (is *IfStatement) String() string {
+	return fmt.Sprintf("IF %s THEN %d", is.Condition.String(), is.TargetLine)
+}
+
+// GotoStatement transfers control to a numbered BASIC line.
+type GotoStatement struct {
+	TargetLine int
+}
+
+func (gs *GotoStatement) statementNode() {}
+func (gs *GotoStatement) String() string { return fmt.Sprintf("GOTO %d", gs.TargetLine) }
+
+// EndStatement terminates program execution successfully.
+type EndStatement struct{}
+
+func (es *EndStatement) statementNode() {}
+func (es *EndStatement) String() string { return "END" }
 
 // LetStatement assigns an expression to a variable.
 type LetStatement struct {

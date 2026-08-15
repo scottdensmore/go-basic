@@ -18,7 +18,7 @@ const (
 	// STRING identifies a quoted string literal.
 	STRING TokenType = "STRING"
 
-	// ASSIGN is the assignment operator.
+	// ASSIGN is the assignment and equality operator.
 	ASSIGN TokenType = "="
 	// PLUS is the addition operator.
 	PLUS TokenType = "+"
@@ -30,6 +30,8 @@ const (
 	SLASH TokenType = "/"
 	// SEMICOLON separates PRINT elements and can suppress its newline.
 	SEMICOLON TokenType = ";"
+	// COLON separates statements on one BASIC source line.
+	COLON TokenType = ":"
 	// LPAREN begins a grouped expression or function argument.
 	LPAREN TokenType = "("
 	// RPAREN ends a grouped expression or function argument.
@@ -53,6 +55,18 @@ const (
 	SIN TokenType = "SIN"
 	// INPUT is recognized so the parser can report that it is unsupported.
 	INPUT TokenType = "INPUT"
+	// IF conditionally transfers control.
+	IF TokenType = "IF"
+	// THEN introduces an IF target line.
+	THEN TokenType = "THEN"
+	// GOTO transfers control to a numbered line.
+	GOTO TokenType = "GOTO"
+	// REM begins a comment that continues to the end of the source line.
+	REM TokenType = "REM"
+	// END terminates program execution.
+	END TokenType = "END"
+	// INT rounds a number down to the nearest integer.
+	INT TokenType = "INT"
 )
 
 // Token records a token's type, source spelling, and one-based position.
@@ -73,6 +87,12 @@ var keywords = map[string]TokenType{
 	"tab":   TAB,
 	"sin":   SIN,
 	"input": INPUT,
+	"if":    IF,
+	"then":  THEN,
+	"goto":  GOTO,
+	"rem":   REM,
+	"end":   END,
+	"int":   INT,
 }
 
 // LookupIdent returns the keyword token for ident, or IDENT otherwise.

@@ -59,6 +59,38 @@ func TestLexerReportsIllegalCharacters(t *testing.T) {
 	t.Fatal("expected an ILLEGAL token")
 }
 
+func TestLexerRecognizesSineWaveControlFlow(t *testing.T) {
+	t.Parallel()
+
+	input := "10 PRINT: REM ignored tokens\n20 IF B=1 THEN 40\n30 GOTO 10\n40 END\n50 A=INT(1.5)\n"
+	want := []TokenType{
+		NUMBER, PRINT, COLON, REM, EOL,
+		NUMBER, IF, IDENT, ASSIGN, NUMBER, THEN, NUMBER, EOL,
+		NUMBER, GOTO, NUMBER, EOL,
+		NUMBER, END, EOL,
+		NUMBER, IDENT, ASSIGN, INT, LPAREN, NUMBER, RPAREN, EOL,
+		EOF,
+	}
+
+	lexer := NewLexer(input)
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
+func TestLexerTreatsRemarkableAsRemark(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("40 REMARKABLE PROGRAM BY DAVID AHL\n")
+	for index, wantType := range []TokenType{NUMBER, REM, EOL, EOF} {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func FuzzLexerTerminates(f *testing.F) {
 	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
 		f.Add(seed)

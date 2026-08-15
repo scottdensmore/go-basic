@@ -6,6 +6,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -48,6 +49,8 @@ type Evaluator struct {
 	LoopStack        []*LoopContext
 	OutputColumn     int
 	Out              io.Writer
+	halted           bool
+	jumped           bool
 	sleep            func(time.Duration)
 }
 
@@ -74,14 +77,14 @@ func (e *Evaluator) Run() error {
 	if e.Program == nil {
 		return errors.New("program is nil")
 	}
-	for e.CurrentLineIndex < len(e.Program.LineNumbers) {
+	for e.CurrentLineIndex < len(e.Program.LineNumbers) && !e.halted {
 		lineNumber := e.Program.LineNumbers[e.CurrentLineIndex]
 		statement := e.Program.Lines[lineNumber]
-		startIndex := e.CurrentLineIndex
+		e.jumped = false
 		if err := e.evalStatement(statement); err != nil {
 			return fmt.Errorf("BASIC line %d: %w", lineNumber, err)
 		}
-		if e.CurrentLineIndex == startIndex {
+		if !e.jumped && !e.halted {
 			e.CurrentLineIndex++
 		}
 	}
@@ -120,9 +123,60 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 			return errors.New("invalid statement")
 		}
 		return e.evalSleepStatement(value)
+	case *SequenceStatement:
+		if value == nil {
+			return errors.New("invalid statement")
+		}
+		for _, nested := range value.Statements {
+			if err := e.evalStatement(nested); err != nil {
+				return err
+			}
+			if e.jumped || e.halted {
+				break
+			}
+		}
+		return nil
+	case *RemStatement:
+		if value == nil {
+			return errors.New("invalid statement")
+		}
+		return nil
+	case *IfStatement:
+		if value == nil || value.Condition == nil {
+			return errors.New("invalid IF statement")
+		}
+		condition, err := e.evalNumber(value.Condition)
+		if err != nil {
+			return fmt.Errorf("IF condition: %w", err)
+		}
+		if condition != 0 {
+			return e.jumpTo(value.TargetLine)
+		}
+		return nil
+	case *GotoStatement:
+		if value == nil {
+			return errors.New("invalid GOTO statement")
+		}
+		return e.jumpTo(value.TargetLine)
+	case *EndStatement:
+		if value == nil {
+			return errors.New("invalid statement")
+		}
+		e.halted = true
+		return nil
 	default:
 		return fmt.Errorf("invalid statement %T", statement)
 	}
+}
+
+func (e *Evaluator) jumpTo(targetLine int) error {
+	index := sort.SearchInts(e.Program.LineNumbers, targetLine)
+	if index == len(e.Program.LineNumbers) || e.Program.LineNumbers[index] != targetLine {
+		return fmt.Errorf("undefined BASIC line %d", targetLine)
+	}
+	e.CurrentLineIndex = index
+	e.jumped = true
+	return nil
 }
 
 func (e *Evaluator) evalPrintStatement(statement *PrintStmt) error {
@@ -208,6 +262,7 @@ func (e *Evaluator) evalNextStatement(statement *NextStatement) error {
 	continues := context.Step > 0 && current <= context.End+1e-9 || context.Step < 0 && current >= context.End-1e-9
 	if continues {
 		e.CurrentLineIndex = context.BodyLineIndex
+		e.jumped = true
 	} else {
 		e.LoopStack = e.LoopStack[:len(e.LoopStack)-1]
 	}
@@ -302,6 +357,11 @@ func (e *Evaluator) evalInfixExpression(expression *InfixExpression) (any, error
 			return nil, errors.New("division by zero")
 		}
 		return left / right, nil
+	case "=":
+		if left == right {
+			return float64(-1), nil
+		}
+		return float64(0), nil
 	default:
 		return nil, fmt.Errorf("unsupported infix operator %q", expression.Operator)
 	}
@@ -323,6 +383,8 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 		return TabValue{Pos: int(argument)}, nil
 	case "SIN":
 		return math.Sin(argument), nil
+	case "INT":
+		return math.Floor(argument), nil
 	default:
 		return nil, fmt.Errorf("unsupported function %q", expression.Function)
 	}

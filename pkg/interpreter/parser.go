@@ -8,12 +8,14 @@ import (
 
 const (
 	lowest int = iota
+	equals
 	sum
 	product
 	prefix
 )
 
 var precedences = map[TokenType]int{
+	ASSIGN:   equals,
 	PLUS:     sum,
 	MINUS:    sum,
 	ASTERISK: product,
@@ -51,11 +53,13 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[LPAREN] = parser.parseGroupedExpression
 	parser.prefixParseFuncs[TAB] = parser.parseCallExpression
 	parser.prefixParseFuncs[SIN] = parser.parseCallExpression
+	parser.prefixParseFuncs[INT] = parser.parseCallExpression
 
 	parser.infixParseFuncs[PLUS] = parser.parseInfixExpression
 	parser.infixParseFuncs[MINUS] = parser.parseInfixExpression
 	parser.infixParseFuncs[SLASH] = parser.parseInfixExpression
 	parser.infixParseFuncs[ASTERISK] = parser.parseInfixExpression
+	parser.infixParseFuncs[ASSIGN] = parser.parseInfixExpression
 
 	parser.nextToken()
 	parser.nextToken()
@@ -90,8 +94,12 @@ func (p *Parser) ParseProgram() *Program {
 		}
 
 		p.nextToken()
-		statement := p.parseStatement()
-		if statement != nil && !duplicate {
+		statements := p.parseStatementSequence()
+		if len(statements) != 0 && !duplicate {
+			statement := statements[0]
+			if len(statements) > 1 {
+				statement = &SequenceStatement{Statements: statements}
+			}
 			program.Lines[lineNumber] = statement
 			program.LineNumbers = append(program.LineNumbers, lineNumber)
 		}
@@ -100,6 +108,22 @@ func (p *Parser) ParseProgram() *Program {
 
 	sort.Ints(program.LineNumbers)
 	return program
+}
+
+func (p *Parser) parseStatementSequence() []Statement {
+	var statements []Statement
+	for p.current.Type != EOL && p.current.Type != EOF {
+		statement := p.parseStatement()
+		if statement != nil {
+			statements = append(statements, statement)
+		}
+		if p.peek.Type != COLON {
+			break
+		}
+		p.nextToken()
+		p.nextToken()
+	}
+	return statements
 }
 
 func (p *Parser) parseStatement() Statement {
@@ -124,6 +148,14 @@ func (p *Parser) parseStatement() Statement {
 			return nil
 		}
 		return statement
+	case REM:
+		return &RemStatement{}
+	case IF:
+		return p.parseIfStatement()
+	case GOTO:
+		return p.parseGotoStatement()
+	case END:
+		return &EndStatement{}
 	case IDENT:
 		statement := p.parseLetStatement()
 		if statement == nil {
@@ -140,6 +172,37 @@ func (p *Parser) parseStatement() Statement {
 		p.addError(p.current, "unsupported statement %s", tokenDescription(p.current))
 		return nil
 	}
+}
+
+func (p *Parser) parseIfStatement() Statement {
+	statement := &IfStatement{}
+	p.nextToken()
+	statement.Condition = p.parseExpression(lowest)
+	if statement.Condition == nil || !p.expectPeek(THEN) {
+		return nil
+	}
+	if !p.expectPeek(NUMBER) {
+		return nil
+	}
+	target, err := strconv.Atoi(p.current.Literal)
+	if err != nil {
+		p.addError(p.current, "invalid BASIC line number %q", p.current.Literal)
+		return nil
+	}
+	statement.TargetLine = target
+	return statement
+}
+
+func (p *Parser) parseGotoStatement() Statement {
+	if !p.expectPeek(NUMBER) {
+		return nil
+	}
+	target, err := strconv.Atoi(p.current.Literal)
+	if err != nil {
+		p.addError(p.current, "invalid BASIC line number %q", p.current.Literal)
+		return nil
+	}
+	return &GotoStatement{TargetLine: target}
 }
 
 func (p *Parser) parseForStatement() *ForStatement {
@@ -176,11 +239,11 @@ func (p *Parser) parseForStatement() *ForStatement {
 
 func (p *Parser) parsePrintStatement() *PrintStmt {
 	statement := &PrintStmt{}
-	if p.peek.Type == EOL || p.peek.Type == EOF {
+	if p.peek.Type == EOL || p.peek.Type == EOF || p.peek.Type == COLON {
 		return statement
 	}
 	p.nextToken()
-	for p.current.Type != EOL && p.current.Type != EOF {
+	for p.current.Type != EOL && p.current.Type != EOF && p.current.Type != COLON {
 		if p.current.Type == SEMICOLON {
 			statement.Items = append(statement.Items, PrintElement{IsSeparator: true})
 		} else {
@@ -190,7 +253,7 @@ func (p *Parser) parsePrintStatement() *PrintStmt {
 			}
 			statement.Items = append(statement.Items, PrintElement{Expr: expression})
 		}
-		if p.peek.Type == EOL || p.peek.Type == EOF {
+		if p.peek.Type == EOL || p.peek.Type == EOF || p.peek.Type == COLON {
 			break
 		}
 		p.nextToken()
@@ -240,7 +303,7 @@ func (p *Parser) parseExpression(precedence int) Expression {
 		return nil
 	}
 
-	for p.peek.Type != EOL && p.peek.Type != EOF && p.peek.Type != SEMICOLON && precedence < p.peekPrecedence() {
+	for p.peek.Type != EOL && p.peek.Type != EOF && p.peek.Type != SEMICOLON && p.peek.Type != COLON && p.peek.Type != THEN && precedence < p.peekPrecedence() {
 		infixFunc := p.infixParseFuncs[p.peek.Type]
 		if infixFunc == nil {
 			return left

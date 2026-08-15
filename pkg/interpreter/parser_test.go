@@ -52,6 +52,43 @@ func TestParserSortsSourceLines(t *testing.T) {
 	}
 }
 
+func TestParserBuildsSineWaveControlFlow(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource(`10 PRINT: PRINT
+20 REMARKABLE PROGRAM BY DAVID AHL
+30 IF B=1 THEN 60
+40 GOTO 10
+50 A=INT(26+25*SIN(T))
+60 END
+`)
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+
+	sequence, ok := program.Lines[10].(*SequenceStatement)
+	if !ok || len(sequence.Statements) != 2 {
+		t.Fatalf("line 10: got %#v", program.Lines[10])
+	}
+	if _, ok := program.Lines[20].(*RemStatement); !ok {
+		t.Fatalf("line 20: got %T", program.Lines[20])
+	}
+	conditional, ok := program.Lines[30].(*IfStatement)
+	if !ok || conditional.TargetLine != 60 || conditional.Condition.String() != "(B = 1)" {
+		t.Fatalf("line 30: got %#v", program.Lines[30])
+	}
+	if jump, ok := program.Lines[40].(*GotoStatement); !ok || jump.TargetLine != 10 {
+		t.Fatalf("line 40: got %#v", program.Lines[40])
+	}
+	assignment := program.Lines[50].(*LetStatement)
+	if got, want := assignment.Value.String(), "INT(...)"; got != want {
+		t.Fatalf("line 50 expression: got %q, want %q", got, want)
+	}
+	if _, ok := program.Lines[60].(*EndStatement); !ok {
+		t.Fatalf("line 60: got %T", program.Lines[60])
+	}
+}
+
 func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 	t.Parallel()
 
@@ -66,6 +103,8 @@ func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 		{name: "malformed assignment", source: "10 value 42\n", wantError: "expected =", basicLine: 10},
 		{name: "missing expression", source: "10 PRINT 1 +\n", wantError: "expected expression", basicLine: 10},
 		{name: "missing parenthesis", source: "10 PRINT SIN(1\n", wantError: "expected )", basicLine: 10},
+		{name: "if missing then", source: "10 IF A=1 GOTO 20\n", wantError: "expected THEN", basicLine: 10},
+		{name: "goto missing target", source: "10 GOTO\n", wantError: "expected NUMBER", basicLine: 10},
 		{name: "duplicate line", source: "10 PRINT 1\n10 PRINT 2\n", wantError: "duplicate BASIC line 10", basicLine: 10},
 	}
 
@@ -147,6 +186,16 @@ func isNilStatement(statement Statement) bool {
 	case *NextStatement:
 		return value == nil
 	case *SleepStatement:
+		return value == nil
+	case *SequenceStatement:
+		return value == nil
+	case *RemStatement:
+		return value == nil
+	case *IfStatement:
+		return value == nil
+	case *GotoStatement:
+		return value == nil
+	case *EndStatement:
 		return value == nil
 	default:
 		return statement == nil

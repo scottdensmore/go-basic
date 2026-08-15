@@ -47,6 +47,31 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 `,
 			want: "   0\n",
 		},
+		{
+			name: "integer floor and equality",
+			source: `10 PRINT INT(-1.2); " "; 1=2; " "; 2=2
+`,
+			want: "-2 0 -1\n",
+		},
+		{
+			name: "conditionals jumps comments and end",
+			source: `10 REMARKABLE CONTROL FLOW
+20 A=INT(1.9)
+30 PRINT A;
+40 IF A=1 THEN 70
+50 PRINT "wrong"
+60 GOTO 80
+70 PRINT "right"
+80 END
+90 PRINT "after end"
+`,
+			want: "1right\n",
+		},
+		{
+			name:   "multiple statements per line",
+			source: "10 PRINT \"A\": PRINT \"B\": END: PRINT \"wrong\"\n",
+			want:   "A\nB\n",
+		},
 	}
 
 	for _, test := range tests {
@@ -84,6 +109,7 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "negative tab", program: mustParse(t, "10 PRINT TAB(-1)\n"), want: "TAB position cannot be negative"},
 		{name: "string arithmetic", program: mustParse(t, "10 PRINT \"x\"+1\n"), want: "expected number"},
 		{name: "nil statement", program: &Program{Lines: map[int]Statement{10: (*LetStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid statement"},
+		{name: "missing jump target", program: mustParse(t, "10 GOTO 99\n"), want: "undefined BASIC line 99"},
 		{name: "nil program", program: nil, want: "program is nil"},
 	}
 
