@@ -65,6 +65,18 @@ type EndStatement struct{}
 func (es *EndStatement) statementNode() {}
 func (es *EndStatement) String() string { return "END" }
 
+// DefFnStatement defines a single-argument numeric function.
+type DefFnStatement struct {
+	Name      *Identifier
+	Parameter *Identifier
+	Body      Expression
+}
+
+func (ds *DefFnStatement) statementNode() {}
+func (ds *DefFnStatement) String() string {
+	return fmt.Sprintf("DEF %s(%s) = %s", ds.Name.String(), ds.Parameter.String(), ds.Body.String())
+}
+
 // LetStatement assigns an expression to a variable.
 type LetStatement struct {
 	Name  *Identifier
@@ -179,7 +191,7 @@ func (ie *InfixExpression) String() string {
 	return fmt.Sprintf("(%s %s %s)", ie.Left.String(), ie.Operator, ie.Right.String())
 }
 
-// CallExpression invokes a built-in BASIC function.
+// CallExpression invokes a built-in or user-defined BASIC function.
 type CallExpression struct {
 	Function  string
 	Arguments []Expression

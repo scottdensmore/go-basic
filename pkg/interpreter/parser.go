@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -12,14 +13,21 @@ const (
 	sum
 	product
 	prefix
+	call
 )
 
 var precedences = map[TokenType]int{
 	ASSIGN:   equals,
+	NEQ:      equals,
+	LT:       equals,
+	LTE:      equals,
+	GT:       equals,
+	GTE:      equals,
 	PLUS:     sum,
 	MINUS:    sum,
 	ASTERISK: product,
 	SLASH:    product,
+	LPAREN:   call,
 }
 
 type prefixParseFunc func() Expression
@@ -54,12 +62,20 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[TAB] = parser.parseCallExpression
 	parser.prefixParseFuncs[SIN] = parser.parseCallExpression
 	parser.prefixParseFuncs[INT] = parser.parseCallExpression
+	parser.prefixParseFuncs[SQR] = parser.parseCallExpression
+	parser.prefixParseFuncs[EXP] = parser.parseCallExpression
 
 	parser.infixParseFuncs[PLUS] = parser.parseInfixExpression
 	parser.infixParseFuncs[MINUS] = parser.parseInfixExpression
 	parser.infixParseFuncs[SLASH] = parser.parseInfixExpression
 	parser.infixParseFuncs[ASTERISK] = parser.parseInfixExpression
 	parser.infixParseFuncs[ASSIGN] = parser.parseInfixExpression
+	parser.infixParseFuncs[NEQ] = parser.parseInfixExpression
+	parser.infixParseFuncs[LT] = parser.parseInfixExpression
+	parser.infixParseFuncs[LTE] = parser.parseInfixExpression
+	parser.infixParseFuncs[GT] = parser.parseInfixExpression
+	parser.infixParseFuncs[GTE] = parser.parseInfixExpression
+	parser.infixParseFuncs[LPAREN] = parser.parseIdentifierCallExpression
 
 	parser.nextToken()
 	parser.nextToken()
@@ -156,6 +172,8 @@ func (p *Parser) parseStatement() Statement {
 		return p.parseGotoStatement()
 	case END:
 		return &EndStatement{}
+	case DEF:
+		return p.parseDefFnStatement()
 	case IDENT:
 		statement := p.parseLetStatement()
 		if statement == nil {
@@ -172,6 +190,31 @@ func (p *Parser) parseStatement() Statement {
 		p.addError(p.current, "unsupported statement %s", tokenDescription(p.current))
 		return nil
 	}
+}
+
+func (p *Parser) parseDefFnStatement() Statement {
+	statement := &DefFnStatement{}
+	if !p.expectPeek(IDENT) {
+		return nil
+	}
+	if !strings.HasPrefix(strings.ToUpper(p.current.Literal), "FN") {
+		p.addError(p.current, "function name %q must start with FN", p.current.Literal)
+		return nil
+	}
+	statement.Name = &Identifier{Value: p.current.Literal}
+	if !p.expectPeek(LPAREN) || !p.expectPeek(IDENT) {
+		return nil
+	}
+	statement.Parameter = &Identifier{Value: p.current.Literal}
+	if !p.expectPeek(RPAREN) || !p.expectPeek(ASSIGN) {
+		return nil
+	}
+	p.nextToken()
+	statement.Body = p.parseExpression(lowest)
+	if statement.Body == nil {
+		return nil
+	}
+	return statement
 }
 
 func (p *Parser) parseIfStatement() Statement {
@@ -372,6 +415,25 @@ func (p *Parser) parseCallExpression() Expression {
 	if !p.expectPeek(LPAREN) {
 		return nil
 	}
+	p.nextToken()
+	argument := p.parseExpression(lowest)
+	if argument == nil {
+		return nil
+	}
+	expression.Arguments = append(expression.Arguments, argument)
+	if !p.expectPeek(RPAREN) {
+		return nil
+	}
+	return expression
+}
+
+func (p *Parser) parseIdentifierCallExpression(function Expression) Expression {
+	identifier, ok := function.(*Identifier)
+	if !ok || identifier == nil {
+		p.addError(p.current, "expected function name before (")
+		return nil
+	}
+	expression := &CallExpression{Function: identifier.Value}
 	p.nextToken()
 	argument := p.parseExpression(lowest)
 	if argument == nil {

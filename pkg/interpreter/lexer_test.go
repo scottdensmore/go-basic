@@ -91,8 +91,30 @@ func TestLexerTreatsRemarkableAsRemark(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesThreeDPlotSyntax(t *testing.T) {
+	t.Parallel()
+
+	input := "5 DEF FNA(Z)=EXP(SQR(Z))\n10 IF A<=B THEN 20\n20 IF A<>B THEN 30\n30 IF A>=B THEN 40\n40 IF A<B THEN 50\n50 IF A>B THEN 60\n"
+	want := []TokenType{
+		NUMBER, DEF, IDENT, LPAREN, IDENT, RPAREN, ASSIGN, EXP, LPAREN, SQR, LPAREN, IDENT, RPAREN, RPAREN, EOL,
+		NUMBER, IF, IDENT, LTE, IDENT, THEN, NUMBER, EOL,
+		NUMBER, IF, IDENT, NEQ, IDENT, THEN, NUMBER, EOL,
+		NUMBER, IF, IDENT, GTE, IDENT, THEN, NUMBER, EOL,
+		NUMBER, IF, IDENT, LT, IDENT, THEN, NUMBER, EOL,
+		NUMBER, IF, IDENT, GT, IDENT, THEN, NUMBER, EOL,
+		EOF,
+	}
+
+	lexer := NewLexer(input)
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func FuzzLexerTerminates(f *testing.F) {
-	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
+	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "5 DEF FNA(Z)=EXP(SQR(Z))\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
 		f.Add(seed)
 	}
 

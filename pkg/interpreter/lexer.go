@@ -27,6 +27,10 @@ func (l *Lexer) NextToken() Token {
 	switch l.ch {
 	case '=':
 		return l.singleCharacterToken(ASSIGN, line, column)
+	case '<':
+		return l.comparisonToken(line, column)
+	case '>':
+		return l.comparisonToken(line, column)
 	case '+':
 		return l.singleCharacterToken(PLUS, line, column)
 	case '-':
@@ -93,6 +97,29 @@ func (l *Lexer) NextToken() Token {
 		l.readChar()
 		return token
 	}
+}
+
+func (l *Lexer) comparisonToken(line, column int) Token {
+	first := l.ch
+	tokenType := LT
+	if first == '>' {
+		tokenType = GT
+	}
+	literal := string(first)
+	l.readChar()
+	if l.ch == '=' || first == '<' && l.ch == '>' {
+		literal += string(l.ch)
+		switch literal {
+		case "<=":
+			tokenType = LTE
+		case "<>":
+			tokenType = NEQ
+		case ">=":
+			tokenType = GTE
+		}
+		l.readChar()
+	}
+	return Token{Type: tokenType, Literal: literal, Line: line, Column: column}
 }
 
 func (l *Lexer) hasKeywordPrefix(keyword string) bool {

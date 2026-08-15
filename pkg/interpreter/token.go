@@ -20,6 +20,16 @@ const (
 
 	// ASSIGN is the assignment and equality operator.
 	ASSIGN TokenType = "="
+	// NEQ compares two values for inequality.
+	NEQ TokenType = "<>"
+	// LT compares two values.
+	LT TokenType = "<"
+	// LTE compares two values.
+	LTE TokenType = "<="
+	// GT compares two values.
+	GT TokenType = ">"
+	// GTE compares two values.
+	GTE TokenType = ">="
 	// PLUS is the addition operator.
 	PLUS TokenType = "+"
 	// MINUS is the subtraction or unary negation operator.
@@ -67,6 +77,12 @@ const (
 	END TokenType = "END"
 	// INT rounds a number down to the nearest integer.
 	INT TokenType = "INT"
+	// DEF begins a user-defined numeric function definition.
+	DEF TokenType = "DEF"
+	// SQR computes a square root.
+	SQR TokenType = "SQR"
+	// EXP computes the natural exponential function.
+	EXP TokenType = "EXP"
 )
 
 // Token records a token's type, source spelling, and one-based position.
@@ -93,6 +109,9 @@ var keywords = map[string]TokenType{
 	"rem":   REM,
 	"end":   END,
 	"int":   INT,
+	"def":   DEF,
+	"sqr":   SQR,
+	"exp":   EXP,
 }
 
 // LookupIdent returns the keyword token for ident, or IDENT otherwise.

@@ -72,6 +72,20 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			source: "10 PRINT \"A\": PRINT \"B\": END: PRINT \"wrong\"\n",
 			want:   "A\nB\n",
 		},
+		{
+			name: "user functions preserve parameter variables",
+			source: `10 Z=99
+20 DEF FNA(Z)=30*EXP(-Z*Z/100)
+30 PRINT INT(fna(SQR(9))); " "; Z
+`,
+			want: "27 99\n",
+		},
+		{
+			name: "numeric comparisons use Microsoft truth values",
+			source: `10 PRINT 1+2<2*2; " "; 2<=2; " "; 2>1; " "; 2>=2; " "; 1<>2; " "; 1=2
+`,
+			want: "-1 -1 -1 -1 -1 0\n",
+		},
 	}
 
 	for _, test := range tests {
@@ -110,6 +124,11 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "string arithmetic", program: mustParse(t, "10 PRINT \"x\"+1\n"), want: "expected number"},
 		{name: "nil statement", program: &Program{Lines: map[int]Statement{10: (*LetStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid statement"},
 		{name: "missing jump target", program: mustParse(t, "10 GOTO 99\n"), want: "undefined BASIC line 99"},
+		{name: "undefined function", program: mustParse(t, "10 PRINT FNA(1)\n"), want: "undefined function FNA"},
+		{name: "nonnumeric function result", program: mustParse(t, "10 DEF FNA(X)=\"x\"\n20 PRINT FNA(1)\n"), want: "function FNA: expected number"},
+		{name: "negative square root", program: mustParse(t, "10 PRINT SQR(-1)\n"), want: "SQR argument cannot be negative"},
+		{name: "exponential overflow", program: mustParse(t, "10 PRINT EXP(1000)\n"), want: "EXP overflow"},
+		{name: "nil function definition", program: &Program{Lines: map[int]Statement{10: (*DefFnStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DEF FN statement"},
 		{name: "nil program", program: nil, want: "program is nil"},
 	}
 

@@ -89,6 +89,34 @@ func TestParserBuildsSineWaveControlFlow(t *testing.T) {
 	}
 }
 
+func TestParserBuildsThreeDPlotExpressions(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource(`5 DEF FNA(Z)=30*EXP(-Z*Z/100)
+10 A=FNA(SQR(X*X+Y*Y))
+20 IF A<=B THEN 40
+`)
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+
+	definition, ok := program.Lines[5].(*DefFnStatement)
+	if !ok || definition.Name.Value != "FNA" || definition.Parameter.Value != "Z" {
+		t.Fatalf("line 5: got %#v", program.Lines[5])
+	}
+	if got, want := definition.Body.String(), "(30 * EXP(...))"; got != want {
+		t.Fatalf("definition: got %q, want %q", got, want)
+	}
+	assignment := program.Lines[10].(*LetStatement)
+	if got, want := assignment.Value.String(), "FNA(...)"; got != want {
+		t.Fatalf("call: got %q, want %q", got, want)
+	}
+	conditional := program.Lines[20].(*IfStatement)
+	if got, want := conditional.Condition.String(), "(A <= B)"; got != want {
+		t.Fatalf("condition: got %q, want %q", got, want)
+	}
+}
+
 func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 	t.Parallel()
 
@@ -105,6 +133,9 @@ func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 		{name: "missing parenthesis", source: "10 PRINT SIN(1\n", wantError: "expected )", basicLine: 10},
 		{name: "if missing then", source: "10 IF A=1 GOTO 20\n", wantError: "expected THEN", basicLine: 10},
 		{name: "goto missing target", source: "10 GOTO\n", wantError: "expected NUMBER", basicLine: 10},
+		{name: "definition missing function name", source: "10 DEF (X)=X\n", wantError: "expected IDENT", basicLine: 10},
+		{name: "definition requires FN prefix", source: "10 DEF A(X)=X\n", wantError: "must start with FN", basicLine: 10},
+		{name: "definition missing parameter", source: "10 DEF FNA()=1\n", wantError: "expected IDENT", basicLine: 10},
 		{name: "duplicate line", source: "10 PRINT 1\n10 PRINT 2\n", wantError: "duplicate BASIC line 10", basicLine: 10},
 	}
 
@@ -129,6 +160,7 @@ func FuzzParserDoesNotPanic(f *testing.F) {
 		"",
 		"10 PRINT \"HELLO\"\n",
 		"10 FOR I=1 TO 3\n20 NEXT I\n",
+		"5 DEF FNA(Z)=30*EXP(-Z*Z/100)\n10 IF FNA(SQR(9))<=30 THEN 20\n",
 		"10 INPUT A\n",
 		"not BASIC",
 	} {
@@ -196,6 +228,8 @@ func isNilStatement(statement Statement) bool {
 	case *GotoStatement:
 		return value == nil
 	case *EndStatement:
+		return value == nil
+	case *DefFnStatement:
 		return value == nil
 	default:
 		return statement == nil
