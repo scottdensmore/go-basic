@@ -49,6 +49,7 @@ type Evaluator struct {
 	LoopStack        []*LoopContext
 	OutputColumn     int
 	Out              io.Writer
+	functions        map[string]*DefFnStatement
 	halted           bool
 	jumped           bool
 	sleep            func(time.Duration)
@@ -64,6 +65,7 @@ func NewEvaluator(program *Program, output io.Writer, options ...EvaluatorOption
 		Program:   program,
 		LoopStack: []*LoopContext{},
 		Out:       output,
+		functions: make(map[string]*DefFnStatement),
 		sleep:     time.Sleep,
 	}
 	for _, option := range options {
@@ -163,6 +165,12 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 			return errors.New("invalid statement")
 		}
 		e.halted = true
+		return nil
+	case *DefFnStatement:
+		if value == nil || value.Name == nil || value.Parameter == nil || value.Body == nil {
+			return errors.New("invalid DEF FN statement")
+		}
+		e.functions[normalizeName(value.Name.Value)] = value
 		return nil
 	default:
 		return fmt.Errorf("invalid statement %T", statement)
@@ -358,10 +366,17 @@ func (e *Evaluator) evalInfixExpression(expression *InfixExpression) (any, error
 		}
 		return left / right, nil
 	case "=":
-		if left == right {
-			return float64(-1), nil
-		}
-		return float64(0), nil
+		return basicBoolean(left == right), nil
+	case "<>":
+		return basicBoolean(left != right), nil
+	case "<":
+		return basicBoolean(left < right), nil
+	case "<=":
+		return basicBoolean(left <= right), nil
+	case ">":
+		return basicBoolean(left > right), nil
+	case ">=":
+		return basicBoolean(left >= right), nil
 	default:
 		return nil, fmt.Errorf("unsupported infix operator %q", expression.Operator)
 	}
@@ -385,9 +400,49 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 		return math.Sin(argument), nil
 	case "INT":
 		return math.Floor(argument), nil
+	case "SQR":
+		if argument < 0 {
+			return nil, errors.New("SQR argument cannot be negative")
+		}
+		return math.Sqrt(argument), nil
+	case "EXP":
+		result := math.Exp(argument)
+		if math.IsInf(result, 0) {
+			return nil, errors.New("EXP overflow")
+		}
+		return result, nil
 	default:
-		return nil, fmt.Errorf("unsupported function %q", expression.Function)
+		return e.evalUserFunction(expression.Function, argument)
 	}
+}
+
+func (e *Evaluator) evalUserFunction(name string, argument float64) (any, error) {
+	definition, ok := e.functions[normalizeName(name)]
+	if !ok {
+		return nil, fmt.Errorf("undefined function %s", name)
+	}
+	parameter := normalizeName(definition.Parameter.Value)
+	previous, existed := e.Env.Store[parameter]
+	e.Env.Store[parameter] = argument
+	defer func() {
+		if existed {
+			e.Env.Store[parameter] = previous
+		} else {
+			delete(e.Env.Store, parameter)
+		}
+	}()
+	result, err := e.evalNumber(definition.Body)
+	if err != nil {
+		return nil, fmt.Errorf("function %s: %w", name, err)
+	}
+	return result, nil
+}
+
+func basicBoolean(value bool) float64 {
+	if value {
+		return -1
+	}
+	return 0
 }
 
 func (e *Evaluator) evalNumber(expression Expression) (float64, error) {

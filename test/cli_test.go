@@ -38,6 +38,17 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("runs the original 3-D Plot program", func(t *testing.T) {
+		command := exec.Command(binary, filepath.Join("scripts", "3d-plot.bas"))
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), threeDPlotOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%s\nwant:\n%s", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -120,6 +131,34 @@ func sineWaveOutput() string {
 			word = "COMPUTING"
 		}
 		output.WriteString(strings.Repeat(" ", position) + word + "\n")
+	}
+	return output.String()
+}
+
+func threeDPlotOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 32) + "3D PLOT\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n\n")
+	for xStep := 0; xStep <= 40; xStep++ {
+		x := -30 + 1.5*float64(xStep)
+		lastPosition := 0
+		lineLength := 0
+		y1 := 5 * math.Floor(math.Sqrt(900-x*x)/5)
+		for y := y1; y >= -y1; y -= 5 {
+			radius := math.Sqrt(x*x + y*y)
+			position := int(math.Floor(25 + 30*math.Exp(-radius*radius/100) - 0.7*y))
+			if position <= lastPosition {
+				continue
+			}
+			lastPosition = position
+			if position > lineLength {
+				output.WriteString(strings.Repeat(" ", position-lineLength))
+			}
+			output.WriteByte('*')
+			lineLength = position + 1
+		}
+		output.WriteByte('\n')
 	}
 	return output.String()
 }

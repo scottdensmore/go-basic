@@ -5,7 +5,8 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 ## Features
 
 -   **Variables**: Integer and floating-point variables.
--   **Math Operations**: `+`, `-`, `*`, `/`, equality, `INT`, and `SIN`.
+-   **Math Operations**: `+`, `-`, `*`, `/`, numeric comparisons, `INT`, `SIN`, `SQR`, and `EXP`.
+-   **Functions**: Single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, `IF`...`THEN`, `GOTO`, `END`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` separator and `TAB` function support.
 -   **Source Lines**: `REM` comments and colon-separated statements.
@@ -103,9 +104,11 @@ Hello World
 
 ### BASIC Computer Games compatibility
 
-The CLI test suite runs the original public-domain
-[`78_Sine_Wave/sinewave.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/78_Sine_Wave/sinewave.bas)
-program without source changes and verifies its complete output transcript.
+The CLI test suite runs these original public-domain programs without source
+changes and verifies their complete output transcripts:
+
+- [`78_Sine_Wave/sinewave.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/78_Sine_Wave/sinewave.bas)
+- [`87_3-D_Plot/3dplot.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/87_3-D_Plot/3dplot.bas)
 
 ## Testing
 
