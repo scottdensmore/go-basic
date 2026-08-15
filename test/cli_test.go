@@ -3,6 +3,7 @@ package test
 import (
 	"bytes"
 	"errors"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,6 +24,17 @@ func TestCLI(t *testing.T) {
 		want := "Hello World\n1 1\n2 4\n3 9\n4 16\n5 25\n"
 		if string(output) != want {
 			t.Fatalf("output: got %q, want %q", output, want)
+		}
+	})
+
+	t.Run("runs the original Sine Wave program", func(t *testing.T) {
+		command := exec.Command(binary, filepath.Join("scripts", "sine-wave.bas"))
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), sineWaveOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%s\nwant:\n%s", got, want)
 		}
 	})
 
@@ -94,4 +106,20 @@ func exitCode(err error) int {
 		return -1
 	}
 	return exitError.ExitCode()
+}
+
+func sineWaveOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 30) + "SINE WAVE\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n\n\n")
+	for step := 0; step <= 160; step++ {
+		position := int(math.Floor(26 + 25*math.Sin(float64(step)*0.25)))
+		word := "CREATIVE"
+		if step%2 == 1 {
+			word = "COMPUTING"
+		}
+		output.WriteString(strings.Repeat(" ", position) + word + "\n")
+	}
+	return output.String()
 }

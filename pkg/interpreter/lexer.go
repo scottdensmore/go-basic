@@ -37,6 +37,8 @@ func (l *Lexer) NextToken() Token {
 		return l.singleCharacterToken(SLASH, line, column)
 	case ';':
 		return l.singleCharacterToken(SEMICOLON, line, column)
+	case ':':
+		return l.singleCharacterToken(COLON, line, column)
 	case '(':
 		return l.singleCharacterToken(LPAREN, line, column)
 	case ')':
@@ -68,6 +70,16 @@ func (l *Lexer) NextToken() Token {
 			return Token{Type: NUMBER, Literal: l.readNumber(), Line: line, Column: column}
 		}
 		if isLetter(l.ch) {
+			if l.hasKeywordPrefix("rem") {
+				literal := l.input[l.position : l.position+3]
+				for range 3 {
+					l.readChar()
+				}
+				for l.ch != 0 && l.ch != '\n' && l.ch != '\r' {
+					l.readChar()
+				}
+				return Token{Type: REM, Literal: literal, Line: line, Column: column}
+			}
 			literal := l.readIdentifier()
 			return Token{
 				Type:    LookupIdent(strings.ToLower(literal)),
@@ -81,6 +93,11 @@ func (l *Lexer) NextToken() Token {
 		l.readChar()
 		return token
 	}
+}
+
+func (l *Lexer) hasKeywordPrefix(keyword string) bool {
+	end := l.position + len(keyword)
+	return end <= len(l.input) && strings.EqualFold(l.input[l.position:end], keyword)
 }
 
 func (l *Lexer) singleCharacterToken(tokenType TokenType, line, column int) Token {
