@@ -117,6 +117,20 @@ func TestParserBuildsThreeDPlotExpressions(t *testing.T) {
 	}
 }
 
+func TestParserBuildsAceyDuceyInputStatements(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 INPUT\"WHAT IS YOUR BET\";M\n20 INPUT\"TRY AGAIN (YES OR NO)\";A$\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	for _, line := range []int{10, 20} {
+		if got, want := program.Lines[line].String(), "INPUT ..."; got != want {
+			t.Fatalf("line %d: got %q, want %q", line, got, want)
+		}
+	}
+}
+
 func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 	t.Parallel()
 
@@ -126,7 +140,7 @@ func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 		wantError string
 		basicLine int
 	}{
-		{name: "unsupported statement", source: "10 INPUT A\n", wantError: "unsupported statement INPUT", basicLine: 10},
+		{name: "input missing variable", source: "10 INPUT \"PROMPT\";\n", wantError: "expected IDENT", basicLine: 10},
 		{name: "missing line number", source: "PRINT 1\n", wantError: "expected BASIC line number"},
 		{name: "malformed assignment", source: "10 value 42\n", wantError: "expected =", basicLine: 10},
 		{name: "missing expression", source: "10 PRINT 1 +\n", wantError: "expected expression", basicLine: 10},
@@ -212,6 +226,8 @@ func isNilStatement(statement Statement) bool {
 	case *LetStatement:
 		return value == nil
 	case *PrintStmt:
+		return value == nil
+	case *InputStatement:
 		return value == nil
 	case *ForStatement:
 		return value == nil

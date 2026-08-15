@@ -49,6 +49,18 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("plays the original Acey Ducey program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "4", filepath.Join("scripts", "acey-ducey.bas"))
+		command.Stdin = strings.NewReader("100\n200\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), aceyDuceyOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%s\nwant:\n%s", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -71,14 +83,14 @@ func TestCLI(t *testing.T) {
 
 	t.Run("reports parser errors", func(t *testing.T) {
 		path := filepath.Join(t.TempDir(), "invalid.bas")
-		if err := os.WriteFile(path, []byte("10 INPUT A\n"), 0o600); err != nil {
+		if err := os.WriteFile(path, []byte("10 INPUT \"PROMPT\";\n"), 0o600); err != nil {
 			t.Fatal(err)
 		}
 		output, err := exec.Command(binary, path).CombinedOutput()
 		if exitCode(err) != 1 {
 			t.Fatalf("exit: got %v, output %q", err, output)
 		}
-		if !strings.Contains(string(output), "unsupported statement INPUT") {
+		if !strings.Contains(string(output), "expected IDENT") {
 			t.Fatalf("missing parser diagnostic: %q", output)
 		}
 	})
@@ -160,5 +172,27 @@ func threeDPlotOutput() string {
 		}
 		output.WriteByte('\n')
 	}
+	return output.String()
+}
+
+func aceyDuceyOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 26) + "ACEY DUCEY CARD GAME\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n")
+	output.WriteString("ACEY-DUCEY IS PLAYED IN THE FOLLOWING MANNER \n")
+	output.WriteString("THE DEALER (COMPUTER) DEALS TWO CARDS FACE UP\n")
+	output.WriteString("YOU HAVE AN OPTION TO BET OR NOT BET DEPENDING\n")
+	output.WriteString("ON WHETHER OR NOT YOU FEEL THE CARD WILL HAVE\n")
+	output.WriteString("A VALUE BETWEEN THE FIRST TWO.\n")
+	output.WriteString("IF YOU DO NOT WANT TO BET, INPUT A 0\n")
+	output.WriteString("YOU NOW HAVE 100 DOLLARS.\n\n")
+	output.WriteString("HERE ARE YOUR NEXT TWO CARDS: \n8\nKING\n\n")
+	output.WriteString("WHAT IS YOUR BET? 9\nYOU WIN!!!\n")
+	output.WriteString("YOU NOW HAVE 200 DOLLARS.\n\n")
+	output.WriteString("HERE ARE YOUR NEXT TWO CARDS: \n3\n5\n\n")
+	output.WriteString("WHAT IS YOUR BET? KING\nSORRY, YOU LOSE\n\n\n")
+	output.WriteString("SORRY, FRIEND, BUT YOU BLEW YOUR WAD.\n\n\n")
+	output.WriteString("TRY AGAIN (YES OR NO)? \n\nO.K., HOPE YOU HAD FUN!\n")
 	return output.String()
 }

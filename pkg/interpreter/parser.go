@@ -156,6 +156,8 @@ func (p *Parser) parseStatement() Statement {
 			return nil
 		}
 		return statement
+	case INPUT:
+		return p.parseInputStatement()
 	case NEXT:
 		return p.parseNextStatement()
 	case SLEEP:
@@ -180,9 +182,6 @@ func (p *Parser) parseStatement() Statement {
 			return nil
 		}
 		return statement
-	case INPUT:
-		p.addError(p.current, "unsupported statement %s", p.current.Literal)
-		return nil
 	case EOL, EOF:
 		p.addError(p.current, "expected statement")
 		return nil
@@ -190,6 +189,22 @@ func (p *Parser) parseStatement() Statement {
 		p.addError(p.current, "unsupported statement %s", tokenDescription(p.current))
 		return nil
 	}
+}
+
+func (p *Parser) parseInputStatement() Statement {
+	statement := &InputStatement{}
+	if p.peek.Type == STRING {
+		p.nextToken()
+		statement.Prompt = &StringLiteral{Value: p.current.Literal}
+		if !p.expectPeek(SEMICOLON) {
+			return nil
+		}
+	}
+	if !p.expectPeek(IDENT) {
+		return nil
+	}
+	statement.Var = &Identifier{Value: p.current.Literal}
+	return statement
 }
 
 func (p *Parser) parseDefFnStatement() Statement {

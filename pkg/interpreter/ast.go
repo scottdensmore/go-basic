@@ -102,6 +102,15 @@ type PrintStmt struct {
 func (ps *PrintStmt) statementNode() {}
 func (ps *PrintStmt) String() string { return "PRINT ..." }
 
+// InputStatement reads one scalar value, optionally after displaying a prompt.
+type InputStatement struct {
+	Prompt *StringLiteral
+	Var    *Identifier
+}
+
+func (is *InputStatement) statementNode() {}
+func (is *InputStatement) String() string { return "INPUT ..." }
+
 // ForStatement begins a numeric FOR/NEXT loop.
 type ForStatement struct {
 	Var   *Identifier
