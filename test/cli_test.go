@@ -184,6 +184,17 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("wins the original Bombardment program", func(t *testing.T) {
+		path := filepath.Join("scripts", "bombardment.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("22,23,24,25\n2\n7\n17\n24\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertBombardmentTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -511,6 +522,36 @@ func blackjackOutput() string {
 	output.WriteString("BETS:\n")
 	output.WriteString("#1? ")
 	return output.String()
+}
+
+func assertBombardmentTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "BOMBARDMENT\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"YOU ARE ON A BATTLEFIELD WITH 4 PLATOONS AND YOU\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	if got, want := strings.Count(transcript, "YOU GOT ONE OF MY OUTPOSTS!"), 3; got != want {
+		t.Fatalf("partial hits: got %d, want %d", got, want)
+	}
+	for _, milestone := range []string{
+		"ONE DOWN, THREE TO GO.",
+		"TWO DOWN, TWO TO GO.",
+		"THREE DOWN, ONE TO GO.",
+		"I PICKED10. YOUR TURN:",
+		"I PICKED8. YOUR TURN:",
+		"I PICKED5. YOUR TURN:",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	suffix := "YOU GOT ME, I'M GOING FAST. BUT I'LL GET YOU WHEN\n" +
+		"MY TRANSISTO&S RECUP%RA*E!\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
