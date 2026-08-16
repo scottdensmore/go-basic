@@ -74,6 +74,11 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "   0\n",
 		},
 		{
+			name:   "natural logarithm",
+			source: "10 PRINT LOG(EXP(1)); \" \"; LOG(1)\n",
+			want:   "1 0\n",
+		},
+		{
 			name: "integer floor and equality",
 			source: `10 PRINT INT(-1.2); " "; 1=2; " "; 2=2
 `,
@@ -524,6 +529,7 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "undefined function", program: mustParse(t, "10 PRINT FNA(1)\n"), want: "undefined function FNA"},
 		{name: "nonnumeric function result", program: mustParse(t, "10 DEF FNA(X)=\"x\"\n20 PRINT FNA(1)\n"), want: "function FNA: expected number"},
 		{name: "negative square root", program: mustParse(t, "10 PRINT SQR(-1)\n"), want: "SQR argument cannot be negative"},
+		{name: "nonpositive logarithm", program: mustParse(t, "10 PRINT LOG(0)\n"), want: "LOG argument must be positive"},
 		{name: "exponential overflow", program: mustParse(t, "10 PRINT EXP(1000)\n"), want: "EXP overflow"},
 		{name: "input exhausted", program: mustParse(t, "10 INPUT A\n"), options: []EvaluatorOption{WithInput(strings.NewReader(""))}, want: "read input: EOF"},
 		{name: "invalid random source", program: mustParse(t, "10 PRINT RND(1)\n"), options: []EvaluatorOption{WithRandom(func() float64 { return 1 })}, want: "outside [0, 1)"},

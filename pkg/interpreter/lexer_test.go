@@ -144,6 +144,21 @@ func TestLexerRecognizesThreeDPlotSyntax(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesDepthChargeLogarithms(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("30 N=INT(LOG(G)/LOG(2))+1\n")
+	want := []TokenType{
+		NUMBER, IDENT, ASSIGN, INT, LPAREN, LOG, LPAREN, IDENT, RPAREN,
+		SLASH, LOG, LPAREN, NUMBER, RPAREN, RPAREN, PLUS, NUMBER, EOL, EOF,
+	}
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func TestLexerRecognizesAceyDuceyStringIdentifiers(t *testing.T) {
 	t.Parallel()
 
