@@ -698,6 +698,17 @@ func TestCLI(t *testing.T) {
 		assertHexapawnTranscript(t, path, string(output))
 	})
 
+	t.Run("wins and loses the original Hi-Lo program", func(t *testing.T) {
+		path := filepath.Join("scripts", "hi-lo.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("50\n75\n88\n94\nYES\n50\n25\n12\n18\n21\n23\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertHiLoTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2198,6 +2209,40 @@ func assertHexapawnTranscript(t *testing.T, path, transcript string) {
 	suffix := "YOUR MOVE? go-basic: run " + path + ": BASIC line 121: read input: EOF\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertHiLoTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "HI LO\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THIS IS THE GAME OF HI LO.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"GOT IT!!!!!!!!!!   YOU WIN94DOLLARS.",
+		"YOUR TOTAL WINNINGS ARE NOW94DOLLARS.",
+		"YOU BLEW IT...TOO BAD...THE NUMBER WAS24",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "YOUR GUESS IS TOO LOW."), 7; got != want {
+		t.Fatalf("low hints: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "YOUR GUESS IS TOO HIGH."), 2; got != want {
+		t.Fatalf("high hints: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "YOUR GUESS?"), 10; got != want {
+		t.Fatalf("guess prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "PLAY AGAIN (YES OR NO)?"), 2; got != want {
+		t.Fatalf("replay prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "PLAY AGAIN (YES OR NO)? \nSO LONG.  HOPE YOU ENJOYED YOURSELF!!!\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-70):])
 	}
 }
 
