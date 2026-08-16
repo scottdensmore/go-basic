@@ -624,6 +624,42 @@ func TestCLI(t *testing.T) {
 		assertGunnerTranscript(t, string(output))
 	})
 
+	t.Run("governs for ten years in both original Hammurabi variants", func(t *testing.T) {
+		inputs := []string{
+			"0", "0", "2000", "1000", "999",
+			"0", "18", "2060", "982",
+			"0", "412", "1140", "569",
+			"80", "1300", "649",
+			"140", "1580", "789",
+			"60", "1700", "849",
+			"110", "1920", "959",
+			"0", "31", "2100", "929",
+			"0", "370", "1120", "559",
+			"241", "1400", "699",
+		}
+		variants := []struct {
+			name        string
+			fixture     string
+			firstReport string
+		}{
+			{"main", "hammurabi.bas", "IN YEAR1,0PEOPLE STARVED,5CAME TO THE CITY,"},
+			{"alternate", "hammurabi-alternate.bas", "IN YEAR 1,0 PEOPLE STARVED, 5 CAME TO THE CITY,"},
+		}
+
+		for _, variant := range variants {
+			t.Run(variant.name, func(t *testing.T) {
+				path := filepath.Join("scripts", variant.fixture)
+				command := exec.Command(binary, "-seed", "0", path)
+				command.Stdin = strings.NewReader(strings.Join(inputs, "\n") + "\n")
+				output, err := command.CombinedOutput()
+				if err != nil {
+					t.Fatalf("run CLI: %v\n%s", err, output)
+				}
+				assertHammurabiTranscript(t, string(output), variant.firstReport)
+			})
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1980,6 +2016,45 @@ func assertGunnerTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "TRY AGAIN (Y OR N)? \nOK.  RETURN TO BASE CAMP.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
+	}
+}
+
+func assertHammurabiTranscript(t *testing.T, transcript, firstReport string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "HAMURABI\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"TRY YOUR HAND AT GOVERNING ANCIENT SUMERIA\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	if !strings.Contains(transcript, firstReport) {
+		t.Fatalf("transcript missing variant report %q", firstReport)
+	}
+	compact := strings.ReplaceAll(transcript, " ", "")
+	for _, milestone := range []string{
+		"BUTYOUHAVEONLY100PEOPLETOTENDTHEFIELDS!NOWTHEN,",
+		"AHORRIBLEPLAGUESTRUCK!HALFTHEPEOPLEDIED.",
+		"INYEAR11,0PEOPLESTARVED,10CAMETOTHECITY,",
+		"THECITYNOWOWNS800ACRES.",
+		"YOUNOWHAVE6064BUSHELSINSTORE.",
+		"INYOUR10-YEARTERMOFOFFICE,0PERCENTOFTHE",
+		"10ACRESPERPERSON.",
+		"AFANTASTICPERFORMANCE!!!CHARLEMANGE,DISRAELI,AND",
+		"JEFFERSONCOMBINEDCOULDNOTHAVEDONEBETTER!",
+	} {
+		if !strings.Contains(compact, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "HAMURABI:  I BEG TO REPORT TO YOU,"), 11; got != want {
+		t.Fatalf("annual reports: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "A HORRIBLE PLAGUE STRUCK!"), 2; got != want {
+		t.Fatalf("plagues: got %d, want %d", got, want)
+	}
+	suffix := strings.Repeat("\a", 10) + "SO LONG FOR NOW.\n\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
 }
 
