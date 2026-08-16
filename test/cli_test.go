@@ -851,6 +851,17 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("takes the original Literature Quiz", func(t *testing.T) {
+		path := filepath.Join("scripts", "literature-quiz.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("3\n1\n4\n2\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertLiteratureQuizTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2691,6 +2702,33 @@ func assertLifeForTwoTranscript(t *testing.T, path, transcript string, bounded b
 	if bounded {
 		suffix += "go-basic: run " + path + ": BASIC line 574: statement limit 1872 reached\n"
 	}
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertLiteratureQuizTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 25) + "LITERATURE QUIZ\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"TEST YOUR KNOWLEDGE OF CHILDREN'S LITERATURE.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"VERY GOOD!  HERE'S ANOTHER.",
+		"TOO BAD...IT WAS ELMER FUDD'S GARDEN.",
+		"YEA!  YOU'RE A REAL LITERATURE GIANT.",
+		"OH, COME ON NOW...IT WAS SNOW WHITE.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "? "), 4; got != want {
+		t.Fatalf("quiz prompts: got %d, want %d", got, want)
+	}
+	suffix := "NOT BAD, BUT YOU MIGHT SPEND A LITTLE MORE TIME\nREADING THE NURSERY GREATS.\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}

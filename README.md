@@ -171,6 +171,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`54_Letter/letter.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/54_Letter/letter.bas)
 - [`55_Life/life.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/55_Life/life.bas)
 - [`56_Life_for_Two/lifefortwo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/56_Life_for_Two/lifefortwo.bas) and the byte-different [alternate `lifefortwo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/56_Life_for_Two/lifefortwo.bas)
+- [`57_Literature_Quiz/litquiz.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/57_Literature_Quiz/litquiz.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -315,6 +316,9 @@ Both Life for Two transcripts place six isolated pieces, render their complete
 extinction, and declare a draw. The main file exits normally; the alternate is
 bounded immediately after the draw because its byte difference jumps to an
 upstream-missing line 800.
+Literature Quiz's transcript answers two questions correctly and two
+incorrectly, verifies each response and the middle-tier final assessment, and
+exits normally.
 
 ## Testing
 
