@@ -137,6 +137,20 @@ func TestCLI(t *testing.T) {
 		assertBasketballTranscript(t, transcript)
 	})
 
+	t.Run("wins the original Batnum program", func(t *testing.T) {
+		path := filepath.Join("scripts", "batnum.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("4\n1\n1,2\n2\n1\n2\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		want := batnumOutput() + "go-basic: run " + path + ": BASIC line 330: read input: EOF\n"
+		if got := string(output); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -383,6 +397,30 @@ func assertBasketballTranscript(t *testing.T, transcript string) {
 	if !strings.HasSuffix(transcript, final) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(final)):])
 	}
+}
+
+func batnumOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 33) + "BATNUM\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n")
+	output.WriteString("THIS PROGRAM IS A 'BATTLE OF NUMBERS' GAME, WHERE THE\n")
+	output.WriteString("COMPUTER IS YOUR OPPONENT.\n\n")
+	output.WriteString("THE GAME STARTS WITH AN ASSUMED PILE OF OBJECTS. YOU\n")
+	output.WriteString("AND YOUR OPPONENT ALTERNATELY REMOVE OBJECTS FROM THE PILE.\n")
+	output.WriteString("WINNING IS DEFINED IN ADVANCE AS TAKING THE LAST OBJECT OR\n")
+	output.WriteString("NOT. YOU CAN ALSO SPECIFY SOME OTHER BEGINNING CONDITIONS.\n")
+	output.WriteString("DON'T USE ZERO, HOWEVER, IN PLAYING THE GAME.\n")
+	output.WriteString("ENTER A NEGATIVE NUMBER FOR NEW PILE SIZE TO STOP PLAYING.\n\n")
+	output.WriteString("ENTER PILE SIZE? ")
+	output.WriteString("ENTER WIN OPTION - 1 TO TAKE LAST, 2 TO AVOID LAST: ? ")
+	output.WriteString("ENTER MIN AND MAX ? ")
+	output.WriteString("ENTER START OPTION - 1 COMPUTER FIRST, 2 YOU FIRST ? \n\n\n")
+	output.WriteString("YOUR MOVE ? COMPUTER TAKES1AND LEAVES2\n\n")
+	output.WriteString("YOUR MOVE ? CONGRATULATIONS, YOU WIN.\n")
+	output.WriteString(strings.Repeat("\n", 10))
+	output.WriteString("ENTER PILE SIZE? ")
+	return output.String()
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
