@@ -172,6 +172,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`55_Life/life.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/55_Life/life.bas)
 - [`56_Life_for_Two/lifefortwo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/56_Life_for_Two/lifefortwo.bas) and the byte-different [alternate `lifefortwo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/56_Life_for_Two/lifefortwo.bas)
 - [`57_Literature_Quiz/litquiz.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/57_Literature_Quiz/litquiz.bas)
+- [`58_Love/love.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/58_Love/love.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -319,6 +320,9 @@ upstream-missing line 800.
 Literature Quiz's transcript answers two questions correctly and two
 incorrectly, verifies each response and the middle-tier final assessment, and
 exits normally.
+Love's transcript supplies the canonical message, verifies all 36 rows of the
+60-column Robert Indiana-inspired artwork and representative interior shapes,
+and exits normally.
 
 ## Testing
 
