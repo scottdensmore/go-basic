@@ -158,6 +158,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`44_Hangman/hangman.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/44_Hangman/hangman.bas)
 - [`45_Hello/hello.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/45_Hello/hello.bas)
 - [`46_Hexapawn/hexapawn.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/46_Hexapawn/hexapawn.bas)
+- [`47_Hi-Lo/hi-lo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/47_Hi-Lo/hi-lo.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -271,6 +272,9 @@ Hexapawn's seeded transcript prints the rules, rejects invalid coordinates and
 an illegal move, completes a game with captures and computer replies, records
 the loss, then ends at the next board because the learning game has no quit
 command.
+Hi-Lo's seeded transcript follows three hints to win one jackpot, replays,
+exhausts all six guesses with high and low hints, verifies the losing number,
+and exits normally.
 
 ## Testing
 
