@@ -97,6 +97,21 @@ func TestParserSortsSourceLines(t *testing.T) {
 	}
 }
 
+func TestParserIgnoresStandaloneRemAnnotations(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("REM source annotation\n10 PRINT 1\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	if got, want := program.LineNumbers, []int{10}; !equalInts(got, want) {
+		t.Fatalf("line numbers: got %v, want %v", got, want)
+	}
+	if _, ok := program.Lines[10].(*PrintStmt); !ok {
+		t.Fatalf("line 10: got %T", program.Lines[10])
+	}
+}
+
 func TestParserBuildsSineWaveControlFlow(t *testing.T) {
 	t.Parallel()
 

@@ -164,6 +164,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`50_Horserace/horserace.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/50_Horserace/horserace.bas)
 - [`51_Hurkle/hurkle.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/51_Hurkle/hurkle.bas)
 - [`52_Kinema/kinema.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/52_Kinema/kinema.bas)
+- [`53_King/king.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/53_King/king.bas), [`king_variable_update.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/53_King/king_variable_update.bas), and the byte-different [alternate `king_variable_update.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/53_King/king_variable_update.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -295,6 +296,9 @@ program automatically starts another round.
 Kinema's seeded transcript answers all three physics questions correctly,
 earns the top score, and ends at the next round's first prompt because the
 original program has no quit command.
+The three byte-distinct King transcripts complete a fiscal year, verify the
+population, harvest, agricultural income, tourism, and treasury results, then
+use the original all-zero budget command to save and exit normally.
 
 ## Testing
 

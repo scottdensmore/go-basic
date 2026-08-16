@@ -114,6 +114,10 @@ func (p *Parser) ParseProgram() *Program {
 			p.nextToken()
 			continue
 		}
+		if p.current.Type == REM {
+			p.skipLine()
+			continue
+		}
 		if p.current.Type != NUMBER {
 			p.addError(p.current, "expected BASIC line number, got %s", tokenDescription(p.current))
 			p.skipLine()
