@@ -671,6 +671,22 @@ func TestCLI(t *testing.T) {
 		assertHangmanTranscript(t, string(output))
 	})
 
+	t.Run("gets every kind of advice in the original Hello program", func(t *testing.T) {
+		path := filepath.Join("scripts", "hello.bas")
+		command := exec.Command(binary, path)
+		inputs := []string{
+			"SCOTT", "MAYBE", "YES", "BILLS", "PERHAPS", "YES",
+			"JOB", "YES", "HEALTH", "YES", "MONEY", "YES",
+			"SEX", "MEDIUM", "TOO LITTLE", "NO", "MAYBE", "NO",
+		}
+		command.Stdin = strings.NewReader(strings.Join(inputs, "\n") + "\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertHelloTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2099,6 +2115,42 @@ func assertHangmanTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "WANT ANOTHER WORD? \nIT'S BEEN FUN!  BYE FOR NOW.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
+	}
+}
+
+func assertHelloTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "HELLO\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"HELLO.  MY NAME IS CREATIVE COMPUTER.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"SCOTT, I DON'T UNDERSTAND YOUR ANSWER OF 'MAYBE'.",
+		"OH, SCOTT, YOUR ANSWER OF BILLS IS GREEK TO ME.",
+		"JUST A SIMPLE 'YES' OR 'NO' PLEASE, SCOTT.",
+		"IS TO OPEN A RETAIL COMPUTER STORE.  IT'S GREAT FUN.",
+		"1.  TAKE TWO ASPRIN",
+		"SORRY, SCOTT, I'M BROKE TOO.",
+		"DON'T GET ALL SHOOK, SCOTT, JUST ANSWER THE QUESTION",
+		"WHY ARE YOU HERE IN SUFFERN, SCOTT?",
+		"THAT WILL BE $5.00 FOR THE ADVICE, SCOTT.",
+		"YOUR ANSWER OF 'MAYBE' CONFUSES ME, SCOTT.",
+		"THAT'S HONEST, SCOTT, BUT HOW DO YOU EXPECT",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "WHAT KIND (SEX, MONEY, HEALTH, JOB)?"), 4; got != want {
+		t.Fatalf("additional advice prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "DID YOU LEAVE THE MONEY?"), 2; got != want {
+		t.Fatalf("payment prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "DON'T PAY THEIR BILLS?\n\nTAKE A WALK, SCOTT.\n\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-60):])
 	}
 }
 
