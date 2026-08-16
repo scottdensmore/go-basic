@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -860,6 +861,17 @@ func TestCLI(t *testing.T) {
 			t.Fatalf("run CLI: %v\n%s", err, output)
 		}
 		assertLiteratureQuizTranscript(t, string(output))
+	})
+
+	t.Run("prints the original Love artwork", func(t *testing.T) {
+		path := filepath.Join("scripts", "love.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("LOVE\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertLoveTranscript(t, string(output))
 	})
 
 	t.Run("prints its version", func(t *testing.T) {
@@ -2731,6 +2743,46 @@ func assertLiteratureQuizTranscript(t *testing.T, transcript string) {
 	suffix := "NOT BAD, BUT YOU MIGHT SPEND A LITTLE MORE TIME\nREADING THE NURSERY GREATS.\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertLoveTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "LOVE\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"A TRIBUTE TO THE GREAT AMERICAN ARTIST, ROBERT INDIANA.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	lines := strings.Split(transcript, "\n")
+	fullRow := strings.Repeat("LOVE", 15)
+	var fullRows []int
+	for index, line := range lines {
+		if line == fullRow {
+			fullRows = append(fullRows, index)
+		}
+	}
+	if len(fullRows) != 2 || fullRows[1]-fullRows[0] != 35 {
+		t.Fatalf("full artwork rows at %v, want two 35 lines apart", fullRows)
+	}
+	artwork := lines[fullRows[0] : fullRows[1]+1]
+	for index, line := range artwork {
+		if len(line) != 60 {
+			t.Fatalf("artwork row %d width: got %d, want 60", index+1, len(line))
+		}
+	}
+	for _, want := range []string{
+		"L                             VELOV                 LOVELOVE",
+		"L             VELOV                                        E",
+		"LOVE      VELOVELOVELOV   VELOVELOVE      VELOVELOVELO     E",
+		"LOVELOVELOV        ELOVELOVELOVE                           E",
+	} {
+		if !slices.Contains(artwork, want) {
+			t.Fatalf("artwork missing %q", want)
+		}
+	}
+	if !strings.HasSuffix(transcript, fullRow+strings.Repeat("\n", 10)) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-75):])
 	}
 }
 
