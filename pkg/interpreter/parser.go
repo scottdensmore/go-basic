@@ -414,7 +414,12 @@ func (p *Parser) parseDataStatement() Statement {
 	statement := &DataStatement{}
 	for {
 		p.nextToken()
-		value := p.parseExpression(lowest)
+		var value Expression
+		if isUnquotedDataString(p.current, p.peek) {
+			value = &StringLiteral{Value: p.current.Literal}
+		} else {
+			value = p.parseExpression(lowest)
+		}
 		if value == nil {
 			return nil
 		}
@@ -429,6 +434,13 @@ func (p *Parser) parseDataStatement() Statement {
 		p.nextToken()
 	}
 	return statement
+}
+
+func isUnquotedDataString(current, peek Token) bool {
+	if current.Literal == "" || !isLetter(current.Literal[0]) {
+		return false
+	}
+	return peek.Type == COMMA || peek.Type == COLON || peek.Type == EOL || peek.Type == EOF
 }
 
 func isDataLiteral(expression Expression) bool {

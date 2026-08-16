@@ -919,6 +919,21 @@ func TestCLI(t *testing.T) {
 		assertRocketTranscript(t, string(output))
 	})
 
+	t.Run("plays the original Mastermind programs", func(t *testing.T) {
+		for _, fixture := range []string{"mastermind.bas", "mastermind-alternate.bas"} {
+			t.Run(fixture, func(t *testing.T) {
+				path := filepath.Join("scripts", fixture)
+				command := exec.Command(binary, "-seed", "0", path)
+				command.Stdin = strings.NewReader("2\n1\n1\nB\nW\n\n0,0\n1,0\n")
+				output, err := command.CombinedOutput()
+				if err != nil {
+					t.Fatalf("run CLI: %v\n%s", err, output)
+				}
+				assertMastermindTranscript(t, string(output))
+			})
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2912,6 +2927,34 @@ func assertRocketTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "CONTROL OUT.\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-25):])
+	}
+}
+
+func assertMastermindTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "MASTERMIND\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nNUMBER OF COLORS? "
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"BLACK        B\nWHITE        W",
+		"MOVE # 1 GUESS ? YOU HAVE 0 BLACKS AND 0 WHITES.",
+		"MOVE # 2 GUESS ? YOU GUESSED IT IN 2 MOVES!",
+		"MY GUESS IS: B  BLACKS, WHITES ?",
+		"MY GUESS IS: W  BLACKS, WHITES ? I GOT IT IN 2 MOVES!",
+		"GAME OVER\nFINAL SCORE:",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "SCORE:"), 3; got != want {
+		t.Fatalf("score reports: got %d, want %d", got, want)
+	}
+	suffix := "FINAL SCORE:\n     COMPUTER 2\n     HUMAN    2\n\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
 }
 

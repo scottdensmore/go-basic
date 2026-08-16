@@ -351,6 +351,19 @@ func TestEvaluatorReadsProgramDataIntoScalarsAndArrays(t *testing.T) {
 	}
 }
 
+func TestEvaluatorReadsUnquotedStringData(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, "10 READ A$,B$\n20 DATA BLACK,WHITE\n30 PRINT A$;\" \";B$\n")
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "BLACK WHITE\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorRestoreResetsProgramData(t *testing.T) {
 	t.Parallel()
 
