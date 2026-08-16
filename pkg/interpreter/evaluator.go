@@ -76,6 +76,16 @@ func WithRandom(random func() float64) EvaluatorOption {
 	}
 }
 
+// WithStatementLimit stops execution before more than limit BASIC statements run.
+// A zero limit leaves execution unbounded.
+func WithStatementLimit(limit int) EvaluatorOption {
+	return func(evaluator *Evaluator) {
+		if limit > 0 {
+			evaluator.statementLimit = limit
+		}
+	}
+}
+
 // Evaluator executes a parsed BASIC program.
 type Evaluator struct {
 	Env              *Environment
@@ -89,6 +99,8 @@ type Evaluator struct {
 	dataIndex        int
 	instructions     [][]Statement
 	statementIndex   int
+	statementLimit   int
+	statementsRun    int
 	returnStack      []executionPosition
 	halted           bool
 	jumped           bool
@@ -138,11 +150,15 @@ func (e *Evaluator) Run() error {
 			continue
 		}
 		lineNumber := e.Program.LineNumbers[e.CurrentLineIndex]
+		if e.statementLimit > 0 && e.statementsRun >= e.statementLimit {
+			return fmt.Errorf("BASIC line %d: statement limit %d reached", lineNumber, e.statementLimit)
+		}
 		statement := statements[e.statementIndex]
 		e.jumped = false
 		if err := e.evalStatement(statement); err != nil {
 			return fmt.Errorf("BASIC line %d: %w", lineNumber, err)
 		}
+		e.statementsRun++
 		if !e.jumped && !e.halted {
 			e.statementIndex++
 		}

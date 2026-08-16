@@ -73,6 +73,9 @@ Once built, you can run BASIC scripts by passing the file path as an argument.
 
 -   `-version`: Prints the version information and exits.
 -   `-seed number`: Seeds `RND` for reproducible runs and tests.
+-   `-max-statements number`: Stops before executing more than the requested
+    number of BASIC statements; `0` is unlimited. This safely bounds programs
+    that intentionally run forever.
 
 ### Example
 
@@ -166,6 +169,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`52_Kinema/kinema.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/52_Kinema/kinema.bas)
 - [`53_King/king.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/53_King/king.bas), [`king_variable_update.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/53_King/king_variable_update.bas), and the byte-different [alternate `king_variable_update.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/53_King/king_variable_update.bas)
 - [`54_Letter/letter.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/54_Letter/letter.bas)
+- [`55_Life/life.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/55_Life/life.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -303,6 +307,9 @@ use the original all-zero budget command to save and exit normally.
 Letter's seeded transcript follows three higher-letter clues to a four-guess
 win, verifies the complete success bell sequence, and ends at the next round's
 first prompt because the original program has no quit command.
+Life's bounded transcript seeds a three-cell blinker, verifies its horizontal,
+vertical, and horizontal states across three generations, then stops at the
+configured statement limit because the original simulation runs forever.
 
 ## Testing
 

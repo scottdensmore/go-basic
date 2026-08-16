@@ -53,6 +53,23 @@ func TestRun(t *testing.T) {
 			wantStdout: "0.6046602879796196,0.9405090880450124\n",
 		},
 		{
+			name: "statement limit",
+			arguments: func(t *testing.T) []string {
+				return []string{"-max-statements", "3", writeProgram(t, "10 PRINT \"X\": GOTO 10\n")}
+			},
+			wantCode:   1,
+			wantStdout: "X\nX\n",
+			wantStderr: "BASIC line 10: statement limit 3 reached",
+		},
+		{
+			name: "negative statement limit",
+			arguments: func(t *testing.T) []string {
+				return []string{"-max-statements", "-1", writeProgram(t, "10 END\n")}
+			},
+			wantCode:   2,
+			wantStderr: "max-statements must be non-negative",
+		},
+		{
 			name: "parse error",
 			arguments: func(t *testing.T) []string {
 				return []string{writeProgram(t, "10 INPUT \"PROMPT\";\n")}

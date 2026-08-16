@@ -24,10 +24,15 @@ func run(arguments []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	flags.SetOutput(stderr)
 	showVersion := flags.Bool("version", false, "print version and exit")
 	seed := flags.Int64("seed", 0, "seed RND for reproducible runs")
+	maxStatements := flags.Int("max-statements", 0, "stop after this many BASIC statements (0 is unlimited)")
 	flags.Usage = func() {
-		_, _ = fmt.Fprintln(stderr, "usage: go-basic [-version] [-seed number] source.bas")
+		_, _ = fmt.Fprintln(stderr, "usage: go-basic [-version] [-seed number] [-max-statements number] source.bas")
 	}
 	if err := flags.Parse(arguments); err != nil {
+		return 2
+	}
+	if *maxStatements < 0 {
+		_, _ = fmt.Fprintln(stderr, "go-basic: max-statements must be non-negative")
 		return 2
 	}
 	if *showVersion {
@@ -53,7 +58,10 @@ func run(arguments []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintf(stderr, "go-basic: parse %s:\n%s\n", path, strings.Join(parser.Errors, "\n"))
 		return 1
 	}
-	options := []interpreter.EvaluatorOption{interpreter.WithInput(stdin)}
+	options := []interpreter.EvaluatorOption{
+		interpreter.WithInput(stdin),
+		interpreter.WithStatementLimit(*maxStatements),
+	}
 	seeded := false
 	flags.Visit(func(flag *flag.Flag) {
 		seeded = seeded || flag.Name == "seed"
