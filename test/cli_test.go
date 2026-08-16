@@ -1111,6 +1111,17 @@ func TestCLI(t *testing.T) {
 		assertRouletteTranscript(t, string(output))
 	})
 
+	t.Run("survives the original Russian Roulette program", func(t *testing.T) {
+		path := filepath.Join("scripts", "russian-roulette.bas")
+		command := exec.Command(binary, "-seed", "9", "-max-statements", "100", path)
+		command.Stdin = strings.NewReader(strings.Repeat("1\n", 11))
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertRussianRouletteTranscript(t, string(output), path)
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3555,6 +3566,33 @@ func assertRouletteTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, strings.Repeat("-", 62)+"COME BACK SOON!\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-85):])
+	}
+}
+
+func assertRussianRouletteTranscript(t *testing.T, transcript, path string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 28) + "RUSSIAN ROULETTE\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THIS IS A GAME OF >>>>>>>>>>RUSSIAN ROULETTE.\n\nHERE IS A REVOLVER.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"TYPE '1' TO SPIN CHAMBER AND PULL TRIGGER.",
+		"TYPE '2' TO GIVE UP.",
+		"YOU WIN!!!!!",
+		"LET SOMEONE ELSE BLOW HIS BRAINS OUT.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "- CLICK -"), 10; got != want {
+		t.Fatalf("safe trigger pulls: got %d, want %d", got, want)
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 10: statement limit 100 reached\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)-50):])
 	}
 }
 
