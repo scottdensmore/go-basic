@@ -1100,6 +1100,17 @@ func TestCLI(t *testing.T) {
 		assertRockScissorsPaperTranscript(t, string(output))
 	})
 
+	t.Run("wins bets in the original Roulette program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "roulette.bas"))
+		command.Stdin = strings.NewReader("AUGUST 16,2026\nNO\n0\n3\n51,10\n24,10\n" +
+			"24,5\n48,20\n37,1\n37,5\nNO\nADA LOVELACE\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertRouletteTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3513,6 +3524,37 @@ func assertRockScissorsPaperTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "\nTHANKS FOR PLAYING!!\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
+}
+
+func assertRouletteTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "ROULETTE\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"ENTER THE CURRENT DATE (AS IN 'JANUARY 23, 1979') -? WELCOME TO THE ROULETTE TABLE\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"HOW MANY BETS? HOW MANY BETS? ",
+		"NUMBER1? NUMBER1? ",
+		"YOU MADE THAT BET ONCE ALREADY,DUM-DUM",
+		"NUMBER3? NUMBER3? SPINNING",
+		"24BLACK",
+		"YOU WIN350DOLLARS ON BET1",
+		"YOU WIN20DOLLARS ON BET2",
+		"YOU LOSE5DOLLARS ON BET3",
+		"99635         1365",
+		"CHECK NO. 65",
+		"AUGUST 16, 2026",
+		"PAY TO THE ORDER OF-----ADA LOVELACE-----$ 1365",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if !strings.HasSuffix(transcript, strings.Repeat("-", 62)+"COME BACK SOON!\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-85):])
 	}
 }
 

@@ -189,6 +189,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`72_Queen/queen.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/72_Queen/queen.bas)
 - [`73_Reverse/reverse.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/73_Reverse/reverse.bas)
 - [`74_Rock_Scissors_Paper/rockscissors.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/74_Rock_Scissors_Paper/rockscissors.bas)
+- [`75_Roulette/roulette.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/75_Roulette/roulette.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -389,6 +390,9 @@ and exits normally.
 Rock Scissors Paper's seeded transcript validates the match length and a move,
 then covers a player win, computer win, and tie, verifies the complete final
 score, and exits normally.
+Roulette's seeded transcript validates bet count, type, uniqueness, and amount,
+covers straight, color, and dozen payouts, verifies both bankrolls and the
+dated cash-out check, and exits normally.
 
 ## Testing
 
