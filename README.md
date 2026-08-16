@@ -173,6 +173,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`56_Life_for_Two/lifefortwo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/56_Life_for_Two/lifefortwo.bas) and the byte-different [alternate `lifefortwo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/56_Life_for_Two/lifefortwo.bas)
 - [`57_Literature_Quiz/litquiz.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/57_Literature_Quiz/litquiz.bas)
 - [`58_Love/love.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/58_Love/love.bas)
+- [`59_Lunar_LEM_Rocket/lem.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/lem.bas), [`lunar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/lunar.bas), the byte-different [alternate `lunar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/59_Lunar_LEM_Rocket/lunar.bas), and [`rocket.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/rocket.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -323,6 +324,11 @@ exits normally.
 Love's transcript supplies the canonical message, verifies all 36 rows of the
 60-column Robert Indiana-inspired artwork and representative interior shapes,
 and exits normally.
+LEM's transcript flies a valid maneuver with scientific-notation physics,
+verifies updated telemetry, then performs a controlled abort and exits.
+Both Lunar transcripts complete a zero-burn crash and distinguish their
+byte-different fuel-weight text before ending at the replay prompt. Rocket
+exhausts its fuel, reports every free-fall second, crashes, and exits normally.
 
 ## Testing
 

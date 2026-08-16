@@ -179,7 +179,24 @@ func (l *Lexer) readNumber() string {
 			l.readChar()
 		}
 	}
+	if (l.ch == 'e' || l.ch == 'E') && l.hasExponentDigits() {
+		l.readChar()
+		if l.ch == '+' || l.ch == '-' {
+			l.readChar()
+		}
+		for isDigit(l.ch) {
+			l.readChar()
+		}
+	}
 	return l.input[position:l.position]
+}
+
+func (l *Lexer) hasExponentDigits() bool {
+	position := l.readPosition
+	if position < len(l.input) && (l.input[position] == '+' || l.input[position] == '-') {
+		position++
+	}
+	return position < len(l.input) && isDigit(l.input[position])
 }
 
 func (l *Lexer) readString() (string, bool) {

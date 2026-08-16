@@ -68,6 +68,11 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "0.3:27.96\n 0.3: 27.96\n0.6046602879796196\n",
 		},
 		{
+			name:   "scientific notation",
+			source: "10 PRINT 3.287828E-04;\" \";1E3;\" \";.5e+2\n",
+			want:   "0.0003287828 1000 50\n",
+		},
+		{
 			name: "functions and tabbing",
 			source: `10 PRINT TAB(3); SIN(0)
 `,
