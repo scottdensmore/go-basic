@@ -163,6 +163,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`49_Hockey/hockey.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/49_Hockey/hockey.bas)
 - [`50_Horserace/horserace.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/50_Horserace/horserace.bas)
 - [`51_Hurkle/hurkle.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/51_Hurkle/hurkle.bas)
+- [`52_Kinema/kinema.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/52_Kinema/kinema.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -291,6 +292,9 @@ and the winning payout, and exits normally.
 Hurkle's seeded transcript follows northeast and south directions to a
 three-guess win, then ends at the next first-guess prompt because the original
 program automatically starts another round.
+Kinema's seeded transcript answers all three physics questions correctly,
+earns the top score, and ends at the next round's first prompt because the
+original program has no quit command.
 
 ## Testing
 
