@@ -222,6 +222,17 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("plays the original Bowling program", func(t *testing.T) {
+		path := filepath.Join("scripts", "bowling.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("N\n1\n" + strings.Repeat("ROLL\n", 20) + "N\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertBowlingTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -624,6 +635,32 @@ func bounceOutput() string {
 	output.WriteString("             SECONDS\n\n")
 	output.WriteString("TIME INCREMENT (SEC)? ")
 	return output.String()
+}
+
+func assertBowlingTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "BOWL\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"WELCOME TO THE ALLEY\nBRING YOUR FRIENDS\nOKAY LET'S FIRST GET ACQUAINTED\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for text, want := range map[string]int{
+		"TYPE ROLL TO GET THE BALL GOING.": 20,
+		"PLAYER:1FRAME:":                   20,
+		"ROLL YOUR 2ND BALL":               10,
+		"SPARE!!!!":                        4,
+		"ERROR!!!":                         6,
+	} {
+		if got := strings.Count(transcript, text); got != want {
+			t.Fatalf("%q count: got %d, want %d", text, got, want)
+		}
+	}
+	suffix := "FRAMES\n12345678910\n7677878687\n89109101098109\n1121221121\n\n" +
+		"DO YOU WANT ANOTHER GAME\n? "
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
