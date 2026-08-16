@@ -195,6 +195,19 @@ func TestCLI(t *testing.T) {
 		assertBombardmentTranscript(t, string(output))
 	})
 
+	t.Run("flies the original Bombs Away program", func(t *testing.T) {
+		path := filepath.Join("scripts", "bombs-away.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("0\n1\n0\n1\n160\n152\nN\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), bombsAwayOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -552,6 +565,24 @@ func assertBombardmentTranscript(t *testing.T, transcript string) {
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
+}
+
+func bombsAwayOutput() string {
+	var output strings.Builder
+	output.WriteString("YOU ARE A PILOT IN A WORLD WAR II BOMBER.\n")
+	output.WriteString("WHAT SIDE -- ITALY(1), ALLIES(2), JAPAN(3), GERMANY(4)? TRY AGAIN...\n")
+	output.WriteString("WHAT SIDE -- ITALY(1), ALLIES(2), JAPAN(3), GERMANY(4)? ")
+	output.WriteString("YOUR TARGET -- ALBANIA(1), GREECE(2), NORTH AFRICA(3)? TRY AGAIN...\n")
+	output.WriteString("YOUR TARGET -- ALBANIA(1), GREECE(2), NORTH AFRICA(3)? \n")
+	output.WriteString("SHOULD BE EASY -- YOU'RE FLYING A NAZI-MADE PLANE.\n\n")
+	output.WriteString("HOW MANY MISSIONS HAVE YOU FLOWN? MISSIONS, NOT MILES...\n")
+	output.WriteString("150 MISSIONS IS HIGH EVEN FOR OLD-TIMERS.\n")
+	output.WriteString("NOW THEN, HOW MANY MISSIONS HAVE YOU FLOWN? \n")
+	output.WriteString("THAT'S PUSHING THE ODDS!\n\n")
+	output.WriteString("DIRECT HIT!!!! 24KILLED.\n")
+	output.WriteString("MISSION SUCCESSFUL.\n\n\n\n")
+	output.WriteString("ANOTHER MISSION (Y OR N)? CHICKEN !!!\n\n")
+	return output.String()
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
