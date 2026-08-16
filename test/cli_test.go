@@ -1146,6 +1146,16 @@ func TestCLI(t *testing.T) {
 		assertSlalomTranscript(t, string(output))
 	})
 
+	t.Run("breaks even in the original Slots program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "slots.bas"))
+		command.Stdin = strings.NewReader("101\n0\n10\nY\n10\nY\n10\nY\n10\nN\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertSlotsTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3684,6 +3694,37 @@ func assertSlalomTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "THANKS FOR THE RACE\nSILVER MEDALS:1\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
+	}
+}
+
+func assertSlotsTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "SLOTS\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"YOU ARE IN THE H&M CASINO,IN FRONT OF ONE OF OUR\nONE-ARM BANDITS. BET FROM $1 TO $100.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"HOUSE LIMITS ARE $100",
+		"MINIMUM BET IS $1",
+		"YOUR STANDINGS ARE $-10",
+		"YOUR STANDINGS ARE $-20",
+		"YOUR STANDINGS ARE $-30",
+		"DOUBLE!!\nYOU WON!\nYOUR STANDINGS ARE $0",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "YOU LOST."), 3; got != want {
+		t.Fatalf("losses: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "AGAIN? "), 4; got != want {
+		t.Fatalf("replay prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "AGAIN? \nHEY, YOU BROKE EVEN.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-45):])
 	}
 }
 
