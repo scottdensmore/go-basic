@@ -430,6 +430,17 @@ func TestCLI(t *testing.T) {
 		assertDepthChargeTranscript(t, string(output))
 	})
 
+	t.Run("prints the original Diamond program", func(t *testing.T) {
+		path := filepath.Join("scripts", "diamond.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("5\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertDiamondTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1381,6 +1392,27 @@ func assertDepthChargeTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "ANOTHER GAME (Y OR N)? OK.  HOPE YOU ENJOYED YOURSELF.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-65):])
+	}
+}
+
+func assertDiamondTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "DIAMOND\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"FOR A PRETTY DIAMOND PATTERN,\nTYPE IN AN ODD NUMBER BETWEEN 5 AND 21? \n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	narrow := "  C    C    C    C    C    C    C    C    C    C    C    C\n"
+	middle := " CC!  CC!  CC!  CC!  CC!  CC!  CC!  CC!  CC!  CC!  CC!  CC!\n"
+	wide := "CC!!!CC!!!CC!!!CC!!!CC!!!CC!!!CC!!!CC!!!CC!!!CC!!!CC!!!CC!!!\n"
+	for row, want := range map[string]int{narrow: 24, middle: 24, wide: 12} {
+		if got := strings.Count(transcript, row); got != want {
+			t.Fatalf("row %q count: got %d, want %d", strings.TrimSpace(row), got, want)
+		}
+	}
+	if !strings.HasSuffix(transcript, narrow) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(narrow)):])
 	}
 }
 
