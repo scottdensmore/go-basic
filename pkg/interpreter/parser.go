@@ -9,6 +9,7 @@ import (
 
 const (
 	lowest int = iota
+	logical
 	equals
 	sum
 	product
@@ -17,6 +18,7 @@ const (
 )
 
 var precedences = map[TokenType]int{
+	AND:      logical,
 	ASSIGN:   equals,
 	NEQ:      equals,
 	LT:       equals,
@@ -64,6 +66,7 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[INT] = parser.parseCallExpression
 	parser.prefixParseFuncs[SQR] = parser.parseCallExpression
 	parser.prefixParseFuncs[EXP] = parser.parseCallExpression
+	parser.prefixParseFuncs[RND] = parser.parseCallExpression
 
 	parser.infixParseFuncs[PLUS] = parser.parseInfixExpression
 	parser.infixParseFuncs[MINUS] = parser.parseInfixExpression
@@ -76,6 +79,7 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.infixParseFuncs[GT] = parser.parseInfixExpression
 	parser.infixParseFuncs[GTE] = parser.parseInfixExpression
 	parser.infixParseFuncs[LPAREN] = parser.parseIdentifierCallExpression
+	parser.infixParseFuncs[AND] = parser.parseInfixExpression
 
 	parser.nextToken()
 	parser.nextToken()
@@ -158,6 +162,10 @@ func (p *Parser) parseStatement() Statement {
 		return statement
 	case INPUT:
 		return p.parseInputStatement()
+	case DIM:
+		return p.parseDimStatement()
+	case ON:
+		return p.parseOnGotoStatement()
 	case NEXT:
 		return p.parseNextStatement()
 	case SLEEP:
@@ -200,10 +208,64 @@ func (p *Parser) parseInputStatement() Statement {
 			return nil
 		}
 	}
-	if !p.expectPeek(IDENT) {
+	for {
+		if !p.expectPeek(IDENT) {
+			return nil
+		}
+		statement.Variables = append(statement.Variables, &Identifier{Value: p.current.Literal})
+		if p.peek.Type != COMMA {
+			break
+		}
+		p.nextToken()
+	}
+	return statement
+}
+
+func (p *Parser) parseDimStatement() Statement {
+	statement := &DimStatement{}
+	for {
+		if !p.expectPeek(IDENT) {
+			return nil
+		}
+		declaration := ArrayDeclaration{Name: &Identifier{Value: p.current.Literal}}
+		if !p.expectPeek(LPAREN) {
+			return nil
+		}
+		declaration.Dimensions = p.parseExpressionList(RPAREN)
+		if len(declaration.Dimensions) == 0 {
+			return nil
+		}
+		statement.Arrays = append(statement.Arrays, declaration)
+		if p.peek.Type != COMMA {
+			break
+		}
+		p.nextToken()
+	}
+	return statement
+}
+
+func (p *Parser) parseOnGotoStatement() Statement {
+	statement := &OnGotoStatement{}
+	p.nextToken()
+	statement.Selector = p.parseExpression(lowest)
+	if statement.Selector == nil || !p.expectPeek(GOTO) {
 		return nil
 	}
-	statement.Var = &Identifier{Value: p.current.Literal}
+	for {
+		if !p.expectPeek(NUMBER) {
+			return nil
+		}
+		target, err := strconv.Atoi(p.current.Literal)
+		if err != nil {
+			p.addError(p.current, "invalid BASIC line number %q", p.current.Literal)
+			return nil
+		}
+		statement.Targets = append(statement.Targets, target)
+		if p.peek.Type != COMMA {
+			break
+		}
+		p.nextToken()
+	}
 	return statement
 }
 
@@ -339,6 +401,13 @@ func (p *Parser) parseSleepStatement() *SleepStatement {
 
 func (p *Parser) parseLetStatement() *LetStatement {
 	statement := &LetStatement{Name: &Identifier{Value: p.current.Literal}}
+	if p.peek.Type == LPAREN {
+		p.nextToken()
+		statement.Indices = p.parseExpressionList(RPAREN)
+		if len(statement.Indices) == 0 {
+			return nil
+		}
+	}
 	if !p.expectPeek(ASSIGN) {
 		return nil
 	}
@@ -448,17 +517,42 @@ func (p *Parser) parseIdentifierCallExpression(function Expression) Expression {
 		p.addError(p.current, "expected function name before (")
 		return nil
 	}
-	expression := &CallExpression{Function: identifier.Value}
+	arguments := p.parseExpressionList(RPAREN)
+	if len(arguments) == 0 {
+		return nil
+	}
+	if strings.HasPrefix(strings.ToUpper(identifier.Value), "FN") {
+		return &CallExpression{Function: identifier.Value, Arguments: arguments}
+	}
+	return &ArrayReference{Name: identifier, Indices: arguments}
+}
+
+func (p *Parser) parseExpressionList(end TokenType) []Expression {
+	if p.peek.Type == end {
+		p.addError(p.peek, "expected expression, got %s", tokenDescription(p.peek))
+		p.nextToken()
+		return nil
+	}
+
 	p.nextToken()
-	argument := p.parseExpression(lowest)
-	if argument == nil {
+	first := p.parseExpression(lowest)
+	if first == nil {
 		return nil
 	}
-	expression.Arguments = append(expression.Arguments, argument)
-	if !p.expectPeek(RPAREN) {
+	expressions := []Expression{first}
+	for p.peek.Type == COMMA {
+		p.nextToken()
+		p.nextToken()
+		expression := p.parseExpression(lowest)
+		if expression == nil {
+			return nil
+		}
+		expressions = append(expressions, expression)
+	}
+	if !p.expectPeek(end) {
 		return nil
 	}
-	return expression
+	return expressions
 }
 
 func (p *Parser) nextToken() {

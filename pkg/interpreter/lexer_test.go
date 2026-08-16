@@ -142,6 +142,26 @@ func TestLexerRecognizesAceyDuceyStringIdentifiers(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesAmazingSyntax(t *testing.T) {
+	t.Parallel()
+
+	input := "100 INPUT \"SIZE\";H,V\n110 IF H<>1 AND V<>1 THEN 130\n120 DIM W(H,V),V(H,V)\n130 ON X GOTO 200,300\n"
+	want := []TokenType{
+		NUMBER, INPUT, STRING, SEMICOLON, IDENT, COMMA, IDENT, EOL,
+		NUMBER, IF, IDENT, NEQ, NUMBER, AND, IDENT, NEQ, NUMBER, THEN, NUMBER, EOL,
+		NUMBER, DIM, IDENT, LPAREN, IDENT, COMMA, IDENT, RPAREN, COMMA, IDENT, LPAREN, IDENT, COMMA, IDENT, RPAREN, EOL,
+		NUMBER, ON, IDENT, GOTO, NUMBER, COMMA, NUMBER, EOL,
+		EOF,
+	}
+
+	lexer := NewLexer(input)
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func FuzzLexerTerminates(f *testing.F) {
 	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "5 DEF FNA(Z)=EXP(SQR(Z))\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
 		f.Add(seed)

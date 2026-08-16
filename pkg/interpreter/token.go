@@ -40,6 +40,8 @@ const (
 	SLASH TokenType = "/"
 	// SEMICOLON separates PRINT elements and can suppress its newline.
 	SEMICOLON TokenType = ";"
+	// COMMA separates values, dimensions, and branch targets.
+	COMMA TokenType = ","
 	// COLON separates statements on one BASIC source line.
 	COLON TokenType = ":"
 	// LPAREN begins a grouped expression or function argument.
@@ -65,6 +67,8 @@ const (
 	SIN TokenType = "SIN"
 	// INPUT is recognized so the parser can report that it is unsupported.
 	INPUT TokenType = "INPUT"
+	// AND performs Microsoft BASIC integer logical conjunction.
+	AND TokenType = "AND"
 	// IF conditionally transfers control.
 	IF TokenType = "IF"
 	// THEN introduces an IF target line.
@@ -83,6 +87,12 @@ const (
 	SQR TokenType = "SQR"
 	// EXP computes the natural exponential function.
 	EXP TokenType = "EXP"
+	// RND returns a pseudo-random number.
+	RND TokenType = "RND"
+	// DIM declares array bounds.
+	DIM TokenType = "DIM"
+	// ON begins a computed branch statement.
+	ON TokenType = "ON"
 )
 
 // Token records a token's type, source spelling, and one-based position.
@@ -103,6 +113,7 @@ var keywords = map[string]TokenType{
 	"tab":   TAB,
 	"sin":   SIN,
 	"input": INPUT,
+	"and":   AND,
 	"if":    IF,
 	"then":  THEN,
 	"goto":  GOTO,
@@ -112,6 +123,9 @@ var keywords = map[string]TokenType{
 	"def":   DEF,
 	"sqr":   SQR,
 	"exp":   EXP,
+	"rnd":   RND,
+	"dim":   DIM,
+	"on":    ON,
 }
 
 // LookupIdent returns the keyword token for ident, or IDENT otherwise.
