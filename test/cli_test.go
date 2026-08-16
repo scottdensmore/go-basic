@@ -114,6 +114,18 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("prints with the original Banner program", func(t *testing.T) {
+		command := exec.Command(binary, filepath.Join("scripts", "banner.bas"))
+		command.Stdin = strings.NewReader("1\n1\nNO\n*\nA\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), bannerOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -320,6 +332,22 @@ func bagelsOutput() string {
 	output.WriteString("PLAY AGAIN (YES OR NO)? \n")
 	output.WriteString("A1POINT BAGELS BUFF!!\n")
 	output.WriteString("HOPE YOU HAD FUN.  BYE.\n")
+	return output.String()
+}
+
+func bannerOutput() string {
+	var output strings.Builder
+	output.WriteString("HORIZONTAL? VERTICAL? CENTERED? ")
+	output.WriteString("CHARACTER (TYPE 'ALL' IF YOU WANT CHARACTER BEING PRINTED)? ")
+	output.WriteString("STATEMENT? SET PAGE? ")
+	output.WriteString("******\n")
+	output.WriteString("    *  *\n")
+	output.WriteString("    *   *\n")
+	output.WriteString("    *    *\n")
+	output.WriteString("    *   *\n")
+	output.WriteString("    *  *\n")
+	output.WriteString(" ******\n")
+	output.WriteString(strings.Repeat("\n", 77))
 	return output.String()
 }
 

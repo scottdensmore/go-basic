@@ -163,6 +163,12 @@ type ReadStatement struct {
 func (rs *ReadStatement) statementNode() {}
 func (rs *ReadStatement) String() string { return "READ ..." }
 
+// RestoreStatement resets subsequent READ statements to the first DATA value.
+type RestoreStatement struct{}
+
+func (rs *RestoreStatement) statementNode() {}
+func (rs *RestoreStatement) String() string { return "RESTORE" }
+
 // PrintElement is either an expression or a PRINT separator.
 type PrintElement struct {
 	Expr      Expression

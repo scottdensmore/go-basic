@@ -4,13 +4,13 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 
 ## Features
 
--   **Variables**: Numeric and string scalars plus dimensioned numeric and string arrays.
+-   **Variables**: Numeric and string scalars plus explicitly and implicitly dimensioned numeric and string arrays.
 -   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, numeric and string comparisons, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
 -   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, `ASC`, and single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, line and statement forms of `IF`...`THEN`, `GOTO`, `GOSUB`...`RETURN`, `ON`...`GOTO`, `END`, `STOP`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` and comma separators plus `TAB` function support.
 -   **Input**: Prompted or unprompted `INPUT` for comma-separated numeric and string variables.
--   **Embedded Data**: Program-wide numeric and string `DATA` consumed by `READ` into scalars or array elements.
+-   **Embedded Data**: Program-wide numeric and string `DATA` consumed by `READ` into scalars or array elements, with `RESTORE` support.
 -   **Source Lines**: `REM` comments and colon-separated statements.
 -   **Diagnostics**: Parse and runtime errors include BASIC source line context.
 -   **Cross-Platform**: Compiles and runs on macOS, Linux, and Windows.
@@ -117,6 +117,7 @@ changes and verifies their complete output transcripts:
 - [`03_Animal/animal.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/03_Animal/animal.bas)
 - [`04_Awari/awari.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/04_Awari/awari.bas)
 - [`05_Bagels/bagels.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/05_Bagels/bagels.bas)
+- [`06_Banner/banner.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/06_Banner/banner.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -124,6 +125,8 @@ Awari's transcript plays a complete human and computer turn, then ends at the
 next move prompt because the original program automatically continues play.
 Bagels' seeded transcript covers invalid guesses, clue generation, a win, and a
 normal exit.
+Banner's transcript generates a complete one-character banner and exits
+normally.
 
 ## Testing
 

@@ -221,6 +221,23 @@ func TestLexerRecognizesBagelsSyntax(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesBannerSyntax(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("10 READ S$,S(1)\n20 RESTORE\n")
+	want := []TokenType{
+		NUMBER, READ, IDENT, COMMA, IDENT, LPAREN, NUMBER, RPAREN, EOL,
+		NUMBER, RESTORE, EOL,
+		EOF,
+	}
+
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func FuzzLexerTerminates(f *testing.F) {
 	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "5 DEF FNA(Z)=EXP(SQR(Z))\n", "10 READ A$(I)\n20 DATA \"CAT\"\n30 GOSUB 100\n", "10 PRINT 6^(7-C);CHR$(42+M)\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
 		f.Add(seed)
