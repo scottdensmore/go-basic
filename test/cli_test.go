@@ -1167,6 +1167,17 @@ func TestCLI(t *testing.T) {
 		assertSplatTranscript(t, string(output))
 	})
 
+	t.Run("wins the original Stars program", func(t *testing.T) {
+		path := filepath.Join("scripts", "stars.bas")
+		command := exec.Command(binary, "-seed", "0", "-max-statements", "280", path)
+		command.Stdin = strings.NewReader("MAYBE\n1\n50\n70\n80\n90\n93\n95\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertStarsTranscript(t, string(output), path)
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3768,6 +3779,35 @@ func assertSplatTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "PLEASE? YES OR NO PLEASE? SSSSSSSSSS.\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
+	}
+}
+
+func assertStarsTranscript(t *testing.T, transcript, path string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "STARS\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"DO YOU WANT INSTRUCTIONS? I AM THINKING OF A WHOLE NUMBER FROM 1 TO100\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"ONE STAR (*) MEANS FAR AWAY, SEVEN STARS (*******)",
+		"MEANS REALLY CLOSE!  YOU GET7GUESSES.",
+		"YOUR GUESS? *\n\nYOUR GUESS? **\n\nYOUR GUESS? ***\n\n" +
+			"YOUR GUESS? ****\n\nYOUR GUESS? *****\n\nYOUR GUESS? ******",
+		strings.Repeat("*", 79),
+		"YOU GOT IT IN7GUESSES!!!  LET'S PLAY AGAIN...",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "YOUR GUESS? "), 7; got != want {
+		t.Fatalf("guess prompts: got %d, want %d", got, want)
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 310: statement limit 280 reached\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)-30):])
 	}
 }
 
