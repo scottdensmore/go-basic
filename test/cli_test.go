@@ -333,6 +333,17 @@ func TestCLI(t *testing.T) {
 		assertCheckersTranscript(t, path, string(output))
 	})
 
+	t.Run("plays the original Chemist program", func(t *testing.T) {
+		path := filepath.Join("scripts", "chemist.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("110\n" + strings.Repeat("1000\n", 9))
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertChemistTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1009,6 +1020,33 @@ func assertCheckersTranscript(t *testing.T, path, transcript string) {
 		t.Fatalf("computer moves: got %d, want %d", got, want)
 	}
 	suffix := "FROM? go-basic: run " + path + ": BASIC line 1590: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertChemistTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "CHEMIST\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THE FICTITIOUS CHEMICAL KRYPTOCYANIC ACID CAN ONLY BE\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	if !strings.Contains(transcript, "47LITERS OF KRYPTOCYANIC ACID.  HOW MUCH WATER?  GOOD JOB!") {
+		t.Fatal("transcript missing successful dilution")
+	}
+	for text, want := range map[string]int{
+		"LITERS OF KRYPTOCYANIC ACID.  HOW MUCH WATER? ":      10,
+		"SIZZLE!  YOU HAVE JUST BEEN DESALINATED INTO A BLOB": 9,
+		"HOWEVER, YOU MAY TRY AGAIN WITH ANOTHER LIFE.":       8,
+	} {
+		if got := strings.Count(transcript, text); got != want {
+			t.Fatalf("%q count: got %d, want %d", text, got, want)
+		}
+	}
+	suffix := " YOUR 9 LIVES ARE USED, BUT YOU WILL BE LONG REMEMBERED FOR\n" +
+		" YOUR CONTRIBUTIONS TO THE FIELD OF COMIC BOOK CHEMISTRY.\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
