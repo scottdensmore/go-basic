@@ -1032,6 +1032,18 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 			return nil, err
 		}
 		return math.Sin(argument), nil
+	case "COS":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		return math.Cos(argument), nil
+	case "TAN":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		return math.Tan(argument), nil
 	case "INT":
 		argument, err := e.singleNumberArgument(expression)
 		if err != nil {

@@ -69,6 +69,10 @@ const (
 	TAB TokenType = "TAB"
 	// SIN computes a sine value.
 	SIN TokenType = "SIN"
+	// COS computes a cosine value.
+	COS TokenType = "COS"
+	// TAN computes a tangent value.
+	TAN TokenType = "TAN"
 	// INPUT is recognized so the parser can report that it is unsupported.
 	INPUT TokenType = "INPUT"
 	// AND performs Microsoft BASIC integer logical conjunction.
@@ -153,6 +157,8 @@ var keywords = map[string]TokenType{
 	"sleep":   SLEEP,
 	"tab":     TAB,
 	"sin":     SIN,
+	"cos":     COS,
+	"tan":     TAN,
 	"input":   INPUT,
 	"and":     AND,
 	"or":      OR,

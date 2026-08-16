@@ -159,6 +159,21 @@ func TestLexerRecognizesDepthChargeLogarithms(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesFlipFlopTrigonometry(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("420 R=TAN(Q)-SIN(Q)+COS(N)\n")
+	want := []TokenType{
+		NUMBER, IDENT, ASSIGN, TAN, LPAREN, IDENT, RPAREN, MINUS,
+		SIN, LPAREN, IDENT, RPAREN, PLUS, COS, LPAREN, IDENT, RPAREN, EOL, EOF,
+	}
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func TestLexerRecognizesAceyDuceyStringIdentifiers(t *testing.T) {
 	t.Parallel()
 
