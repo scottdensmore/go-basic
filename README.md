@@ -154,6 +154,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`40_Gomoko/gomoko.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/40_Gomoko/gomoko.bas) and the byte-different [alternate `gomoko.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/40_Gomoko/gomoko.bas)
 - [`41_Guess/guess.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/41_Guess/guess.bas)
 - [`42_Gunner/gunner.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/42_Gunner/gunner.bas)
+- [`43_Hammurabi/hammurabi.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/43_Hammurabi/hammurabi.bas) and the byte-different [alternate `hammurabi.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/43_Hammurabi/hammurabi.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -254,6 +255,9 @@ original program automatically starts another round.
 Gunner's seeded transcript rejects invalid elevations, corrects short and
 over-target shots, destroys all five targets in seven rounds, earns the top
 rating, and exits normally.
+The two Hammurabi transcripts reject an over-planted field, govern all ten
+years through land trades, harvests, rats, and plagues without starvation,
+earn the top rating, and preserve both byte-different output formats.
 
 ## Testing
 
