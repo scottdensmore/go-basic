@@ -67,6 +67,12 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[SQR] = parser.parseCallExpression
 	parser.prefixParseFuncs[EXP] = parser.parseCallExpression
 	parser.prefixParseFuncs[RND] = parser.parseCallExpression
+	parser.prefixParseFuncs[LEFT] = parser.parseCallExpression
+	parser.prefixParseFuncs[RIGHT] = parser.parseCallExpression
+	parser.prefixParseFuncs[MID] = parser.parseCallExpression
+	parser.prefixParseFuncs[LEN] = parser.parseCallExpression
+	parser.prefixParseFuncs[STR] = parser.parseCallExpression
+	parser.prefixParseFuncs[VAL] = parser.parseCallExpression
 
 	parser.infixParseFuncs[PLUS] = parser.parseInfixExpression
 	parser.infixParseFuncs[MINUS] = parser.parseInfixExpression
@@ -180,8 +186,18 @@ func (p *Parser) parseStatement() Statement {
 		return p.parseIfStatement()
 	case GOTO:
 		return p.parseGotoStatement()
+	case GOSUB:
+		return p.parseGosubStatement()
+	case RETURN:
+		return &ReturnStatement{}
 	case END:
 		return &EndStatement{}
+	case STOP:
+		return &StopStatement{}
+	case DATA:
+		return p.parseDataStatement()
+	case READ:
+		return p.parseReadStatement()
 	case DEF:
 		return p.parseDefFnStatement()
 	case IDENT:
@@ -301,6 +317,19 @@ func (p *Parser) parseIfStatement() Statement {
 	if statement.Condition == nil || !p.expectPeek(THEN) {
 		return nil
 	}
+	if p.peek.Type != NUMBER {
+		p.nextToken()
+		statements := p.parseStatementSequence()
+		if len(statements) == 0 {
+			p.addError(p.current, "expected statement after THEN")
+			return nil
+		}
+		statement.Consequence = statements[0]
+		if len(statements) > 1 {
+			statement.Consequence = &SequenceStatement{Statements: statements}
+		}
+		return statement
+	}
 	if !p.expectPeek(NUMBER) {
 		return nil
 	}
@@ -314,15 +343,94 @@ func (p *Parser) parseIfStatement() Statement {
 }
 
 func (p *Parser) parseGotoStatement() Statement {
-	if !p.expectPeek(NUMBER) {
+	target, ok := p.parseTargetLine()
+	if !ok {
 		return nil
+	}
+	return &GotoStatement{TargetLine: target}
+}
+
+func (p *Parser) parseGosubStatement() Statement {
+	target, ok := p.parseTargetLine()
+	if !ok {
+		return nil
+	}
+	return &GosubStatement{TargetLine: target}
+}
+
+func (p *Parser) parseTargetLine() (int, bool) {
+	if !p.expectPeek(NUMBER) {
+		return 0, false
 	}
 	target, err := strconv.Atoi(p.current.Literal)
 	if err != nil {
 		p.addError(p.current, "invalid BASIC line number %q", p.current.Literal)
-		return nil
+		return 0, false
 	}
-	return &GotoStatement{TargetLine: target}
+	return target, true
+}
+
+func (p *Parser) parseDataStatement() Statement {
+	statement := &DataStatement{}
+	for {
+		p.nextToken()
+		value := p.parseExpression(lowest)
+		if value == nil {
+			return nil
+		}
+		if !isDataLiteral(value) {
+			p.addError(p.current, "DATA value must be a string or number")
+			return nil
+		}
+		statement.Values = append(statement.Values, value)
+		if p.peek.Type != COMMA {
+			break
+		}
+		p.nextToken()
+	}
+	return statement
+}
+
+func isDataLiteral(expression Expression) bool {
+	switch value := expression.(type) {
+	case *StringLiteral, *IntegerLiteral, *FloatLiteral:
+		return true
+	case *PrefixExpression:
+		if value == nil || value.Operator != "-" {
+			return false
+		}
+		switch value.Right.(type) {
+		case *IntegerLiteral, *FloatLiteral:
+			return true
+		default:
+			return false
+		}
+	default:
+		return false
+	}
+}
+
+func (p *Parser) parseReadStatement() Statement {
+	statement := &ReadStatement{}
+	for {
+		if !p.expectPeek(IDENT) {
+			return nil
+		}
+		target := ReadTarget{Name: &Identifier{Value: p.current.Literal}}
+		if p.peek.Type == LPAREN {
+			p.nextToken()
+			target.Indices = p.parseExpressionList(RPAREN)
+			if len(target.Indices) == 0 {
+				return nil
+			}
+		}
+		statement.Targets = append(statement.Targets, target)
+		if p.peek.Type != COMMA {
+			break
+		}
+		p.nextToken()
+	}
+	return statement
 }
 
 func (p *Parser) parseForStatement() *ForStatement {
@@ -499,13 +607,8 @@ func (p *Parser) parseCallExpression() Expression {
 	if !p.expectPeek(LPAREN) {
 		return nil
 	}
-	p.nextToken()
-	argument := p.parseExpression(lowest)
-	if argument == nil {
-		return nil
-	}
-	expression.Arguments = append(expression.Arguments, argument)
-	if !p.expectPeek(RPAREN) {
+	expression.Arguments = p.parseExpressionList(RPAREN)
+	if len(expression.Arguments) == 0 {
 		return nil
 	}
 	return expression

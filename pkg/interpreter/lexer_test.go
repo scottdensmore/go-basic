@@ -162,8 +162,35 @@ func TestLexerRecognizesAmazingSyntax(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesAnimalSyntax(t *testing.T) {
+	t.Parallel()
+
+	input := "10 GOSUB 100: STOP\n20 RETURN\n30 READ A$(I),N\n40 DATA \"CAT\",2\n50 PRINT LEFT$(A$,1);RIGHT$(A$,1);MID$(A$,1,1);LEN(A$);STR$(N);VAL(A$)\n"
+	want := []TokenType{
+		NUMBER, GOSUB, NUMBER, COLON, STOP, EOL,
+		NUMBER, RETURN, EOL,
+		NUMBER, READ, IDENT, LPAREN, IDENT, RPAREN, COMMA, IDENT, EOL,
+		NUMBER, DATA, STRING, COMMA, NUMBER, EOL,
+		NUMBER, PRINT,
+		LEFT, LPAREN, IDENT, COMMA, NUMBER, RPAREN, SEMICOLON,
+		RIGHT, LPAREN, IDENT, COMMA, NUMBER, RPAREN, SEMICOLON,
+		MID, LPAREN, IDENT, COMMA, NUMBER, COMMA, NUMBER, RPAREN, SEMICOLON,
+		LEN, LPAREN, IDENT, RPAREN, SEMICOLON,
+		STR, LPAREN, IDENT, RPAREN, SEMICOLON,
+		VAL, LPAREN, IDENT, RPAREN, EOL,
+		EOF,
+	}
+
+	lexer := NewLexer(input)
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func FuzzLexerTerminates(f *testing.F) {
-	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "5 DEF FNA(Z)=EXP(SQR(Z))\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
+	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "5 DEF FNA(Z)=EXP(SQR(Z))\n", "10 READ A$(I)\n20 DATA \"CAT\"\n30 GOSUB 100\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
 		f.Add(seed)
 	}
 

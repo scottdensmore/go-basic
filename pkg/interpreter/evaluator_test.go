@@ -156,6 +156,69 @@ func TestEvaluatorRunsAmazingLanguageFeatures(t *testing.T) {
 	}
 }
 
+func TestEvaluatorRunsAnimalControlFlow(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 IF 0 THEN PRINT "wrong": GOTO 900
+20 IF -1 THEN PRINT "RIGHT";: PRINT "!"
+30 GOSUB 100
+40 PRINT "MAIN"
+50 STOP
+60 PRINT "wrong"
+100 PRINT "SUB";
+110 GOSUB 200
+120 RETURN
+200 PRINT "INNER";
+210 RETURN
+900 PRINT "wrong"
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "RIGHT!\nSUBINNERMAIN\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
+func TestEvaluatorReadsProgramDataIntoScalarsAndArrays(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 DIM A$(2),N(1)
+20 PRINT "<";A$(0);">"
+30 READ A$(1),N(0),A$
+40 PRINT A$(1);":";N(0);":";A$
+50 END
+100 DATA "CAT",12
+110 DATA "DOG"
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "<>\nCAT:12:DOG\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
+func TestEvaluatorRunsAnimalStringExpressions(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 A$="FISH"
+20 PRINT LEFT$(A$,2);":";RIGHT$(A$,2);":";MID$(A$,2,2);":";MID$(A$,2)
+30 PRINT LEN(A$);":";STR$(3);":";STR$(-2);":";VAL(" 12X");":";VAL("CAT")
+40 PRINT "CAT"+"FISH"
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	want := "FI:SH:IS:ISH\n4: 3:-2:12:0\nCATFISH\n"
+	if got := output.String(); got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorReadsScalarInput(t *testing.T) {
 	t.Parallel()
 
@@ -269,7 +332,16 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "nil input statement", program: &Program{Lines: map[int]Statement{10: (*InputStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid INPUT statement"},
 		{name: "negative array bound", program: mustParse(t, "10 DIM A(-1)\n"), want: "array A bound 1 must be non-negative"},
 		{name: "fractional array bound", program: mustParse(t, "10 DIM A(1.5)\n"), want: "array A bound 1 must be an integer"},
-		{name: "string arrays unsupported", program: mustParse(t, "10 DIM A$(2)\n"), want: "string arrays are not supported"},
+		{name: "return without gosub", program: mustParse(t, "10 RETURN\n"), want: "RETURN without GOSUB"},
+		{name: "out of data", program: mustParse(t, "10 READ A\n"), want: "out of DATA"},
+		{name: "read string into number", program: mustParse(t, "10 READ A\n20 DATA \"x\"\n"), want: "numeric variable A requires a number"},
+		{name: "read number into string array", program: mustParse(t, "10 DIM A$(1)\n20 READ A$(0)\n30 DATA 1\n"), want: "string array A$ requires string values"},
+		{name: "assign number into string array", program: mustParse(t, "10 DIM A$(1)\n20 A$(0)=1\n"), want: "string array A$ requires string values"},
+		{name: "left wrong arity", program: mustParse(t, "10 PRINT LEFT$(\"x\")\n"), want: "LEFT$ expects 2 arguments"},
+		{name: "length requires string", program: mustParse(t, "10 PRINT LEN(1)\n"), want: "expected string"},
+		{name: "negative string length", program: mustParse(t, "10 PRINT LEFT$(\"x\",-1)\n"), want: "LEFT$ length must be at least 0"},
+		{name: "fractional string length", program: mustParse(t, "10 PRINT RIGHT$(\"x\",1.5)\n"), want: "RIGHT$ length must be an integer"},
+		{name: "zero mid start", program: mustParse(t, "10 PRINT MID$(\"x\",0)\n"), want: "MID$ start must be at least 1"},
 		{name: "oversized array", program: mustParse(t, "10 DIM A(1000000)\n"), want: "array A exceeds the maximum size"},
 		{name: "array redeclaration", program: mustParse(t, "10 DIM A(2)\n20 DIM A(3)\n"), want: "array A is already dimensioned"},
 		{name: "undimensioned array", program: mustParse(t, "10 PRINT A(1)\n"), want: "array A is not dimensioned"},
@@ -281,6 +353,11 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "negative ON GOTO selector", program: mustParse(t, "10 ON -1 GOTO 20\n20 END\n"), want: "ON GOTO selector must be non-negative"},
 		{name: "fractional ON GOTO selector", program: mustParse(t, "10 ON 1.5 GOTO 20\n20 END\n"), want: "ON GOTO selector must be an integer"},
 		{name: "nil dimension statement", program: &Program{Lines: map[int]Statement{10: (*DimStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DIM statement"},
+		{name: "nil data statement", program: &Program{Lines: map[int]Statement{10: (*DataStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DATA statement"},
+		{name: "nil read statement", program: &Program{Lines: map[int]Statement{10: (*ReadStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid READ statement"},
+		{name: "nil gosub statement", program: &Program{Lines: map[int]Statement{10: (*GosubStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid GOSUB statement"},
+		{name: "nil return statement", program: &Program{Lines: map[int]Statement{10: (*ReturnStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid RETURN statement"},
+		{name: "nil stop statement", program: &Program{Lines: map[int]Statement{10: (*StopStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid statement"},
 		{name: "nil computed branch", program: &Program{Lines: map[int]Statement{10: (*OnGotoStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid ON GOTO statement"},
 		{name: "nil function definition", program: &Program{Lines: map[int]Statement{10: (*DefFnStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DEF FN statement"},
 		{name: "nil program", program: nil, want: "program is nil"},

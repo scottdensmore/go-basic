@@ -40,14 +40,18 @@ type RemStatement struct{}
 func (rs *RemStatement) statementNode() {}
 func (rs *RemStatement) String() string { return "REM" }
 
-// IfStatement transfers control when its numeric condition is nonzero.
+// IfStatement executes a line target or inline consequence when its condition is nonzero.
 type IfStatement struct {
-	Condition  Expression
-	TargetLine int
+	Condition   Expression
+	TargetLine  int
+	Consequence Statement
 }
 
 func (is *IfStatement) statementNode() {}
 func (is *IfStatement) String() string {
+	if is.Consequence != nil {
+		return fmt.Sprintf("IF %s THEN %s", is.Condition.String(), is.Consequence.String())
+	}
 	return fmt.Sprintf("IF %s THEN %d", is.Condition.String(), is.TargetLine)
 }
 
@@ -58,6 +62,20 @@ type GotoStatement struct {
 
 func (gs *GotoStatement) statementNode() {}
 func (gs *GotoStatement) String() string { return fmt.Sprintf("GOTO %d", gs.TargetLine) }
+
+// GosubStatement transfers control to a subroutine and records a return point.
+type GosubStatement struct {
+	TargetLine int
+}
+
+func (gs *GosubStatement) statementNode() {}
+func (gs *GosubStatement) String() string { return fmt.Sprintf("GOSUB %d", gs.TargetLine) }
+
+// ReturnStatement resumes execution after the most recent GOSUB.
+type ReturnStatement struct{}
+
+func (rs *ReturnStatement) statementNode() {}
+func (rs *ReturnStatement) String() string { return "RETURN" }
 
 // OnGotoStatement transfers control using a one-based computed target index.
 type OnGotoStatement struct {
@@ -75,6 +93,12 @@ type EndStatement struct{}
 
 func (es *EndStatement) statementNode() {}
 func (es *EndStatement) String() string { return "END" }
+
+// StopStatement terminates program execution successfully.
+type StopStatement struct{}
+
+func (ss *StopStatement) statementNode() {}
+func (ss *StopStatement) String() string { return "STOP" }
 
 // DefFnStatement defines a single-argument numeric function.
 type DefFnStatement struct {
@@ -103,7 +127,7 @@ func (ls *LetStatement) String() string {
 	return fmt.Sprintf("%s = %s", ls.Name.String(), ls.Value.String())
 }
 
-// ArrayDeclaration defines the inclusive bounds of one numeric array.
+// ArrayDeclaration defines the inclusive bounds of one typed array.
 type ArrayDeclaration struct {
 	Name       *Identifier
 	Dimensions []Expression
@@ -116,6 +140,28 @@ type DimStatement struct {
 
 func (ds *DimStatement) statementNode() {}
 func (ds *DimStatement) String() string { return "DIM ..." }
+
+// DataStatement declares literal values consumed by READ in program order.
+type DataStatement struct {
+	Values []Expression
+}
+
+func (ds *DataStatement) statementNode() {}
+func (ds *DataStatement) String() string { return "DATA ..." }
+
+// ReadTarget identifies a scalar variable or indexed array element assigned by READ.
+type ReadTarget struct {
+	Name    *Identifier
+	Indices []Expression
+}
+
+// ReadStatement assigns program DATA values to variables or array elements.
+type ReadStatement struct {
+	Targets []ReadTarget
+}
+
+func (rs *ReadStatement) statementNode() {}
+func (rs *ReadStatement) String() string { return "READ ..." }
 
 // PrintElement is either an expression or a semicolon separator.
 type PrintElement struct {

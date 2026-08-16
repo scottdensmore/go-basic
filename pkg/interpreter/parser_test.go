@@ -160,6 +160,47 @@ func TestParserBuildsAmazingStatements(t *testing.T) {
 	}
 }
 
+func TestParserBuildsAnimalStatements(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource(`10 IF A$="Y" THEN B$="N": PRINT B$
+20 GOSUB 100
+30 STOP
+40 READ A$(I),N
+50 DATA "CAT",2
+100 RETURN
+`)
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+
+	conditional, ok := program.Lines[10].(*IfStatement)
+	if !ok {
+		t.Fatalf("line 10: got %T", program.Lines[10])
+	}
+	sequence, ok := conditional.Consequence.(*SequenceStatement)
+	if !ok || len(sequence.Statements) != 2 {
+		t.Fatalf("line 10 consequence: got %#v", conditional.Consequence)
+	}
+	if jump, ok := program.Lines[20].(*GosubStatement); !ok || jump.TargetLine != 100 {
+		t.Fatalf("line 20: got %#v", program.Lines[20])
+	}
+	if _, ok := program.Lines[30].(*StopStatement); !ok {
+		t.Fatalf("line 30: got %T", program.Lines[30])
+	}
+	read, ok := program.Lines[40].(*ReadStatement)
+	if !ok || len(read.Targets) != 2 || len(read.Targets[0].Indices) != 1 {
+		t.Fatalf("line 40: got %#v", program.Lines[40])
+	}
+	data, ok := program.Lines[50].(*DataStatement)
+	if !ok || len(data.Values) != 2 || data.Values[0].String() != `"CAT"` {
+		t.Fatalf("line 50: got %#v", program.Lines[50])
+	}
+	if _, ok := program.Lines[100].(*ReturnStatement); !ok {
+		t.Fatalf("line 100: got %T", program.Lines[100])
+	}
+}
+
 func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 	t.Parallel()
 
@@ -179,7 +220,14 @@ func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 		{name: "missing expression", source: "10 PRINT 1 +\n", wantError: "expected expression", basicLine: 10},
 		{name: "missing parenthesis", source: "10 PRINT SIN(1\n", wantError: "expected )", basicLine: 10},
 		{name: "if missing then", source: "10 IF A=1 GOTO 20\n", wantError: "expected THEN", basicLine: 10},
+		{name: "if missing inline statement", source: "10 IF A=1 THEN\n", wantError: "expected statement", basicLine: 10},
 		{name: "goto missing target", source: "10 GOTO\n", wantError: "expected NUMBER", basicLine: 10},
+		{name: "gosub missing target", source: "10 GOSUB\n", wantError: "expected NUMBER", basicLine: 10},
+		{name: "read missing target", source: "10 READ\n", wantError: "expected IDENT", basicLine: 10},
+		{name: "read missing array subscript", source: "10 READ A()\n", wantError: "expected expression", basicLine: 10},
+		{name: "data missing value", source: "10 DATA\n", wantError: "expected expression", basicLine: 10},
+		{name: "data requires literal", source: "10 DATA A\n", wantError: "DATA value must be a string or number", basicLine: 10},
+		{name: "string function missing argument", source: "10 PRINT LEFT$()\n", wantError: "expected expression", basicLine: 10},
 		{name: "definition missing function name", source: "10 DEF (X)=X\n", wantError: "expected IDENT", basicLine: 10},
 		{name: "definition requires FN prefix", source: "10 DEF A(X)=X\n", wantError: "must start with FN", basicLine: 10},
 		{name: "definition missing parameter", source: "10 DEF FNA()=1\n", wantError: "expected IDENT", basicLine: 10},
@@ -209,6 +257,7 @@ func FuzzParserDoesNotPanic(f *testing.F) {
 		"10 FOR I=1 TO 3\n20 NEXT I\n",
 		"5 DEF FNA(Z)=30*EXP(-Z*Z/100)\n10 IF FNA(SQR(9))<=30 THEN 20\n",
 		"10 INPUT A\n",
+		"10 DIM A$(2)\n20 READ A$(1)\n30 IF LEFT$(A$(1),1)=\"C\" THEN GOSUB 100: STOP\n40 DATA \"CAT\"\n100 RETURN\n",
 		"not BASIC",
 	} {
 		f.Add(seed)
@@ -278,9 +327,19 @@ func isNilStatement(statement Statement) bool {
 		return value == nil
 	case *GotoStatement:
 		return value == nil
+	case *GosubStatement:
+		return value == nil
+	case *ReturnStatement:
+		return value == nil
 	case *OnGotoStatement:
 		return value == nil
 	case *EndStatement:
+		return value == nil
+	case *StopStatement:
+		return value == nil
+	case *DataStatement:
+		return value == nil
+	case *ReadStatement:
 		return value == nil
 	case *DefFnStatement:
 		return value == nil

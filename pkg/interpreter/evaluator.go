@@ -26,10 +26,11 @@ func NewEnvironment() *Environment {
 	return &Environment{Store: make(map[string]any), Arrays: make(map[string]*BasicArray)}
 }
 
-// BasicArray stores a numeric array with inclusive bounds.
+// BasicArray stores a typed BASIC array with inclusive bounds.
 type BasicArray struct {
-	Bounds []int
-	Values []float64
+	Bounds   []int
+	Values   []any
+	IsString bool
 }
 
 // LoopContext stores the execution state of an active FOR/NEXT loop.
@@ -79,6 +80,9 @@ type Evaluator struct {
 	OutputColumn     int
 	Out              io.Writer
 	functions        map[string]*DefFnStatement
+	dataValues       []any
+	dataIndex        int
+	returnStack      []int
 	halted           bool
 	jumped           bool
 	input            *bufio.Reader
@@ -94,14 +98,15 @@ func NewEvaluator(program *Program, output io.Writer, options ...EvaluatorOption
 		output = os.Stdout
 	}
 	evaluator := &Evaluator{
-		Env:       NewEnvironment(),
-		Program:   program,
-		LoopStack: []*LoopContext{},
-		Out:       output,
-		functions: make(map[string]*DefFnStatement),
-		input:     bufio.NewReader(os.Stdin),
-		random:    rand.Float64,
-		sleep:     time.Sleep,
+		Env:         NewEnvironment(),
+		Program:     program,
+		LoopStack:   []*LoopContext{},
+		returnStack: []int{},
+		Out:         output,
+		functions:   make(map[string]*DefFnStatement),
+		input:       bufio.NewReader(os.Stdin),
+		random:      rand.Float64,
+		sleep:       time.Sleep,
 	}
 	for _, option := range options {
 		option(evaluator)
@@ -113,6 +118,9 @@ func NewEvaluator(program *Program, output io.Writer, options ...EvaluatorOption
 func (e *Evaluator) Run() error {
 	if e.Program == nil {
 		return errors.New("program is nil")
+	}
+	if err := e.loadProgramData(); err != nil {
+		return err
 	}
 	for e.CurrentLineIndex < len(e.Program.LineNumbers) && !e.halted {
 		lineNumber := e.Program.LineNumbers[e.CurrentLineIndex]
@@ -139,11 +147,7 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 			return err
 		}
 		if len(value.Indices) != 0 {
-			number, err := numericValue(result)
-			if err != nil {
-				return fmt.Errorf("array %s assignment: %w", value.Name.Value, err)
-			}
-			return e.assignArray(value.Name.Value, value.Indices, number)
+			return e.assignArray(value.Name.Value, value.Indices, result)
 		}
 		return e.assignScalar(value.Name.Value, result)
 	case *PrintStmt:
@@ -155,6 +159,13 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 		return e.evalInputStatement(value)
 	case *DimStatement:
 		return e.evalDimStatement(value)
+	case *DataStatement:
+		if value == nil {
+			return errors.New("invalid DATA statement")
+		}
+		return nil
+	case *ReadStatement:
+		return e.evalReadStatement(value)
 	case *ForStatement:
 		if value == nil {
 			return errors.New("invalid statement")
@@ -197,6 +208,9 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 			return fmt.Errorf("IF condition: %w", err)
 		}
 		if condition != 0 {
+			if value.Consequence != nil {
+				return e.evalStatement(value.Consequence)
+			}
 			return e.jumpTo(value.TargetLine)
 		}
 		return nil
@@ -205,9 +219,37 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 			return errors.New("invalid GOTO statement")
 		}
 		return e.jumpTo(value.TargetLine)
+	case *GosubStatement:
+		if value == nil {
+			return errors.New("invalid GOSUB statement")
+		}
+		returnLineIndex := e.CurrentLineIndex + 1
+		if err := e.jumpTo(value.TargetLine); err != nil {
+			return err
+		}
+		e.returnStack = append(e.returnStack, returnLineIndex)
+		return nil
+	case *ReturnStatement:
+		if value == nil {
+			return errors.New("invalid RETURN statement")
+		}
+		if len(e.returnStack) == 0 {
+			return errors.New("RETURN without GOSUB")
+		}
+		last := len(e.returnStack) - 1
+		e.CurrentLineIndex = e.returnStack[last]
+		e.returnStack = e.returnStack[:last]
+		e.jumped = true
+		return nil
 	case *OnGotoStatement:
 		return e.evalOnGotoStatement(value)
 	case *EndStatement:
+		if value == nil {
+			return errors.New("invalid statement")
+		}
+		e.halted = true
+		return nil
+	case *StopStatement:
 		if value == nil {
 			return errors.New("invalid statement")
 		}
@@ -298,9 +340,6 @@ func (e *Evaluator) evalDimStatement(statement *DimStatement) error {
 			return errors.New("invalid DIM statement")
 		}
 		name := declaration.Name.Value
-		if strings.HasSuffix(name, "$") {
-			return fmt.Errorf("string arrays are not supported: %s", name)
-		}
 		normalized := normalizeName(name)
 		if _, exists := e.Env.Arrays[normalized]; exists {
 			return fmt.Errorf("array %s is already dimensioned", name)
@@ -328,10 +367,121 @@ func (e *Evaluator) evalDimStatement(statement *DimStatement) error {
 			bounds[index] = int(bound)
 			size *= bounds[index] + 1
 		}
-		pending[normalized] = &BasicArray{Bounds: bounds, Values: make([]float64, size)}
+		isString := strings.HasSuffix(name, "$")
+		values := make([]any, size)
+		defaultValue := any(float64(0))
+		if isString {
+			defaultValue = ""
+		}
+		for index := range values {
+			values[index] = defaultValue
+		}
+		pending[normalized] = &BasicArray{Bounds: bounds, Values: values, IsString: isString}
 	}
 	for name, array := range pending {
 		e.Env.Arrays[name] = array
+	}
+	return nil
+}
+
+func (e *Evaluator) loadProgramData() error {
+	e.dataValues = nil
+	e.dataIndex = 0
+	for _, lineNumber := range e.Program.LineNumbers {
+		if err := e.collectData(e.Program.Lines[lineNumber]); err != nil {
+			return fmt.Errorf("BASIC line %d: %w", lineNumber, err)
+		}
+	}
+	return nil
+}
+
+func (e *Evaluator) collectData(statement Statement) error {
+	switch value := statement.(type) {
+	case *DataStatement:
+		if value == nil || len(value.Values) == 0 {
+			return errors.New("invalid DATA statement")
+		}
+		for _, expression := range value.Values {
+			dataValue, err := literalDataValue(expression)
+			if err != nil {
+				return err
+			}
+			e.dataValues = append(e.dataValues, dataValue)
+		}
+	case *SequenceStatement:
+		if value == nil {
+			return errors.New("invalid statement")
+		}
+		for _, nested := range value.Statements {
+			if err := e.collectData(nested); err != nil {
+				return err
+			}
+		}
+	case *IfStatement:
+		if value != nil && value.Consequence != nil {
+			return e.collectData(value.Consequence)
+		}
+	}
+	return nil
+}
+
+func literalDataValue(expression Expression) (any, error) {
+	switch value := expression.(type) {
+	case *StringLiteral:
+		if value == nil {
+			return nil, errors.New("invalid DATA value")
+		}
+		return value.Value, nil
+	case *IntegerLiteral:
+		if value == nil {
+			return nil, errors.New("invalid DATA value")
+		}
+		return float64(value.Value), nil
+	case *FloatLiteral:
+		if value == nil {
+			return nil, errors.New("invalid DATA value")
+		}
+		return value.Value, nil
+	case *PrefixExpression:
+		if value == nil || value.Operator != "-" {
+			return nil, errors.New("invalid DATA value")
+		}
+		number, err := literalDataValue(value.Right)
+		if err != nil {
+			return nil, err
+		}
+		numeric, ok := number.(float64)
+		if !ok {
+			return nil, errors.New("invalid DATA value")
+		}
+		return -numeric, nil
+	default:
+		return nil, errors.New("invalid DATA value")
+	}
+}
+
+func (e *Evaluator) evalReadStatement(statement *ReadStatement) error {
+	if statement == nil || len(statement.Targets) == 0 {
+		return errors.New("invalid READ statement")
+	}
+	for _, target := range statement.Targets {
+		if target.Name == nil {
+			return errors.New("invalid READ target")
+		}
+		if e.dataIndex >= len(e.dataValues) {
+			return errors.New("out of DATA")
+		}
+		value := e.dataValues[e.dataIndex]
+		var err error
+		if len(target.Indices) == 0 {
+			err = e.assignScalar(target.Name.Value, value)
+		} else {
+			err = e.assignArray(target.Name.Value, target.Indices, value)
+		}
+		if err != nil {
+			return err
+		}
+		e.dataIndex++
 	}
 	return nil
 }
@@ -572,6 +722,13 @@ func (e *Evaluator) evalInfixExpression(expression *InfixExpression) (any, error
 	if isComparisonOperator(expression.Operator) {
 		return compareValues(left, right, expression.Operator)
 	}
+	if expression.Operator == "+" {
+		leftString, leftIsString := left.(string)
+		rightString, rightIsString := right.(string)
+		if leftIsString && rightIsString {
+			return leftString + rightString, nil
+		}
+	}
 	leftNumber, err := numericValue(left)
 	if err != nil {
 		return nil, err
@@ -617,18 +774,25 @@ func logicalInteger(number float64) (int16, error) {
 	return int16(number), nil
 }
 
-func (e *Evaluator) readArray(name string, indices []Expression) (float64, error) {
+func (e *Evaluator) readArray(name string, indices []Expression) (any, error) {
 	array, offset, err := e.arrayOffset(name, indices)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	return array.Values[offset], nil
 }
 
-func (e *Evaluator) assignArray(name string, indices []Expression, value float64) error {
+func (e *Evaluator) assignArray(name string, indices []Expression, value any) error {
 	array, offset, err := e.arrayOffset(name, indices)
 	if err != nil {
 		return err
+	}
+	if array.IsString {
+		if _, ok := value.(string); !ok {
+			return fmt.Errorf("string array %s requires string values", name)
+		}
+	} else if _, err := numericValue(value); err != nil {
+		return fmt.Errorf("array %s assignment: %w", name, err)
 	}
 	array.Values[offset] = value
 	return nil
@@ -707,35 +871,61 @@ func compareOrdered[T float64 | string](left, right T, operator string) bool {
 }
 
 func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) {
-	if expression == nil || len(expression.Arguments) != 1 || expression.Arguments[0] == nil {
+	if expression == nil || len(expression.Arguments) == 0 {
 		return nil, errors.New("invalid function call")
 	}
-	argument, err := e.evalNumber(expression.Arguments[0])
-	if err != nil {
-		return nil, err
+	function := strings.ToUpper(expression.Function)
+	for _, argument := range expression.Arguments {
+		if argument == nil {
+			return nil, errors.New("invalid function call")
+		}
 	}
-	switch strings.ToUpper(expression.Function) {
+	switch function {
 	case "TAB":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
 		if argument < 0 {
 			return nil, errors.New("TAB position cannot be negative")
 		}
 		return TabValue{Pos: int(argument)}, nil
 	case "SIN":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
 		return math.Sin(argument), nil
 	case "INT":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
 		return math.Floor(argument), nil
 	case "SQR":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
 		if argument < 0 {
 			return nil, errors.New("SQR argument cannot be negative")
 		}
 		return math.Sqrt(argument), nil
 	case "EXP":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
 		result := math.Exp(argument)
 		if math.IsInf(result, 0) {
 			return nil, errors.New("EXP overflow")
 		}
 		return result, nil
 	case "RND":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
 		if argument < 0 {
 			return nil, errors.New("negative RND arguments are not supported")
 		}
@@ -749,9 +939,187 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 		e.lastRandom = result
 		e.hasRandom = true
 		return result, nil
+	case "LEFT$":
+		return e.evalLeft(expression)
+	case "RIGHT$":
+		return e.evalRight(expression)
+	case "MID$":
+		return e.evalMid(expression)
+	case "LEN":
+		argument, err := e.singleStringArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		return float64(len(argument)), nil
+	case "STR$":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		formatted := formatValue(argument)
+		if argument >= 0 {
+			formatted = " " + formatted
+		}
+		return formatted, nil
+	case "VAL":
+		argument, err := e.singleStringArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		return parseNumericPrefix(argument), nil
 	default:
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
 		return e.evalUserFunction(expression.Function, argument)
 	}
+}
+
+func (e *Evaluator) singleNumberArgument(expression *CallExpression) (float64, error) {
+	if len(expression.Arguments) != 1 {
+		return 0, fmt.Errorf("%s expects 1 argument, got %d", expression.Function, len(expression.Arguments))
+	}
+	return e.evalNumber(expression.Arguments[0])
+}
+
+func (e *Evaluator) singleStringArgument(expression *CallExpression) (string, error) {
+	if len(expression.Arguments) != 1 {
+		return "", fmt.Errorf("%s expects 1 argument, got %d", expression.Function, len(expression.Arguments))
+	}
+	return e.evalString(expression.Arguments[0])
+}
+
+func (e *Evaluator) evalLeft(expression *CallExpression) (any, error) {
+	if len(expression.Arguments) != 2 {
+		return nil, fmt.Errorf("LEFT$ expects 2 arguments, got %d", len(expression.Arguments))
+	}
+	text, err := e.evalString(expression.Arguments[0])
+	if err != nil {
+		return nil, err
+	}
+	length, err := e.evalStringIndex(expression.Arguments[1], "LEFT$ length", true)
+	if err != nil {
+		return nil, err
+	}
+	if length > len(text) {
+		length = len(text)
+	}
+	return text[:length], nil
+}
+
+func (e *Evaluator) evalRight(expression *CallExpression) (any, error) {
+	if len(expression.Arguments) != 2 {
+		return nil, fmt.Errorf("RIGHT$ expects 2 arguments, got %d", len(expression.Arguments))
+	}
+	text, err := e.evalString(expression.Arguments[0])
+	if err != nil {
+		return nil, err
+	}
+	length, err := e.evalStringIndex(expression.Arguments[1], "RIGHT$ length", true)
+	if err != nil {
+		return nil, err
+	}
+	if length > len(text) {
+		length = len(text)
+	}
+	return text[len(text)-length:], nil
+}
+
+func (e *Evaluator) evalMid(expression *CallExpression) (any, error) {
+	if len(expression.Arguments) != 2 && len(expression.Arguments) != 3 {
+		return nil, fmt.Errorf("MID$ expects 2 or 3 arguments, got %d", len(expression.Arguments))
+	}
+	text, err := e.evalString(expression.Arguments[0])
+	if err != nil {
+		return nil, err
+	}
+	start, err := e.evalStringIndex(expression.Arguments[1], "MID$ start", false)
+	if err != nil {
+		return nil, err
+	}
+	if start > len(text) {
+		return "", nil
+	}
+	start--
+	end := len(text)
+	if len(expression.Arguments) == 3 {
+		length, err := e.evalStringIndex(expression.Arguments[2], "MID$ length", true)
+		if err != nil {
+			return nil, err
+		}
+		if length < end-start {
+			end = start + length
+		}
+	}
+	return text[start:end], nil
+}
+
+func (e *Evaluator) evalStringIndex(expression Expression, label string, allowZero bool) (int, error) {
+	number, err := e.evalNumber(expression)
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", label, err)
+	}
+	if number != math.Trunc(number) {
+		return 0, fmt.Errorf("%s must be an integer", label)
+	}
+	minimum := float64(1)
+	if allowZero {
+		minimum = 0
+	}
+	if number < minimum {
+		return 0, fmt.Errorf("%s must be at least %g", label, minimum)
+	}
+	if number > float64(math.MaxInt) {
+		return 0, fmt.Errorf("%s is too large", label)
+	}
+	return int(number), nil
+}
+
+func parseNumericPrefix(text string) float64 {
+	text = strings.TrimLeft(text, " \t")
+	if text == "" {
+		return 0
+	}
+	index := 0
+	if text[index] == '+' || text[index] == '-' {
+		index++
+	}
+	digitCount := 0
+	for index < len(text) && isDigit(text[index]) {
+		index++
+		digitCount++
+	}
+	if index < len(text) && text[index] == '.' {
+		index++
+		for index < len(text) && isDigit(text[index]) {
+			index++
+			digitCount++
+		}
+	}
+	if digitCount == 0 {
+		return 0
+	}
+	exponentStart := index
+	if index < len(text) && (text[index] == 'E' || text[index] == 'e' || text[index] == 'D' || text[index] == 'd') {
+		index++
+		if index < len(text) && (text[index] == '+' || text[index] == '-') {
+			index++
+		}
+		exponentDigits := index
+		for index < len(text) && isDigit(text[index]) {
+			index++
+		}
+		if exponentDigits == index {
+			index = exponentStart
+		}
+	}
+	prefix := strings.ReplaceAll(strings.ReplaceAll(text[:index], "D", "E"), "d", "e")
+	value, err := strconv.ParseFloat(prefix, 64)
+	if err != nil {
+		return 0
+	}
+	return value
 }
 
 func (e *Evaluator) evalUserFunction(name string, argument float64) (any, error) {
@@ -789,6 +1157,18 @@ func (e *Evaluator) evalNumber(expression Expression) (float64, error) {
 		return 0, err
 	}
 	return numericValue(value)
+}
+
+func (e *Evaluator) evalString(expression Expression) (string, error) {
+	value, err := e.evalExpression(expression)
+	if err != nil {
+		return "", err
+	}
+	text, ok := value.(string)
+	if !ok {
+		return "", fmt.Errorf("expected string, got %T", value)
+	}
+	return text, nil
 }
 
 func numericValue(value any) (float64, error) {
