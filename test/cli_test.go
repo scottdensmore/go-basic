@@ -102,6 +102,18 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("wins the original Bagels program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "bagels.bas"))
+		command.Stdin = strings.NewReader("YES\n12\n112\n012\n926\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), bagelsOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%s\nwant:\n%s", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -285,6 +297,29 @@ func awariOutput() string {
 	output.WriteString("MY MOVE IS 5\n")
 	output.WriteString(awariBoard("0 0 3 3 3 3", 6, 0, "0 4 4 4 3 3"))
 	output.WriteString("YOUR MOVE? ")
+	return output.String()
+}
+
+func bagelsOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 33) + "BAGELS\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n\n\n")
+	output.WriteString("WOULD YOU LIKE THE RULES (YES OR NO)? \n")
+	output.WriteString("I AM THINKING OF A THREE-DIGIT NUMBER.  TRY TO GUESS\n")
+	output.WriteString("MY NUMBER AND I WILL GIVE YOU CLUES AS FOLLOWS:\n")
+	output.WriteString("   PICO   - ONE DIGIT CORRECT BUT IN THE WRONG POSITION\n")
+	output.WriteString("   FERMI  - ONE DIGIT CORRECT AND IN THE RIGHT POSITION\n")
+	output.WriteString("   BAGELS - NO DIGITS CORRECT\n")
+	output.WriteString("\nO.K.  I HAVE A NUMBER IN MIND.\n")
+	output.WriteString("GUESS #1" + strings.Repeat(" ", 6) + "? TRY GUESSING A THREE-DIGIT NUMBER.\n")
+	output.WriteString("GUESS #1" + strings.Repeat(" ", 6) + "? OH, I FORGOT TO TELL YOU THAT THE NUMBER I HAVE IN MIND\n")
+	output.WriteString("HAS NO TWO DIGITS THE SAME.\n")
+	output.WriteString("GUESS #1" + strings.Repeat(" ", 6) + "? PICO \n")
+	output.WriteString("GUESS #2" + strings.Repeat(" ", 6) + "? YOU GOT IT!!!\n\n")
+	output.WriteString("PLAY AGAIN (YES OR NO)? \n")
+	output.WriteString("A1POINT BAGELS BUFF!!\n")
+	output.WriteString("HOPE YOU HAD FUN.  BYE.\n")
 	return output.String()
 }
 

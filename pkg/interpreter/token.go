@@ -119,6 +119,8 @@ const (
 	VAL TokenType = "VAL"
 	// CHR converts a byte value to a one-character string.
 	CHR TokenType = "CHR$"
+	// ASC returns the byte value of the first character in a string.
+	ASC TokenType = "ASC"
 )
 
 // Token records a token's type, source spelling, and one-based position.
@@ -164,6 +166,7 @@ var keywords = map[string]TokenType{
 	"str$":   STR,
 	"val":    VAL,
 	"chr$":   CHR,
+	"asc":    ASC,
 }
 
 // LookupIdent returns the keyword token for ident, or IDENT otherwise.

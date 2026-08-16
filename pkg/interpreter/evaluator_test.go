@@ -202,6 +202,60 @@ func TestEvaluatorContinuesWithinColonSeparatedSourceLines(t *testing.T) {
 	}
 }
 
+func TestEvaluatorUsesMicrosoftPrintZones(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 PRINT "A","B"
+20 PRINT "12345678901234","C"
+30 PRINT "X",
+40 PRINT "Y"
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	want := "A" + strings.Repeat(" ", 13) + "B\n" +
+		"12345678901234" + strings.Repeat(" ", 14) + "C\n" +
+		"X" + strings.Repeat(" ", 13) + "Y\n"
+	if got := output.String(); got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
+func TestEvaluatorNamedNextUnwindsAbandonedInnerLoops(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 FOR I=1 TO 2
+20 FOR J=1 TO 2
+30 GOTO 50
+40 NEXT J
+50 PRINT I;
+60 NEXT I
+70 PRINT
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "12\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
+func TestEvaluatorRunsBagelsStringFunction(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 PRINT ASC("A");":";ASC("AZ")
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "65:65\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorRunsAwariExpressions(t *testing.T) {
 	t.Parallel()
 
@@ -383,6 +437,9 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "fractional character code", program: mustParse(t, "10 PRINT CHR$(65.5)\n"), want: "CHR$ argument must be an integer"},
 		{name: "character code out of range", program: mustParse(t, "10 PRINT CHR$(256)\n"), want: "CHR$ argument must be in the range 0..255"},
 		{name: "character wrong arity", program: mustParse(t, "10 PRINT CHR$(65,66)\n"), want: "CHR$ expects 1 argument"},
+		{name: "ASCII code requires string", program: mustParse(t, "10 PRINT ASC(65)\n"), want: "expected string"},
+		{name: "ASCII code requires text", program: mustParse(t, "10 PRINT ASC(\"\")\n"), want: "ASC requires a non-empty string"},
+		{name: "ASCII code wrong arity", program: mustParse(t, "10 PRINT ASC(\"A\",\"B\")\n"), want: "ASC expects 1 argument"},
 		{name: "oversized array", program: mustParse(t, "10 DIM A(1000000)\n"), want: "array A exceeds the maximum size"},
 		{name: "array redeclaration", program: mustParse(t, "10 DIM A(2)\n20 DIM A(3)\n"), want: "array A is already dimensioned"},
 		{name: "undimensioned array", program: mustParse(t, "10 PRINT A(1)\n"), want: "array A is not dimensioned"},
