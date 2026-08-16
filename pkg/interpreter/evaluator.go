@@ -1066,6 +1066,15 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 			return nil, errors.New("SQR argument cannot be negative")
 		}
 		return math.Sqrt(argument), nil
+	case "LOG":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		if argument <= 0 {
+			return nil, errors.New("LOG argument must be positive")
+		}
+		return math.Log(argument), nil
 	case "EXP":
 		argument, err := e.singleNumberArgument(expression)
 		if err != nil {

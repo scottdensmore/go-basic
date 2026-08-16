@@ -5,7 +5,7 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 ## Features
 
 -   **Variables**: Numeric and string scalars plus explicitly and implicitly dimensioned numeric and string arrays.
--   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `ABS`, `SGN`, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
+-   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `ABS`, `SGN`, `INT`, `SIN`, `SQR`, `LOG`, `EXP`, and `RND`.
 -   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, `ASC`, and single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, line and statement forms of `IF`...`THEN`, `GOTO`, `GOSUB`...`RETURN`, `ON`...`GOTO`, `END`, `STOP`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` and comma separators plus `TAB` function support.
@@ -142,6 +142,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`28_Combat/combat.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/28_Combat/combat.bas)
 - [`29_Craps/craps.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/29_Craps/craps.bas) and [`distributions.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/29_Craps/distributions.bas)
 - [`30_Cube/cube.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/30_Cube/cube.bas)
+- [`31_Depth_Charge/depthcharge.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/31_Depth_Charge/depthcharge.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -207,6 +208,9 @@ odds, reports the player's winnings, and exits normally. Its companion
 distribution program completes 100,000 trials and verifies both dice histograms.
 Cube's seeded transcript prints the rules, rejects an unaffordable wager,
 navigates six legal moves around the land mines, wins the wager, and exits
+normally.
+Depth Charge's seeded transcript calculates the shot limit with `LOG`, verifies
+a directional sonar report, finds the submarine on the second shot, and exits
 normally.
 
 ## Testing

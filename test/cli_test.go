@@ -419,6 +419,17 @@ func TestCLI(t *testing.T) {
 		assertCubeTranscript(t, string(output))
 	})
 
+	t.Run("finds the submarine in the original Depth Charge program", func(t *testing.T) {
+		path := filepath.Join("scripts", "depth-charge.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("10\n0,0,0\n9,2,6\nN\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertDepthChargeTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1343,6 +1354,33 @@ func assertCubeTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRY AGAIN ? TOUGH LUCK!\n\nGOODBYE.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-60):])
+	}
+}
+
+func assertDepthChargeTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "DEPTH CHARGE\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"DIMENSION OF SEARCH AREA? "
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU ARE THE CAPTAIN OF THE DESTROYER USS COMPUTER",
+		"MISSION IS TO DESTROY IT.  YOU HAVE4SHOTS.",
+		"TRIAL #1? SONAR REPORTS SHOT WAS SOUTHWEST AND TOO HIGH.",
+		"TRIAL #2?",
+		"B O O M ! ! YOU FOUND IT IN2TRIES!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "TRIAL #"), 2; got != want {
+		t.Fatalf("trial prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "ANOTHER GAME (Y OR N)? OK.  HOPE YOU ENJOYED YOURSELF.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-65):])
 	}
 }
 

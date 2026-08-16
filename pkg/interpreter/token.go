@@ -101,6 +101,8 @@ const (
 	DEF TokenType = "DEF"
 	// SQR computes a square root.
 	SQR TokenType = "SQR"
+	// LOG computes the natural logarithm.
+	LOG TokenType = "LOG"
 	// EXP computes the natural exponential function.
 	EXP TokenType = "EXP"
 	// RND returns a pseudo-random number.
@@ -167,6 +169,7 @@ var keywords = map[string]TokenType{
 	"sgn":     SGN,
 	"def":     DEF,
 	"sqr":     SQR,
+	"log":     LOG,
 	"exp":     EXP,
 	"rnd":     RND,
 	"dim":     DIM,

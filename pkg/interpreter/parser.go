@@ -71,6 +71,7 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[ABS] = parser.parseCallExpression
 	parser.prefixParseFuncs[SGN] = parser.parseCallExpression
 	parser.prefixParseFuncs[SQR] = parser.parseCallExpression
+	parser.prefixParseFuncs[LOG] = parser.parseCallExpression
 	parser.prefixParseFuncs[EXP] = parser.parseCallExpression
 	parser.prefixParseFuncs[RND] = parser.parseCallExpression
 	parser.prefixParseFuncs[LEFT] = parser.parseCallExpression
