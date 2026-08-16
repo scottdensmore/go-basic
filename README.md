@@ -177,6 +177,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`60_Mastermind/mastermind.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/60_Mastermind/mastermind.bas) and the byte-different [alternate `mastermind.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/60_Mastermind/mastermind.bas)
 - [`61_Math_Dice/mathdice.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/61_Math_Dice/mathdice.bas)
 - [`62_Mugwump/mugwump.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/62_Mugwump/mugwump.bas)
+- [`63_Name/name.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/63_Name/name.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -341,6 +342,9 @@ round's answer prompt because the original uses Control-C as its only exit.
 Mugwump's seeded transcript checks the distance hints from an initial guess,
 finds all four hidden Mugwumps in five turns, verifies the victory, and ends at
 the next round's first guess because the original program has no quit command.
+Name's exact transcript reverses and alphabetizes a first-and-last name,
+exercises the affirmative response branch, preserves its full conversation,
+and exits normally.
 
 ## Testing
 

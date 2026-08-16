@@ -956,6 +956,18 @@ func TestCLI(t *testing.T) {
 		assertMugwumpTranscript(t, path, string(output))
 	})
 
+	t.Run("reorders a name with the original Name program", func(t *testing.T) {
+		command := exec.Command(binary, filepath.Join("scripts", "name.bas"))
+		command.Stdin = strings.NewReader("ADA LOVELACE\nYES\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), nameOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3046,6 +3058,22 @@ func assertMugwumpTranscript(t *testing.T, path, transcript string) {
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
+}
+
+func nameOutput() string {
+	return strings.Repeat(" ", 34) + "NAME\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"HELLO.\nMY NAME IS CREATIVE COMPUTER.\n" +
+		"WHAT'S YOUR NAME (FIRST AND LAST? \n" +
+		"THANK YOU, ECALEVOL ADA.\n" +
+		"OOPS!  I GUESS I GOT IT BACKWARDS.  A SMART\n" +
+		"COMPUTER LIKE ME SHOULDN'T MAKE A MISTAKE LIKE THAT!\n\n" +
+		"BUT I JUST NOTICED YOUR LETTERS ARE OUT OF ORDER.\n" +
+		"LET'S PUT THEM IN ORDER LIKE THIS:  AAACDEELLOV\n\n" +
+		"DON'T YOU LIKE THAT BETTER? \n" +
+		"I KNEW YOU'D AGREE!!\n\n" +
+		"I REALLY ENJOYED MEETING YOU ADA LOVELACE.\n" +
+		"HAVE A NICE DAY!\n"
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
