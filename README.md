@@ -136,6 +136,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`22_Change/change.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/22_Change/change.bas)
 - [`23_Checkers/checkers.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/23_Checkers/checkers.bas)
 - [`24_Chemist/chemist.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/24_Chemist/chemist.bas)
+- [`25_Chief/chief.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/25_Chief/chief.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -186,6 +187,8 @@ move, its reply, and both board states. The structured annotated rewrite remains
 tracked separately in [issue #33](https://github.com/scottdensmore/go-basic/issues/33).
 Chemist's seeded transcript completes a successful dilution, uses all nine lives
 on failed mixtures, verifies every retry, and exits normally.
+Chief's transcript verifies the number trick, challenges each answer, prints the
+complete lightning-bolt consequence, and exits normally.
 
 ## Testing
 
