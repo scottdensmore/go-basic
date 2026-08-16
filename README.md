@@ -149,6 +149,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`35_Even_Wins/evenwins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/35_Even_Wins/evenwins.bas) and [`gameofevenwins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/35_Even_Wins/gameofevenwins.bas)
 - [`36_Flip_Flop/flipflop.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/36_Flip_Flop/flipflop.bas)
 - [`37_Football/football.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/37_Football/football.bas) and [`ftball.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/37_Football/ftball.bas)
+- [`38_Fur_Trader/furtrader.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/38_Fur_Trader/furtrader.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -234,6 +235,9 @@ normally.
 The two Football transcripts verify play charts, kickoffs, penalties, downs,
 turnovers, and scoring. The N.F.U. game ends with a touchdown, while Dartmouth
 football completes its timed game and final score.
+Fur Trader's seeded transcript allocates all 190 pelts, rejects an invalid fort,
+completes the Hochelaga expedition, verifies every sale and the final balance,
+and exits normally.
 
 ## Testing
 
