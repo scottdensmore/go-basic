@@ -120,6 +120,23 @@ func TestLexerRecognizesBattleSyntax(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesKeywordsAdjacentToNumbers(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("10 FOR I=1TO3\n20 IF C1>=1ANDC1<9 THEN 40\n30 FOR J=1 TO 22STEP3\n")
+	want := []TokenType{
+		NUMBER, FOR, IDENT, ASSIGN, NUMBER, TO, NUMBER, EOL,
+		NUMBER, IF, IDENT, GTE, NUMBER, AND, IDENT, LT, NUMBER, THEN, NUMBER, EOL,
+		NUMBER, FOR, IDENT, ASSIGN, NUMBER, TO, NUMBER, STEP, NUMBER, EOL,
+		EOF,
+	}
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func TestLexerRecognizesBlackjackSyntax(t *testing.T) {
 	t.Parallel()
 

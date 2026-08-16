@@ -262,6 +262,19 @@ func TestEvaluatorContinuesWithinColonSeparatedSourceLines(t *testing.T) {
 	}
 }
 
+func TestEvaluatorRunsKeywordsAdjacentToNumbers(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, "10 FOR I=1TO5STEP2:IF I>=1ANDI<5 THEN PRINT I;\n20 NEXT I\n")
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "13"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorUsesMicrosoftPrintZones(t *testing.T) {
 	t.Parallel()
 
