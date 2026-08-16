@@ -1156,6 +1156,17 @@ func TestCLI(t *testing.T) {
 		assertSlotsTranscript(t, string(output))
 	})
 
+	t.Run("lands safely in the original Splat program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "splat.bas"))
+		command.Stdin = strings.NewReader("MAYBE\nYES\n120\nMAYBE\nYES\n32.16\n57\n" +
+			"MAYBE\nNO\nMAYBE\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertSplatTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3725,6 +3736,38 @@ func assertSlotsTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "AGAIN? \nHEY, YOU BROKE EVEN.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-45):])
+	}
+}
+
+func assertSplatTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "SPLAT\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"WELCOME TO 'SPLAT' -- THE GAME THAT SIMULATES A PARACHUTE\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"SELECT YOUR OWN TERMINAL VELOCITY (YES OR NO)? YES OR NO?",
+		"WANT TO SELECT ACCELERATION DUE TO GRAVITY (YES OR NO)? YES OR NO?",
+		"ALTITUDE         =9507FT",
+		"TERM. VELOCITY   =176FT/SEC +/-5%",
+		"ACCELERATION     =32.16FT/SEC/SEC +/-5%",
+		"TERMINAL VELOCITY REACHED AT T PLUS5.445464321773443SECONDS.",
+		"49.875        1378.7375228253268",
+		"57            150.50666980515962",
+		"CHUTE OPEN",
+		"AMAZING!!! NOT BAD FOR YOUR 1ST SUCCESSFUL JUMP!!!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "DO YOU WANT TO PLAY AGAIN? "), 2; got != want {
+		t.Fatalf("replay prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "PLEASE? YES OR NO PLEASE? SSSSSSSSSS.\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
 
