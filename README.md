@@ -5,7 +5,7 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 ## Features
 
 -   **Variables**: Numeric and string scalars plus explicitly and implicitly dimensioned numeric and string arrays.
--   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
+-   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `ABS`, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
 -   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, `ASC`, and single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, line and statement forms of `IF`...`THEN`, `GOTO`, `GOSUB`...`RETURN`, `ON`...`GOTO`, `END`, `STOP`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` and comma separators plus `TAB` function support.
@@ -120,6 +120,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`06_Banner/banner.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/06_Banner/banner.bas)
 - [`07_Basketball/basketball.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/07_Basketball/basketball.bas)
 - [`08_Batnum/batnum.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/08_Batnum/batnum.bas)
+- [`09_Battle/battle.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/09_Battle/battle.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -133,6 +134,9 @@ Basketball's seeded transcript rejects an invalid shot, plays a complete game,
 checks the halftime score, and verifies the final score.
 Batnum's transcript plays a complete winning game, then ends at the next pile
 prompt because the original program does not honor its documented stop input.
+Battle's seeded transcript exercises invalid and repeated shots, sinks all six
+ships, wins the game, then ends at the next game because the original program
+automatically starts a new fleet.
 
 ## Testing
 

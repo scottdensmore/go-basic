@@ -54,6 +54,14 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "-2 0 -1\n",
 		},
 		{
+			name: "absolute value and truncated array indices",
+			source: `10 DIM A(1.9)
+20 A(1.9)=7
+30 PRINT ABS(-1.5); " "; A(1.5)
+`,
+			want: "1.5 7\n",
+		},
+		{
 			name: "conditionals jumps comments and end",
 			source: `10 REMARKABLE CONTROL FLOW
 20 A=INT(1.9)
@@ -464,7 +472,7 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "invalid random source", program: mustParse(t, "10 PRINT RND(1)\n"), options: []EvaluatorOption{WithRandom(func() float64 { return 1 })}, want: "outside [0, 1)"},
 		{name: "nil input statement", program: &Program{Lines: map[int]Statement{10: (*InputStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid INPUT statement"},
 		{name: "negative array bound", program: mustParse(t, "10 DIM A(-1)\n"), want: "array A bound 1 must be non-negative"},
-		{name: "fractional array bound", program: mustParse(t, "10 DIM A(1.5)\n"), want: "array A bound 1 must be an integer"},
+		{name: "absolute value wrong arity", program: mustParse(t, "10 PRINT ABS(1,2)\n"), want: "ABS expects 1 argument"},
 		{name: "return without gosub", program: mustParse(t, "10 RETURN\n"), want: "RETURN without GOSUB"},
 		{name: "out of data", program: mustParse(t, "10 READ A\n"), want: "out of DATA"},
 		{name: "read string into number", program: mustParse(t, "10 READ A\n20 DATA \"x\"\n"), want: "numeric variable A requires a number"},
@@ -490,7 +498,7 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "oversized implicit array", program: mustParse(t, "10 PRINT A(0,0,0,0,0,0)\n"), want: "array A exceeds the maximum size"},
 		{name: "wrong array dimensions", program: mustParse(t, "10 DIM A(2,2)\n20 PRINT A(1)\n"), want: "array A expects 2 subscripts"},
 		{name: "array subscript out of range", program: mustParse(t, "10 DIM A(2)\n20 PRINT A(3)\n"), want: "array A subscript 1 out of range"},
-		{name: "fractional array subscript", program: mustParse(t, "10 DIM A(2)\n20 PRINT A(1.5)\n"), want: "array A subscript 1 must be an integer"},
+		{name: "negative fractional array subscript", program: mustParse(t, "10 DIM A(2)\n20 PRINT A(-.5)\n"), want: "array A subscript 1 out of range"},
 		{name: "string assigned to numeric array", program: mustParse(t, "10 DIM A(2)\n20 A(1)=\"x\"\n"), want: "array A assignment: expected number"},
 		{name: "fractional AND operand", program: mustParse(t, "10 PRINT 1.5 AND 1\n"), want: "left AND operand: operand must be an integer"},
 		{name: "fractional left OR operand", program: mustParse(t, "10 PRINT 1.5 OR 1\n"), want: "left OR operand: operand must be an integer"},

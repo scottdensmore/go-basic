@@ -407,12 +407,13 @@ func (e *Evaluator) evalDimStatement(statement *DimStatement) error {
 			if err != nil {
 				return fmt.Errorf("array %s bound %d: %w", name, index+1, err)
 			}
-			if bound != math.Trunc(bound) {
-				return fmt.Errorf("array %s bound %d must be an integer", name, index+1)
+			if math.IsNaN(bound) || math.IsInf(bound, 0) {
+				return fmt.Errorf("array %s bound %d must be finite", name, index+1)
 			}
 			if bound < 0 {
 				return fmt.Errorf("array %s bound %d must be non-negative", name, index+1)
 			}
+			bound = math.Trunc(bound)
 			if bound >= maxArrayElements {
 				return fmt.Errorf("array %s exceeds the maximum size of %d elements", name, maxArrayElements)
 			}
@@ -932,10 +933,14 @@ func (e *Evaluator) arrayOffset(name string, indices []Expression) (*BasicArray,
 		if err != nil {
 			return nil, 0, fmt.Errorf("array %s subscript %d: %w", name, index+1, err)
 		}
-		if subscript != math.Trunc(subscript) {
-			return nil, 0, fmt.Errorf("array %s subscript %d must be an integer", name, index+1)
+		if math.IsNaN(subscript) || math.IsInf(subscript, 0) {
+			return nil, 0, fmt.Errorf("array %s subscript %d must be finite", name, index+1)
 		}
-		if subscript < 0 || subscript > float64(array.Bounds[index]) {
+		if subscript < 0 {
+			return nil, 0, fmt.Errorf("array %s subscript %d out of range 0..%d", name, index+1, array.Bounds[index])
+		}
+		subscript = math.Trunc(subscript)
+		if subscript > float64(array.Bounds[index]) {
 			return nil, 0, fmt.Errorf("array %s subscript %d out of range 0..%d", name, index+1, array.Bounds[index])
 		}
 		offset = offset*(array.Bounds[index]+1) + int(subscript)
@@ -1022,6 +1027,12 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 			return nil, err
 		}
 		return math.Floor(argument), nil
+	case "ABS":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		return math.Abs(argument), nil
 	case "SQR":
 		argument, err := e.singleNumberArgument(expression)
 		if err != nil {
