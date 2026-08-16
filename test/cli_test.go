@@ -496,6 +496,28 @@ func TestCLI(t *testing.T) {
 		assertFlipFlopTranscript(t, string(output))
 	})
 
+	t.Run("wins the original Football program", func(t *testing.T) {
+		path := filepath.Join("scripts", "football.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("NO\n1\nNO\n21,6\n" + strings.Repeat("20,6\n", 4))
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertFootballTranscript(t, string(output))
+	})
+
+	t.Run("plays the original FTBALL program", func(t *testing.T) {
+		path := filepath.Join("scripts", "ftball.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("HARVARD\nYES\n" + strings.Repeat("1\n", 28) + "NO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertFTBALLTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1619,6 +1641,66 @@ func assertFlipFlopTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRY ANOTHER PUZZLE? ") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-40):])
+	}
+}
+
+func assertFootballTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "FOOTBALL\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nPRESENTING N.F.U. FOOTBALL (NO FORTRAN USED)\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"TEAM1PLAY CHART",
+		"TEAM2PLAY CHART",
+		"TEAM2RECEIVES KICK-OFF",
+		"ILLEGAL PLAY NUMBER, CHECK AND",
+		"NET YARDS GAINED ON DOWN1ARE 57",
+		"TOUCHDOWN BY TEAM2*********************YEA TEAM",
+		"TEAM 2 SCORE IS7",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "THE BALL WAS RUN"), 4; got != want {
+		t.Fatalf("offensive plays: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "TEAM2WINS*******************\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
+}
+
+func assertFTBALLTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "FTBALL\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\nTHIS IS DARTMOUTH CHAMPIONSHIP FOOTBALL.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"HARVARD WON THE TOSS",
+		"HARVARD ELECTS TO RECEIVE.",
+		"DO YOU ACCEPT THE PENALTY?",
+		"PENALTY ACCEPTED.",
+		"FIRST DOWN DARTMOUTH***",
+		"FIRST DOWN HARVARD***",
+		"***  FUMBLE AFTER",
+		"END OF GAME  ***",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if strings.Contains(transcript, "?REDO FROM START") {
+		t.Fatal("transcript unexpectedly retried numeric input")
+	}
+	if got, want := strings.Count(transcript, "NEXT PLAY? "), 28; got != want {
+		t.Fatalf("player play calls: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "FINAL SCORE:  DARTMOUTH: 0  HARVARD: 0\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-50):])
 	}
 }
 

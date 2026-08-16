@@ -148,6 +148,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`34_Digits/digits.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/34_Digits/digits.bas)
 - [`35_Even_Wins/evenwins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/35_Even_Wins/evenwins.bas) and [`gameofevenwins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/35_Even_Wins/gameofevenwins.bas)
 - [`36_Flip_Flop/flipflop.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/36_Flip_Flop/flipflop.bas)
+- [`37_Football/football.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/37_Football/football.bas) and [`ftball.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/37_Football/ftball.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -230,6 +231,9 @@ documented zero-move command.
 Flip Flop's seeded transcript uses `COS` and `TAN` to reject invalid entries,
 render every board in an eight-move solution, complete the puzzle, and exit
 normally.
+The two Football transcripts verify play charts, kickoffs, penalties, downs,
+turnovers, and scoring. The N.F.U. game ends with a touchdown, while Dartmouth
+football completes its timed game and final score.
 
 ## Testing
 
