@@ -991,6 +991,18 @@ func TestCLI(t *testing.T) {
 		assertNimTranscript(t, string(output))
 	})
 
+	t.Run("wins the original Number program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "number.bas"))
+		command.Stdin = strings.NewReader("4\n4\n5\n1\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), numberOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3153,6 +3165,23 @@ func assertNimTranscript(t *testing.T, transcript string) {
 	if !strings.HasSuffix(transcript, "? ") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-25):])
 	}
+}
+
+func numberOutput() string {
+	return strings.Repeat(" ", 33) + "NUMBER\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"YOU HAVE 100 POINTS.  BY GUESSING NUMBERS FROM 1 TO 5, YOU\n" +
+		"CAN GAIN OR LOSE POINTS DEPENDING UPON HOW CLOSE YOU GET TO\n" +
+		"A RANDOM NUMBER SELECTED BY THE COMPUTER.\n\n" +
+		"YOU OCCASIONALLY WILL GET A JACKPOT WHICH WILL DOUBLE(!)\n" +
+		"YOUR POINT COUNT.  YOU WIN WHEN YOU GET 500 POINTS.\n\n" +
+		"GUESS A NUMBER FROM 1 TO 5? YOU HIT THE JACKPOT!!!\n" +
+		"YOU HAVE200POINTS.\n\n" +
+		"GUESS A NUMBER FROM 1 TO 5? YOU HIT THE JACKPOT!!!\n" +
+		"YOU HAVE400POINTS.\n\n" +
+		"GUESS A NUMBER FROM 1 TO 5? YOU HAVE405POINTS.\n\n" +
+		"GUESS A NUMBER FROM 1 TO 5? YOU HIT THE JACKPOT!!!\n" +
+		"!!!!YOU WIN!!!! WITH 810POINTS.\n"
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
