@@ -175,6 +175,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`58_Love/love.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/58_Love/love.bas)
 - [`59_Lunar_LEM_Rocket/lem.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/lem.bas), [`lunar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/lunar.bas), the byte-different [alternate `lunar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/59_Lunar_LEM_Rocket/lunar.bas), and [`rocket.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/rocket.bas)
 - [`60_Mastermind/mastermind.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/60_Mastermind/mastermind.bas) and the byte-different [alternate `mastermind.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/60_Mastermind/mastermind.bas)
+- [`61_Math_Dice/mathdice.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/61_Math_Dice/mathdice.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -333,6 +334,9 @@ exhausts its fuel, reports every free-fall second, crashes, and exits normally.
 Both Mastermind transcripts read unquoted color-name data, let the human solve
 a one-position code in two moves, then let the computer eliminate a candidate
 and solve the reciprocal code in two moves before reporting the tied score.
+Math Dice's seeded transcript renders two complete pairs of dice, exercises
+both incorrect-answer responses, reveals the first sum, and ends at the next
+round's answer prompt because the original uses Control-C as its only exit.
 
 ## Testing
 
