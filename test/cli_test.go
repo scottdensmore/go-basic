@@ -1080,6 +1080,16 @@ func TestCLI(t *testing.T) {
 		assertQueenTranscript(t, string(output))
 	})
 
+	t.Run("wins the original Reverse program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "reverse.bas"))
+		command.Stdin = strings.NewReader("YES\n10\n9\n3\n8\n2\n6\n5\n3\n4\n2\n3\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertReverseTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3435,6 +3445,34 @@ func assertQueenTranscript(t *testing.T, transcript string) {
 		t.Fatalf("move prompts: got %d, want %d", got, want)
 	}
 	if !strings.HasSuffix(transcript, "\n\nOK --- THANKS AGAIN.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
+}
+
+func assertReverseTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "REVERSE\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"REVERSE -- A GAME OF SKILL\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"THIS IS THE GAME OF 'REVERSE'.  TO WIN, ALL YOU HAVE",
+		"HERE WE GO ... THE LIST IS:\n\n936142875",
+		"OOPS! TOO MANY! I CAN REVERSE AT MOST9",
+		"578241639", "875241639", "361425789", "631425789", "524136789",
+		"314256789", "413256789", "231456789", "321456789", "123456789",
+		"YOU WON IT IN10MOVES!!!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "HOW MANY SHALL I REVERSE? "), 11; got != want {
+		t.Fatalf("move prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nO.K. HOPE YOU HAD FUN!!\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
 	}
 }
