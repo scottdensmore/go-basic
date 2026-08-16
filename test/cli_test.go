@@ -255,6 +255,17 @@ func TestCLI(t *testing.T) {
 		assertBugTranscript(t, string(output))
 	})
 
+	t.Run("wins the original Bullfight program", func(t *testing.T) {
+		path := filepath.Join("scripts", "bullfight.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("YES\nMAYBE\nNO\n3\n0\nNO\n1\nYES\n4\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertBullfightTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -742,6 +753,38 @@ func assertBugTranscript(t *testing.T, transcript string) {
 	suffix := "I HOPE YOU ENJOYED THE GAME, PLAY IT AGAIN SOON!!\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertBullfightTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "BULL\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"DO YOU WANT INSTRUCTIONS? HELLO, ALL YOU BLOODLOVERS AND AFICIONADOS.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU HAVE DRAWN A AWFUL BULL.",
+		"THE PICADORES DID A AWFUL JOB.",
+		"THE TOREADORES DID A AWFUL JOB.",
+		"INCORRECT ANSWER - - PLEASE TYPE 'YES' OR 'NO'.",
+		"DON'T PANIC, YOU IDIOT!  PUT DOWN A CORRECT NUMBER",
+		"PASS NUMBER3",
+		"IT IS THE MOMENT OF TRUTH.",
+		"YOU KILLED THE BULL!",
+		"THE CROWD CHEERS!",
+		"THE CROWD AWARDS YOU\nNOTHING AT ALL.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "PASS NUMBER"), 3; got != want {
+		t.Fatalf("passes: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "ADIOS\n\n\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-12):])
 	}
 }
 
