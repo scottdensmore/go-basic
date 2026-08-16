@@ -4,12 +4,13 @@ import "strings"
 
 // Lexer converts BASIC source text into tokens.
 type Lexer struct {
-	input        string
-	position     int
-	readPosition int
-	ch           byte
-	line         int
-	column       int
+	input                   string
+	position                int
+	readPosition            int
+	ch                      byte
+	line                    int
+	column                  int
+	keywordAdjacentToNumber bool
 }
 
 // NewLexer creates a lexer positioned at the start of input.
@@ -21,6 +22,8 @@ func NewLexer(input string) *Lexer {
 
 // NextToken returns the next token from the input.
 func (l *Lexer) NextToken() Token {
+	keywordAdjacentToNumber := l.keywordAdjacentToNumber
+	l.keywordAdjacentToNumber = false
 	l.skipWhitespace()
 
 	line, column := l.line, l.column
@@ -75,9 +78,16 @@ func (l *Lexer) NextToken() Token {
 		return token
 	default:
 		if isDigit(l.ch) || l.ch == '.' && isDigit(l.peekChar()) {
-			return Token{Type: NUMBER, Literal: l.readNumber(), Line: line, Column: column}
+			literal := l.readNumber()
+			l.keywordAdjacentToNumber = isLetter(l.ch)
+			return Token{Type: NUMBER, Literal: literal, Line: line, Column: column}
 		}
 		if isLetter(l.ch) {
+			if keywordAdjacentToNumber {
+				if token, ok := l.readNumericSuffixKeyword(line, column); ok {
+					return token
+				}
+			}
 			if l.hasKeywordPrefix("rem") {
 				literal := l.input[l.position : l.position+3]
 				for range 3 {
@@ -101,6 +111,20 @@ func (l *Lexer) NextToken() Token {
 		l.readChar()
 		return token
 	}
+}
+
+func (l *Lexer) readNumericSuffixKeyword(line, column int) (Token, bool) {
+	for _, keyword := range []string{"step", "and", "or", "to"} {
+		if !l.hasKeywordPrefix(keyword) {
+			continue
+		}
+		literal := l.input[l.position : l.position+len(keyword)]
+		for range len(keyword) {
+			l.readChar()
+		}
+		return Token{Type: LookupIdent(keyword), Literal: literal, Line: line, Column: column}, true
+	}
+	return Token{}, false
 }
 
 func (l *Lexer) comparisonToken(line, column int) Token {

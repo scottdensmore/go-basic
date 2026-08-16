@@ -1190,6 +1190,29 @@ func TestCLI(t *testing.T) {
 		assertStockMarketTranscript(t, string(output))
 	})
 
+	t.Run("runs the original Super Star Trek programs", func(t *testing.T) {
+		t.Run("game", func(t *testing.T) {
+			command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "super-star-trek.bas"))
+			command.Stdin = strings.NewReader("BAD\nSRS\nLRS\nNAV\n0\nSHE\n4000\nSHE\n500\n" +
+				"NAV\n1\n1\nSRS\nPHA\nTOR\n0\nCOM\n1\nXXX\nNO\n")
+			output, err := command.CombinedOutput()
+			if err != nil {
+				t.Fatalf("run CLI: %v\n%s", err, output)
+			}
+			assertSuperStarTrekTranscript(t, string(output))
+		})
+
+		t.Run("instructions", func(t *testing.T) {
+			command := exec.Command(binary, filepath.Join("scripts", "super-star-trek-instructions.bas"))
+			command.Stdin = strings.NewReader("Y\n")
+			output, err := command.CombinedOutput()
+			if err != nil {
+				t.Fatalf("run CLI: %v\n%s", err, output)
+			}
+			assertSuperStarTrekInstructions(t, string(output))
+		})
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3859,6 +3882,73 @@ func assertStockMarketTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "DO YOU WISH TO CONTINUE (YES-TYPE 1, NO-TYPE 0)? HOPE YOU HAD FUN!!\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-85):])
+	}
+}
+
+func assertSuperStarTrekTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat("\n", 11) + strings.Repeat(" ", 36) + ",------*------,\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"THE USS ENTERPRISE --- NCC-1701",
+		"DESTROY THE20KLINGON WARSHIPS",
+		"ON STARDATE3827  THIS GIVES YOU27DAYS.",
+		"IN THE GALACTIC QUADRANT, 'ALTAIR I'.",
+		"CONDITION          GREEN",
+		"QUADRANT          6,1",
+		"ENTER ONE OF THE FOLLOWING:",
+		"LONG RANGE SCAN FOR QUADRANT6,1",
+		": *** : 008 : 106 :",
+		"LT. SULU REPORTS, 'INCORRECT COURSE DATA, SIR!'",
+		"SHIELD CONTROL REPORTS  'THIS IS NOT THE FEDERATION TREASURY.'",
+		"'SHIELDS NOW AT500UNITS PER YOUR COMMAND.'",
+		"WARP ENGINES SHUT DOWN AT SECTOR3,4DUE TO BAD NAVAGATION",
+		"STARDATE          3801",
+		"TOTAL ENERGY      2982",
+		"SENSORS SHOW NO ENEMY SHIPS",
+		"ENSIGN CHEKOV REPORTS,  'INCORRECT COURSE DATA, SIR!'",
+		"STATUS REPORT:\nKLINGONS LEFT: 20",
+		"MISSION MUST BE COMPLETED IN26STARDATES",
+		"LIBRARY-COMPUTER         0",
+		"THERE WERE20KLINGON BATTLE CRUISERS LEFT AT",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if !strings.HasSuffix(transcript, "LET HIM STEP FORWARD AND ENTER 'AYE'? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-65):])
+	}
+}
+
+func assertSuperStarTrekInstructions(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat("\n", 12) + strings.Repeat(" ", 10) + "*************************************\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"*      * * SUPER STAR TREK * *      *",
+		"INSTRUCTIONS FOR 'SUPER STAR TREK'",
+		"COMMANDS (NAV,SRS,LRS,PHA,TOR,SHE,DAM,COM, OR XXX).",
+		"THE GALAXY IS DIVIDED INTO AN 8 X 8 QUADRANT GRID",
+		"<*> = YOUR STARSHIP'S POSITION",
+		"+K+ = KLINGON BATTLE CRUISER",
+		">!< = FEDERATION STARBASE",
+		"\\PHA\\ COMMAND = PHASER CONTROL.",
+		"\\TOR\\ COMMAND = PHOTON TORPEDO CONTROL",
+		"\\SHE\\ COMMAND = SHIELD CONTROL",
+		"\\COM\\ COMMAND = LIBRARY-COMPUTER",
+		"OPTION 5 = GALACTIC /REGION NAME/ MAP",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if !strings.HasSuffix(transcript, "GALACTIC REGIONS REFERRED TO IN THE GAME.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-65):])
 	}
 }
 

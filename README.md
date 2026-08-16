@@ -197,6 +197,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`81_Splat/splat.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/81_Splat/splat.bas)
 - [`82_Stars/stars.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/82_Stars/stars.bas)
 - [`83_Stock_Market/stockmarket.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/83_Stock_Market/stockmarket.bas)
+- [`84_Super_Star_Trek/superstartrek.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/84_Super_Star_Trek/superstartrek.bas) and [`superstartrekins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/84_Super_Star_Trek/superstartrekins.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -421,6 +422,9 @@ limit because the original program immediately begins another round.
 Stock Market's seeded transcript prints the instructions, rejects overselling
 and overspending, buys and sells shares across two trading days, verifies
 prices, holdings, cash, and total assets, then exits normally.
+Super Star Trek's seeded transcript exercises sensors, navigation validation,
+shield control, movement, weapons validation, the library computer, and a
+normal resignation; its companion program renders the complete instructions.
 
 ## Testing
 
