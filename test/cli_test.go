@@ -463,6 +463,28 @@ func TestCLI(t *testing.T) {
 		assertDigitsTranscript(t, string(output))
 	})
 
+	t.Run("plays the original Even Wins program", func(t *testing.T) {
+		path := filepath.Join("scripts", "even-wins.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("0\n0\n5\n" + strings.Repeat("1\n", 9) + "0\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertEvenWinsTranscript(t, string(output))
+	})
+
+	t.Run("plays the original Game of Even Wins program", func(t *testing.T) {
+		path := filepath.Join("scripts", "game-of-even-wins.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("YES\n5\n1\n1\n1\n1\n0\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertGameOfEvenWinsTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1500,6 +1522,61 @@ func assertDigitsTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRY AGAIN (1 FOR YES, 0 FOR NO)? \nTHANKS FOR THE GAME.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-80):])
+	}
+}
+
+func assertEvenWinsTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 31) + "EVEN WINS\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n" +
+		"     THIS IS A TWO PERSON GAME CALLED 'EVEN WINS.'\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"THE NUMBER OF MARBLES YOU TAKE MUST BE A POSITIVE",
+		"TOTAL=25",
+		"THAT IS ALL OF THE MARBLES.",
+		" MY TOTAL IS18, YOUR TOTAL IS9",
+		"     I WON.  DO YOU WANT TO PLAY",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "THE NUMBER OF MARBLES YOU TAKE MUST BE A POSITIVE"), 2; got != want {
+		t.Fatalf("invalid-move messages: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "OK.  SEE YOU LATER.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-30):])
+	}
+}
+
+func assertGameOfEvenWinsTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 28) + "GAME OF EVEN WINS\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n" +
+		"DO YOU WANT INSTRUCTIONS (YES OR NO)? \n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"THE COMPUTER STARTS OUT KNOWING ONLY THE RULES OF THE",
+		"THERE ARE21CHIPS ON THE BOARD.",
+		"5IS AN ILLEGAL MOVE ... YOUR MOVE?",
+		"COMPUTER TAKES 1 CHIP.",
+		"GAME OVER ... YOU WIN!!!",
+		"THERE ARE13CHIPS ON THE BOARD.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "... YOUR MOVE? "), 6; got != want {
+		t.Fatalf("move prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "COMPUTER TAKES 1 CHIP LEAVING12... YOUR MOVE? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
 

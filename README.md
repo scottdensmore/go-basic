@@ -146,6 +146,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`32_Diamond/diamond.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/32_Diamond/diamond.bas)
 - [`33_Dice/dice.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/33_Dice/dice.bas)
 - [`34_Digits/digits.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/34_Digits/digits.bas)
+- [`35_Even_Wins/evenwins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/35_Even_Wins/evenwins.bas) and [`gameofevenwins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/35_Even_Wins/gameofevenwins.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -222,6 +223,9 @@ histograms and the reset between them, then exits normally.
 Digits' seeded transcript prints the instructions, rejects an invalid digit,
 scores all 30 guesses across three rounds, declares the player's win, and exits
 normally.
+The two Even Wins transcripts reject illegal moves and complete full marble and
+chip games. The learning variant then starts a second game and exits through its
+documented zero-move command.
 
 ## Testing
 
