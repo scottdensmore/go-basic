@@ -192,6 +192,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`75_Roulette/roulette.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/75_Roulette/roulette.bas)
 - [`76_Russian_Roulette/russianroulette.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/76_Russian_Roulette/russianroulette.bas)
 - [`77_Salvo/salvo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/77_Salvo/salvo.bas)
+- [`79_Slalom/slalom.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/79_Slalom/slalom.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -401,6 +402,9 @@ original program immediately starts another round and has no exit path.
 Salvo's seeded transcript places a full fleet, reveals and targets the opposing
 fleet, rejects illegal and repeated shots, verifies both sides' salvos, sinks
 all four enemy ships in two turns, and exits normally.
+Slalom's seeded transcript prints the instructions, rejects invalid setup and
+race choices, checks elapsed time, safely clears a gate, wins a silver medal,
+validates the replay answer, and exits normally.
 
 ## Testing
 
