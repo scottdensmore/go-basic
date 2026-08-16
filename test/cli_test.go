@@ -731,6 +731,23 @@ func TestCLI(t *testing.T) {
 		assertHighIQTranscript(t, string(output))
 	})
 
+	t.Run("plays the original Hockey program", func(t *testing.T) {
+		path := filepath.Join("scripts", "hockey.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		inputs := []string{
+			"MAYBE", "YES", "RED,BLUE", "0", "1",
+			"R1", "R2", "R3", "R4", "R5", "R6",
+			"B1", "B2", "B3", "B4", "B5", "B6", "REF",
+			"-1", "4", "3", "5", "0", "1", "0", "5", "1",
+		}
+		command.Stdin = strings.NewReader(strings.Join(inputs, "\n") + "\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertHockeyTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2305,6 +2322,52 @@ func assertHighIQTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "PLAY AGAIN (YES OR NO)? \nSO LONG FOR NOW.\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-50):])
+	}
+}
+
+func assertHockeyTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "HOCKEY\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n\n\n\n" +
+		"WOULD YOU LIKE THE INSTRUCTIONS? \nANSWER YES OR NO!!\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"THIS IS A SIMULATED HOCKEY GAME.",
+		"RED STARTING LINEUP",
+		"BLUE STARTING LINEUP",
+		"REF WILL DROP THE PUCK BETWEEN R2 AND B2",
+		"BLUE HAS CONTROL.",
+		"A ' 3 ON 2 ' WITH A ' TRAILER '!",
+		"B5 LET'S A BIG SLAP SHOT GO!!",
+		"GLOVE SAVE R6 AND HE HANGS ON",
+		"THAT'S THE SIREN",
+		"FINAL SCORE:\nRED:0         BLUE:0",
+		"SCORING SUMMARY",
+		"SHOTS ON NET\nRED:0\nBLUE:1",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "ENTER THE NUMBER OF MINUTES IN A GAME?"), 2; got != want {
+		t.Fatalf("duration prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "PASS?"), 3; got != want {
+		t.Fatalf("pass prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "SHOT?"), 3; got != want {
+		t.Fatalf("shot prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "AREA?"), 3; got != want {
+		t.Fatalf("area prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "\a"), 30; got != want {
+		t.Fatalf("siren bells: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "SHOTS ON NET\nRED:0\nBLUE:1\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
 	}
 }
 
