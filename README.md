@@ -126,6 +126,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`12_Bombs_Away/bombsaway.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/12_Bombs_Away/bombsaway.bas)
 - [`13_Bounce/bounce.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/13_Bounce/bounce.bas)
 - [`14_Bowling/bowling.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/14_Bowling/bowling.bas)
+- [`15_Boxing/boxing.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/15_Boxing/boxing.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -155,6 +156,8 @@ forever.
 Bowling's seeded transcript plays a complete ten-frame game, verifies every pin
 diagram and second-ball prompt, checks spare and error outcomes, prints the score
 rows, and exits normally.
+Boxing's seeded transcript exercises both fighters' attacks, connected and
+missed punches, a knockout, the championship result, and normal exit.
 
 ## Testing
 

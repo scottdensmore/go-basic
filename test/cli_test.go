@@ -233,6 +233,17 @@ func TestCLI(t *testing.T) {
 		assertBowlingTranscript(t, string(output))
 	})
 
+	t.Run("fights the original Boxing program", func(t *testing.T) {
+		path := filepath.Join("scripts", "boxing.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("CPU\nPLAYER\n1\n1\n1\n1\n1\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertBoxingTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -658,6 +669,35 @@ func assertBowlingTranscript(t *testing.T, transcript string) {
 	}
 	suffix := "FRAMES\n12345678910\n7677878687\n89109101098109\n1121221121\n\n" +
 		"DO YOU WANT ANOTHER GAME\n? "
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertBoxingTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "BOXING\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"BOXING OLYMPIC STYLE (3 ROUNDS -- 2 OUT OF 3 WINS)\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"CPU'S ADVANTAGE IS4AND VULNERABILITY IS SECRET.",
+		"ROUND1BEGINS...",
+		"PLAYER SWINGS AND HE CONNECTS!",
+		"PLAYER SWINGS AND HE MISSES",
+		"CPU GETS PLAYER IN THE JAW (OUCH!)",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "PLAYER'S PUNCH? "), 3; got != want {
+		t.Fatalf("punch prompts: got %d, want %d", got, want)
+	}
+	suffix := "PLAYER IS KNOCKED COLD AND CPU IS THE WINNER AND CHAMP!\n\n" +
+		"AND NOW GOODBYE FROM THE OLYMPIC ARENA.\n\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
