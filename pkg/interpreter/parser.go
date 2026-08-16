@@ -164,6 +164,11 @@ func (p *Parser) parseStatementSequence() []Statement {
 
 func (p *Parser) parseStatement() Statement {
 	switch p.current.Type {
+	case LET:
+		if !p.expectPeek(IDENT) {
+			return nil
+		}
+		return p.parseLetStatement()
 	case FOR:
 		statement := p.parseForStatement()
 		if statement == nil {

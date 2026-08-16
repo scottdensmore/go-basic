@@ -344,6 +344,17 @@ func TestCLI(t *testing.T) {
 		assertChemistTranscript(t, string(output))
 	})
 
+	t.Run("takes the original Chief program's test", func(t *testing.T) {
+		path := filepath.Join("scripts", "chief.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("NO\n8.16\nNO\n10\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertChiefTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1047,6 +1058,36 @@ func assertChemistTranscript(t *testing.T, transcript string) {
 	}
 	suffix := " YOUR 9 LIVES ARE USED, BUT YOU WILL BE LONG REMEMBERED FOR\n" +
 		" YOUR CONTRIBUTIONS TO THE FIELD OF COMIC BOOK CHEMISTRY.\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertChiefTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "CHIEF\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"I AM CHIEF NUMBERS FREEK, THE GREAT INDIAN MATH GOD.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"SHUT UP, PALE FACE WITH WISE TONGUE.",
+		"I BET YOUR NUMBER WAS10. AM I RIGHT?",
+		"10PLUS 3 EQUALS13. THIS DIVIDED BY 5 EQUALS2.6;",
+		"THIS TIMES 8 EQUALS20.8. IF WE DIVIDE BY 5 AND ADD 5,",
+		"WE GET9.16, WHICH, MINUS 1, EQUALS8.16.",
+		"YOU HAVE MADE ME MAD!!!",
+		"#########################",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, " X X\n"), 17; got != want {
+		t.Fatalf("lightning segments: got %d, want %d", got, want)
+	}
+	suffix := "I HOPE YOU BELIEVE ME NOW, FOR YOUR SAKE!!\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}

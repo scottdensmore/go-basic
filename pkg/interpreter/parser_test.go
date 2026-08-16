@@ -40,6 +40,19 @@ func TestParserBuildsSupportedStatements(t *testing.T) {
 	}
 }
 
+func TestParserBuildsExplicitLetAssignment(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 LET Total=1+2\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	assignment, ok := program.Lines[10].(*LetStatement)
+	if !ok || assignment.Name == nil || assignment.Name.Value != "Total" || assignment.Value.String() != "(1 + 2)" {
+		t.Fatalf("line 10: got %#v", program.Lines[10])
+	}
+}
+
 func TestParserBuildsCommaSeparatedPrintStatement(t *testing.T) {
 	t.Parallel()
 

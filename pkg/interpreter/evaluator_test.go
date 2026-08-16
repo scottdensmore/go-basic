@@ -24,6 +24,14 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "14 4\n",
 		},
 		{
+			name: "explicit let assignments",
+			source: `10 LET A=2
+20 LET B=A+3
+30 PRINT B
+`,
+			want: "5\n",
+		},
+		{
 			name: "positive loop",
 			source: `10 FOR i=1 TO 3
 20 PRINT i;

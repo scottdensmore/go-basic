@@ -53,6 +53,8 @@ const (
 
 	// FOR begins a numeric loop.
 	FOR TokenType = "FOR"
+	// LET introduces an explicit assignment.
+	LET TokenType = "LET"
 	// TO separates the initial and final values of a FOR loop.
 	TO TokenType = "TO"
 	// STEP introduces a FOR loop increment.
@@ -141,6 +143,7 @@ type Token struct {
 
 var keywords = map[string]TokenType{
 	"for":     FOR,
+	"let":     LET,
 	"to":      TO,
 	"step":    STEP,
 	"next":    NEXT,
