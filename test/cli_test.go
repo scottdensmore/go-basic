@@ -781,6 +781,26 @@ func TestCLI(t *testing.T) {
 		assertKinemaTranscript(t, path, string(output))
 	})
 
+	t.Run("governs the original King programs", func(t *testing.T) {
+		variants := []string{
+			"king.bas",
+			"king-variable-update.bas",
+			"king-variable-update-alternate.bas",
+		}
+		for _, variant := range variants {
+			t.Run(variant, func(t *testing.T) {
+				path := filepath.Join("scripts", variant)
+				command := exec.Command(binary, "-seed", "0", path)
+				command.Stdin = strings.NewReader("N\n0\n50600\n800\n1000\n0\n0\n0\n0\n")
+				output, err := command.CombinedOutput()
+				if err != nil {
+					t.Fatalf("run CLI: %v\n%s", err, output)
+				}
+				assertKingTranscript(t, string(output))
+			})
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2490,6 +2510,42 @@ func assertKinemaTranscript(t *testing.T, path, transcript string) {
 	}
 	suffix := "HOW HIGH WILL IT GO (IN METERS)? go-basic: run " + path +
 		": BASIC line 500: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertKingTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "KING\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nDO YOU WANT INSTRUCTIONS? "
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU NOW HAVE 60700 RALLODS IN THE TREASURY.",
+		"40COUNTRYMEN CAME TO THE ISLAND.",
+		"YOU HARVESTED 800SQ. MILES OF CROPS.",
+		"MAKING39200RALLODS.",
+		"YOU MADE11580RALLODS FROM TOURIST TRADE.",
+		"YOU NOW HAVE 79000 RALLODS IN THE TREASURY.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	for _, prompt := range []string{
+		"HOW MANY SQUARE MILES DO YOU WISH TO SELL TO INDUSTRY? ",
+		"HOW MANY RALLODS WILL YOU DISTRIBUTE AMONG YOUR COUNTRYMEN? ",
+		"HOW MANY SQUARE MILES DO YOU WISH TO PLANT? ",
+		"HOW MANY RALLODS DO YOU WISH TO SPEND ON POLLUTION CONTROL? ",
+	} {
+		if got, want := strings.Count(transcript, prompt), 2; got != want {
+			t.Fatalf("%q prompts: got %d, want %d", prompt, got, want)
+		}
+	}
+	suffix := "GOODBYE.\n(IF YOU WISH TO CONTINUE THIS GAME AT A LATER DATE, ANSWER\n" +
+		"'AGAIN' WHEN ASKED IF YOU WANT INSTRUCTIONS AT THE START\nOF THE GAME).\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
