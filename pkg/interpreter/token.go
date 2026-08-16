@@ -91,6 +91,8 @@ const (
 	STOP TokenType = "STOP"
 	// INT rounds a number down to the nearest integer.
 	INT TokenType = "INT"
+	// ABS returns the absolute value of a number.
+	ABS TokenType = "ABS"
 	// DEF begins a user-defined numeric function definition.
 	DEF TokenType = "DEF"
 	// SQR computes a square root.
@@ -156,6 +158,7 @@ var keywords = map[string]TokenType{
 	"end":     END,
 	"stop":    STOP,
 	"int":     INT,
+	"abs":     ABS,
 	"def":     DEF,
 	"sqr":     SQR,
 	"exp":     EXP,

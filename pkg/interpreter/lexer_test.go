@@ -80,6 +80,21 @@ func TestLexerRecognizesSineWaveControlFlow(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesBattleSyntax(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("1190 IF X<1 OR INT(X)<>ABS(X) THEN 1210\n")
+	want := []TokenType{
+		NUMBER, IF, IDENT, LT, NUMBER, OR, INT, LPAREN, IDENT, RPAREN,
+		NEQ, ABS, LPAREN, IDENT, RPAREN, THEN, NUMBER, EOL, EOF,
+	}
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func TestLexerTreatsRemarkableAsRemark(t *testing.T) {
 	t.Parallel()
 

@@ -151,6 +151,25 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("sinks the fleet in the original Battle program", func(t *testing.T) {
+		path := filepath.Join("scripts", "battle.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		moves := []string{
+			"0,0", "1,1", "1,6", "1,6", "2,6",
+			"2,4", "2,3", "2,2", "2,1",
+			"3,6", "4,5", "5,4", "6,3",
+			"3,4", "4,3", "5,2",
+			"3,3", "3,2",
+			"4,6", "5,5", "6,4",
+		}
+		command.Stdin = strings.NewReader(strings.Join(moves, "\n") + "\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertBattleTranscript(t, path, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -421,6 +440,41 @@ func batnumOutput() string {
 	output.WriteString(strings.Repeat("\n", 10))
 	output.WriteString("ENTER PILE SIZE? ")
 	return output.String()
+}
+
+func assertBattleTranscript(t *testing.T, path, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "BATTLE\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n" +
+		"THE FOLLOWING CODE OF THE BAD GUYS' FLEET DISPOSITION\n" +
+		"HAS BEEN CAPTURED BUT NOT DECODED:\n\n" +
+		"200000\n206666\n504110\n350400\n035040\n003500\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"INVALID INPUT.  TRY AGAIN.",
+		"SPLASH!  TRY AGAIN.",
+		"YOU ALREADY PUT A HOLE IN SHIP NUMBER2AT THAT POINT.",
+		"YOU HAVE TOTALLY WIPED OUT THE BAD GUYS' FLEET",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "A DIRECT HIT ON SHIP NUMBER"), 18; got != want {
+		t.Fatalf("direct hits: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "AND YOU SUNK IT.  HURRAH FOR THE GOOD GUYS."), 6; got != want {
+		t.Fatalf("sunk ships: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "START GAME\n? "), 2; got != want {
+		t.Fatalf("started games: got %d, want %d", got, want)
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 1180: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
 }
 
 func awariBoard(top string, left, right int, bottom string) string {

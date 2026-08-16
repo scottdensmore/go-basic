@@ -102,6 +102,23 @@ func TestParserBuildsSineWaveControlFlow(t *testing.T) {
 	}
 }
 
+func TestParserBuildsBattleExpressions(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 A=ABS(-1.5)\n20 L((INT(A)-1)/2)=1\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	absolute := program.Lines[10].(*LetStatement)
+	if got, want := absolute.Value.String(), "ABS(...)"; got != want {
+		t.Fatalf("absolute expression: got %q, want %q", got, want)
+	}
+	indexed := program.Lines[20].(*LetStatement)
+	if got, want := indexed.Indices[0].String(), "((INT(...) - 1) / 2)"; got != want {
+		t.Fatalf("array subscript: got %q, want %q", got, want)
+	}
+}
+
 func TestParserBuildsThreeDPlotExpressions(t *testing.T) {
 	t.Parallel()
 
