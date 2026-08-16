@@ -137,6 +137,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`23_Checkers/checkers.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/23_Checkers/checkers.bas)
 - [`24_Chemist/chemist.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/24_Chemist/chemist.bas)
 - [`25_Chief/chief.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/25_Chief/chief.bas)
+- [`26_Chomp/chomp.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/26_Chomp/chomp.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -189,6 +190,8 @@ Chemist's seeded transcript completes a successful dilution, uses all nine lives
 on failed mixtures, verifies every retry, and exits normally.
 Chief's transcript verifies the number trick, challenges each answer, prints the
 complete lightning-bolt consequence, and exits normally.
+Chomp's transcript prints the rules, rejects oversized boards and an invalid
+move, plays a complete two-player cookie, and exits normally after the poison.
 
 ## Testing
 

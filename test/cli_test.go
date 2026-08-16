@@ -355,6 +355,17 @@ func TestCLI(t *testing.T) {
 		assertChiefTranscript(t, string(output))
 	})
 
+	t.Run("plays the original Chomp program", func(t *testing.T) {
+		path := filepath.Join("scripts", "chomp.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("1\n2\n10\n2\n10\n2\n3,3\n2,2\n1,2\n2,1\n1,1\n0\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertChompTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1088,6 +1099,39 @@ func assertChiefTranscript(t *testing.T, transcript string) {
 		t.Fatalf("lightning segments: got %d, want %d", got, want)
 	}
 	suffix := "I HOPE YOU BELIEVE ME NOW, FOR YOUR SAKE!!\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertChompTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "CHOMP\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n\n" +
+		"THIS IS THE GAME OF CHOMP (SCIENTIFIC AMERICAN, JAN 1973)\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"HERE'S HOW A BOARD LOOKS (THIS ONE IS 5 BY 7):",
+		"TOO MANY ROWS (9 IS MAXIMUM). NOW,",
+		"TOO MANY COLUMNS (9 IS MAXIMUM). NOW,",
+		"NO FAIR. YOU'RE TRYING TO CHOMP ON EMPTY SPACE!",
+		"1      P * \n2      * * \n",
+		"1      P \n2      \n",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "COORDINATES OF CHOMP (ROW,COLUMN)? "), 5; got != want {
+		t.Fatalf("chomp prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "       1 2 3 4 5 6 7 8 9\n"), 5; got != want {
+		t.Fatalf("boards: got %d, want %d", got, want)
+	}
+	suffix := "PLAYER2\nCOORDINATES OF CHOMP (ROW,COLUMN)? YOU LOSE, PLAYER2\n\n" +
+		"AGAIN (1=YES, 0=NO!)? "
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
