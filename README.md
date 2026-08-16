@@ -176,6 +176,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`59_Lunar_LEM_Rocket/lem.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/lem.bas), [`lunar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/lunar.bas), the byte-different [alternate `lunar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/59_Lunar_LEM_Rocket/lunar.bas), and [`rocket.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/rocket.bas)
 - [`60_Mastermind/mastermind.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/60_Mastermind/mastermind.bas) and the byte-different [alternate `mastermind.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/60_Mastermind/mastermind.bas)
 - [`61_Math_Dice/mathdice.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/61_Math_Dice/mathdice.bas)
+- [`62_Mugwump/mugwump.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/62_Mugwump/mugwump.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -337,6 +338,9 @@ and solve the reciprocal code in two moves before reporting the tied score.
 Math Dice's seeded transcript renders two complete pairs of dice, exercises
 both incorrect-answer responses, reveals the first sum, and ends at the next
 round's answer prompt because the original uses Control-C as its only exit.
+Mugwump's seeded transcript checks the distance hints from an initial guess,
+finds all four hidden Mugwumps in five turns, verifies the victory, and ends at
+the next round's first guess because the original program has no quit command.
 
 ## Testing
 
