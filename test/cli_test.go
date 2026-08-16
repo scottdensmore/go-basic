@@ -518,6 +518,17 @@ func TestCLI(t *testing.T) {
 		assertFTBALLTranscript(t, string(output))
 	})
 
+	t.Run("trades furs in the original Fur Trader program", func(t *testing.T) {
+		path := filepath.Join("scripts", "fur-trader.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("YES\n40\n50\n50\n50\n4\n1\nNO\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertFurTraderTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1701,6 +1712,38 @@ func assertFTBALLTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "FINAL SCORE:  DARTMOUTH: 0  HARVARD: 0\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-50):])
+	}
+}
+
+func assertFurTraderTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 31) + "FUR TRADER\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"YOU ARE THE LEADER OF A FRENCH FUR TRADING EXPEDITION IN \n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU HAVE $600 SAVINGS.",
+		"AND 190 FURS TO BEGIN THE EXPEDITION.",
+		"YOU HAVE CHOSEN THE EASIEST ROUTE.",
+		"SUPPLIES AT FORT HOCHELAGA COST $150.00.",
+		"YOUR BEAVER SOLD FOR $41YOUR FOX SOLD FOR $43",
+		"YOUR ERMINE SOLD FOR $33YOUR MINK SOLD FOR $33.2",
+		"YOU NOW HAVE $590.2 INCLUDING YOUR PREVIOUS SAVINGS",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "ANSWER 1, 2, OR 3."), 2; got != want {
+		t.Fatalf("fort prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "HOW MANY "), 4; got != want {
+		t.Fatalf("pelt prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRADE FURS NEXT YEAR?\nANSWER YES OR NO            ? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-75):])
 	}
 }
 
