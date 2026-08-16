@@ -1060,6 +1060,16 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("wins a hand in the original Poker program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "poker.bas"))
+		command.Stdin = strings.NewReader(".25\n.5\n4\n3\n1\n4\n5\n5\nMAYBE\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertPokerTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3350,6 +3360,41 @@ func poetryOutput(path, fixture string) string {
 		"     NOTHING MORE \n" +
 		"MIDNIGHT DREARY BURNED, QUOTH THE RAVEN " +
 		"go-basic: run " + path + ": BASIC line 220: statement limit 300 reached\n"
+}
+
+func assertPokerTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "POKER\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"WELCOME TO THE CASINO.  WE EACH HAVE $200.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"1--  7 OF HEARTS            2--  3 OF SPADES",
+		"3--  3 OF HEARTS            4--  KING OF HEARTS",
+		"I CHECK.",
+		"NO SMALL CHANGE, PLEASE.",
+		"YOU CAN'T DRAW MORE THAN THREE CARDS.",
+		"1--  ACE OF CLUBS           2--  3 OF SPADES",
+		"I AM TAKING3CARDS",
+		"I'LL SEE YOU.",
+		"YOU HAVE A PAIR OF 3'S",
+		"AND I HAVE SCHMALTZ, ACE HIGH",
+		"YOU WIN.",
+		"NOW I HAVE $190AND YOU HAVE $210",
+		"ANSWER YES OR NO, PLEASE.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "WHAT IS YOUR BET? "), 3; got != want {
+		t.Fatalf("bet prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "DO YOU WISH TO CONTINUE? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
 }
 
 func awariBoard(top string, left, right int, bottom string) string {

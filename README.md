@@ -185,6 +185,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`68_Orbit/orbit.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/68_Orbit/orbit.bas)
 - [`69_Pizza/pizza.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/69_Pizza/pizza.bas)
 - [`70_Poetry/poetry.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/70_Poetry/poetry.bas) and the byte-different [alternate `poetry.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/70_Poetry/poetry.bas)
+- [`71_Poker/poker.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/71_Poker/poker.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -373,6 +374,9 @@ another shift, and exits normally.
 Both Poetry transcripts generate multiple deterministic lines, preserve their
 different random-draw implementations and resulting poems, then stop at the
 configured statement limit because the original generators run forever.
+Poker's seeded transcript validates betting and draw inputs, replaces three
+cards, completes post-draw betting and a showdown, verifies both classified
+hands and bankrolls, validates continuation input, and exits normally.
 
 ## Testing
 
