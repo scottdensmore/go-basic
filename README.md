@@ -155,6 +155,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`41_Guess/guess.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/41_Guess/guess.bas)
 - [`42_Gunner/gunner.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/42_Gunner/gunner.bas)
 - [`43_Hammurabi/hammurabi.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/43_Hammurabi/hammurabi.bas) and the byte-different [alternate `hammurabi.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/43_Hammurabi/hammurabi.bas)
+- [`44_Hangman/hangman.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/44_Hangman/hangman.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -258,6 +259,9 @@ rating, and exits normally.
 The two Hammurabi transcripts reject an over-planted field, govern all ten
 years through land trades, harvests, rats, and plagues without starvation,
 earn the top rating, and preserve both byte-different output formats.
+Hangman's seeded transcript reveals repeated letters, rejects a duplicate,
+renders the first gallows stage after a miss, recovers from a wrong word,
+solves the word in three guesses, and exits normally.
 
 ## Testing
 
