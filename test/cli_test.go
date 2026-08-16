@@ -1090,6 +1090,16 @@ func TestCLI(t *testing.T) {
 		assertReverseTranscript(t, string(output))
 	})
 
+	t.Run("plays the original Rock Scissors Paper program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "rock-scissors-paper.bas"))
+		command.Stdin = strings.NewReader("12\n3\n4\n1\n3\n2\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertRockScissorsPaperTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3473,6 +3483,35 @@ func assertReverseTranscript(t *testing.T, transcript string) {
 		t.Fatalf("move prompts: got %d, want %d", got, want)
 	}
 	if !strings.HasSuffix(transcript, "\nO.K. HOPE YOU HAD FUN!!\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
+}
+
+func assertRockScissorsPaperTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 21) + "GAME OF ROCK, SCISSORS, PAPER\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"SORRY, BUT WE AREN'T ALLOWED TO PLAY THAT MANY.",
+		"1...2...3...WHAT'S YOUR CHOICE? INVALID.",
+		"GAME NUMBER1", "...ROCK\nYOU WIN!!!",
+		"GAME NUMBER2", "...PAPER\nWOW!  I WIN!!!",
+		"GAME NUMBER3", "...SCISSORS\nTIE GAME.  NO WINNER.",
+		"I HAVE WON1GAME(S).",
+		"YOU HAVE WON1GAME(S).",
+		"AND1GAME(S) ENDED IN A TIE.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "1...2...3...WHAT'S YOUR CHOICE? "), 4; got != want {
+		t.Fatalf("choice prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nTHANKS FOR PLAYING!!\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
 	}
 }
