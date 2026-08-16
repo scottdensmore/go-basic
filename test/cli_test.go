@@ -1178,6 +1178,18 @@ func TestCLI(t *testing.T) {
 		assertStarsTranscript(t, string(output), path)
 	})
 
+	t.Run("trades in the original Stock Market program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "stock-market.bas"))
+		command.Stdin = strings.NewReader("1\n-1\n0\n0\n0\n0\n" +
+			"1000\n0\n0\n0\n0\n10\n5\n0\n0\n0\n" +
+			"1\n-5\n-2\n0\n0\n0\n0\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertStockMarketTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3808,6 +3820,45 @@ func assertStarsTranscript(t *testing.T, transcript, path string) {
 	suffix := "go-basic: run " + path + ": BASIC line 310: statement limit 280 reached\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)-30):])
+	}
+}
+
+func assertStockMarketTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "STOCK MARKET\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"DO YOU WANT THE INSTRUCTIONS (YES-TYPE 1, NO-TYPE 0)? \n\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"A BROKERAGE FEE OF 1% WILL BE CHARGED",
+		"INT. BALLISTIC MISSILES       IBM         117.75",
+		"NEW YORK STOCK EXCHANGE AVERAGE: 126.2",
+		"YOU HAVE OVERSOLD A STOCK; TRY AGAIN.",
+		"YOU HAVE USED $108927.5 MORE THAN YOU HAVE.",
+		"IBM           118.75        10            1187.5        1",
+		"RCA           90.75         5             453.75        7.5",
+		"TOTAL CASH ASSETS ARE    $8390.31",
+		"TOTAL ASSETS ARE         $10031.56",
+		"IBM           131.25        5             656.25        12.5",
+		"RCA           92.5          3             277.5         1.75",
+		"NEW YORK STOCK EXCHANGE AVERAGE: 140.55NET CHANGE4.55",
+		"TOTAL CASH ASSETS ARE    $9157.81",
+		"TOTAL ASSETS ARE         $10091.56",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "WHAT IS YOUR TRANSACTION IN\n"), 4; got != want {
+		t.Fatalf("transaction forms: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "DO YOU WISH TO CONTINUE (YES-TYPE 1, NO-TYPE 0)? "), 2; got != want {
+		t.Fatalf("continue prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "DO YOU WISH TO CONTINUE (YES-TYPE 1, NO-TYPE 0)? HOPE YOU HAD FUN!!\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-85):])
 	}
 }
 
