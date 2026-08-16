@@ -388,6 +388,26 @@ func TestCLI(t *testing.T) {
 		assertCombatTranscript(t, string(output))
 	})
 
+	t.Run("wins the original Craps program", func(t *testing.T) {
+		path := filepath.Join("scripts", "craps.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("1\n10\n2\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertCrapsTranscript(t, string(output))
+	})
+
+	t.Run("runs the original Craps distributions program", func(t *testing.T) {
+		path := filepath.Join("scripts", "craps-distributions.bas")
+		output, err := exec.Command(binary, "-seed", "0", path).CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertCrapsDistributions(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1225,6 +1245,64 @@ func assertCombatTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "YOU WON, OH! SHUCKS!!!!\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-30):])
+	}
+}
+
+func assertCrapsTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "CRAPS\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"2,3,12 ARE LOSERS; 4,5,6,8,9,10 ARE POINTS; 7,11 ARE NATURAL WINNERS.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"5IS THE POINT. I WILL ROLL AGAIN",
+		"2 - NO POINT. I WILL ROLL AGAIN",
+		"11 - NO POINT. I WILL ROLL AGAIN",
+		"5- A WINNER.........CONGRATS!!!!!!!!",
+		"5AT 2 TO 1 ODDS PAYS YOU...LET ME SEE...20DOLLARS",
+		"YOU ARE NOW AHEAD $20",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, " - NO POINT. I WILL ROLL AGAIN"), 5; got != want {
+		t.Fatalf("no-point rolls: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "CONGRATULATIONS---YOU CAME OUT A WINNER. COME AGAIN!\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-60):])
+	}
+}
+
+func assertCrapsDistributions(t *testing.T, transcript string) {
+	t.Helper()
+	lines := strings.Split(transcript, "\n")
+	if got, want := len(lines), 8; got != want {
+		t.Fatalf("output lines: got %d, want %d\n%s", got, want, transcript)
+	}
+	if got, want := lines[0], "DISTRIBUTION OF DICE ROLLS WITH  INT(7*RND(1))  VS  INT(6*RND(1)+1)"; got != want {
+		t.Fatalf("title: got %q, want %q", got, want)
+	}
+	if got, want := lines[1], "THE INT(7*RND(1)) DISTRIBUTION:"; got != want {
+		t.Fatalf("first heading: got %q, want %q", got, want)
+	}
+	if got, want := lines[4], "THE INT(6*RND(1)+1) DISTRIBUTION"; got != want {
+		t.Fatalf("second heading: got %q, want %q", got, want)
+	}
+	labels := "2 3 4 5 6 7 8 9 10 11 12"
+	if got := strings.Join(strings.Fields(lines[2]), " "); got != labels {
+		t.Fatalf("first labels: got %q, want %q", got, labels)
+	}
+	if got := strings.Join(strings.Fields(lines[5]), " "); got != labels {
+		t.Fatalf("second labels: got %q, want %q", got, labels)
+	}
+	if got, want := strings.Join(strings.Fields(lines[3]), " "), "6561 8674 10826 13029 15257 13177 10826 8656 6391 4413 2190"; got != want {
+		t.Fatalf("rejection counts: got %q, want %q", got, want)
+	}
+	if got, want := strings.Join(strings.Fields(lines[6]), " "), "2752 5602 8377 10973 13869 16503 13929 11040 8539 5625 2791"; got != want {
+		t.Fatalf("standard counts: got %q, want %q", got, want)
 	}
 }
 
