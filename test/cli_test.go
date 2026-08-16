@@ -208,6 +208,20 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("plots the original Bounce program", func(t *testing.T) {
+		path := filepath.Join("scripts", "bounce.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader(".1\n20\n.5\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		want := bounceOutput() + "go-basic: run " + path + ": BASIC line 135: read input: EOF\n"
+		if got := string(output); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -582,6 +596,33 @@ func bombsAwayOutput() string {
 	output.WriteString("DIRECT HIT!!!! 24KILLED.\n")
 	output.WriteString("MISSION SUCCESSFUL.\n\n\n\n")
 	output.WriteString("ANOTHER MISSION (Y OR N)? CHICKEN !!!\n\n")
+	return output.String()
+}
+
+func bounceOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 33) + "BOUNCE\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n")
+	output.WriteString("THIS SIMULATION LETS YOU SPECIFY THE INITIAL VELOCITY\n")
+	output.WriteString("OF A BALL THROWN STRAIGHT UP, AND THE COEFFICIENT OF\n")
+	output.WriteString("ELASTICITY OF THE BALL.  PLEASE USE A DECIMAL FRACTION\n")
+	output.WriteString("COEFFICIENCY (LESS THAN 1).\n\n")
+	output.WriteString("YOU ALSO SPECIFY THE TIME INCREMENT TO BE USED IN\n")
+	output.WriteString("'STROBING' THE BALL'S FLIGHT (TRY .1 INITIALLY).\n\n")
+	output.WriteString("TIME INCREMENT (SEC)? \nVELOCITY (FPS)? \nCOEFFICIENT? \n")
+	output.WriteString("FEET\n\n")
+	output.WriteString("6    0000\n     0\n")
+	output.WriteString("5        0\n    0\n")
+	output.WriteString("4         0\n   0\n")
+	output.WriteString("3\n           0\n")
+	output.WriteString("2 0\n                000\n")
+	output.WriteString("1            0 0   0\n                      00\n")
+	output.WriteString("00            0     00  0000\n")
+	output.WriteString(" ...............................\n")
+	output.WriteString(" 0        1         2         3\n")
+	output.WriteString("             SECONDS\n\n")
+	output.WriteString("TIME INCREMENT (SEC)? ")
 	return output.String()
 }
 
