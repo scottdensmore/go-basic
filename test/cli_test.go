@@ -823,6 +823,34 @@ func TestCLI(t *testing.T) {
 		assertLifeTranscript(t, path, string(output))
 	})
 
+	t.Run("plays the original Life for Two programs", func(t *testing.T) {
+		variants := []struct {
+			name        string
+			arguments   []string
+			wantExit    int
+			wantBounded bool
+		}{
+			{name: "main", arguments: []string{filepath.Join("scripts", "life-for-two.bas")}},
+			{
+				name:        "alternate",
+				arguments:   []string{"-max-statements", "1872", filepath.Join("scripts", "life-for-two-alternate.bas")},
+				wantExit:    1,
+				wantBounded: true,
+			},
+		}
+		for _, variant := range variants {
+			t.Run(variant.name, func(t *testing.T) {
+				command := exec.Command(binary, variant.arguments...)
+				command.Stdin = strings.NewReader("1,1\n3,1\n5,1\n1,5\n3,5\n5,5\n")
+				output, err := command.CombinedOutput()
+				if exitCode(err) != variant.wantExit {
+					t.Fatalf("exit: got %v, output %q", err, output)
+				}
+				assertLifeForTwoTranscript(t, variant.arguments[len(variant.arguments)-1], string(output), variant.wantBounded)
+			})
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2632,6 +2660,37 @@ func assertLifeTranscript(t *testing.T, path, transcript string) {
 		t.Fatal("transcript missing vertical blinker frame")
 	}
 	suffix := "go-basic: run " + path + ": BASIC line 530: statement limit 4000 reached\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertLifeForTwoTranscript(t *testing.T, path, transcript string, bounded bool) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "LIFE2\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" + strings.Repeat(" ", 10) +
+		"U.B. LIFE GAME\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	prompt := "XXXXXX\r$$$$$$\r&&&&&&\r? "
+	if got, want := strings.Count(transcript, prompt), 6; got != want {
+		t.Fatalf("piece prompts: got %d, want %d", got, want)
+	}
+	initialBoard := "0123450\n1 *     *     * 1\n2               2\n3               3\n" +
+		"4               4\n5 #     #     # 5\n0123450\n"
+	if !strings.Contains(transcript, initialBoard) {
+		t.Fatal("transcript missing initial six-piece board")
+	}
+	emptyBoard := "0123450\n1               1\n2               2\n3               3\n" +
+		"4               4\n5               5\n0123450\n"
+	if !strings.Contains(transcript, emptyBoard) {
+		t.Fatal("transcript missing extinct board")
+	}
+	suffix := "A DRAW\n"
+	if bounded {
+		suffix += "go-basic: run " + path + ": BASIC line 574: statement limit 1872 reached\n"
+	}
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}

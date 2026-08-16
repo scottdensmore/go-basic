@@ -170,6 +170,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`53_King/king.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/53_King/king.bas), [`king_variable_update.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/53_King/king_variable_update.bas), and the byte-different [alternate `king_variable_update.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/53_King/king_variable_update.bas)
 - [`54_Letter/letter.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/54_Letter/letter.bas)
 - [`55_Life/life.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/55_Life/life.bas)
+- [`56_Life_for_Two/lifefortwo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/56_Life_for_Two/lifefortwo.bas) and the byte-different [alternate `lifefortwo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/56_Life_for_Two/lifefortwo.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -310,6 +311,10 @@ first prompt because the original program has no quit command.
 Life's bounded transcript seeds a three-cell blinker, verifies its horizontal,
 vertical, and horizontal states across three generations, then stops at the
 configured statement limit because the original simulation runs forever.
+Both Life for Two transcripts place six isolated pieces, render their complete
+extinction, and declare a draw. The main file exits normally; the alternate is
+bounded immediately after the draw because its byte difference jumps to an
+upstream-missing line 800.
 
 ## Testing
 
