@@ -171,7 +171,11 @@ func (p *Parser) parseStatement() Statement {
 		if !p.expectPeek(IDENT) {
 			return nil
 		}
-		return p.parseLetStatement()
+		statement := p.parseLetStatement()
+		if statement == nil {
+			return nil
+		}
+		return statement
 	case FOR:
 		statement := p.parseForStatement()
 		if statement == nil {

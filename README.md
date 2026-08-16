@@ -162,6 +162,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`48_High_IQ/highiq.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/48_High_IQ/highiq.bas)
 - [`49_Hockey/hockey.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/49_Hockey/hockey.bas)
 - [`50_Horserace/horserace.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/50_Horserace/horserace.bas)
+- [`51_Hurkle/hurkle.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/51_Hurkle/hurkle.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -287,6 +288,9 @@ siren, final summaries, and shot totals, and exits normally.
 Horserace's seeded transcript prints the directions and odds, rejects invalid
 wagers from two bettors, renders all seven race frames, verifies every placing
 and the winning payout, and exits normally.
+Hurkle's seeded transcript follows northeast and south directions to a
+three-guess win, then ends at the next first-guess prompt because the original
+program automatically starts another round.
 
 ## Testing
 
