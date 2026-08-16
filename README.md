@@ -181,6 +181,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`64_Nicomachus/nicomachus.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/64_Nicomachus/nicomachus.bas)
 - [`65_Nim/nim.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/65_Nim/nim.bas)
 - [`66_Number/number.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/66_Number/number.bas)
+- [`67_One_Check/onecheck.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/67_One_Check/onecheck.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -357,6 +358,9 @@ object, validates the replay response, and exits normally.
 Number's exact seeded transcript exercises jackpot doubling and ordinary
 scoring across four rounds, reaches 810 points, verifies the winning message,
 and exits normally.
+One Check's transcript rejects an illegal move, completes a terminal 41-jump
+solitaire game with seven pieces remaining, verifies the final board and
+summary, validates replay input, and exits normally.
 
 ## Testing
 
