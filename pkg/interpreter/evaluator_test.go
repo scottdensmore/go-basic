@@ -42,6 +42,14 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "1 0.5 0 \n",
 		},
 		{
+			name: "decimal arithmetic does not expose floating point noise",
+			source: `10 PRINT .1+.2;":";28.97-1.01
+20 PRINT STR$(.1+.2);":";STR$(28.97-1.01)
+30 PRINT .6046602879796196
+`,
+			want: "0.3:27.96\n 0.3: 27.96\n0.6046602879796196\n",
+		},
+		{
 			name: "functions and tabbing",
 			source: `10 PRINT TAB(3); SIN(0)
 `,

@@ -133,6 +133,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`19_Bunny/bunny.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/19_Bunny/bunny.bas)
 - [`20_Buzzword/buzzword.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/20_Buzzword/buzzword.bas)
 - [`21_Calendar/calendar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/21_Calendar/calendar.bas)
+- [`22_Change/change.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/22_Change/change.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -176,6 +177,8 @@ Buzzword's seeded transcript generates three deterministic educator-speak
 phrases, exercises the repeat prompt, and exits normally.
 Calendar's non-interactive transcript verifies all twelve formatted months,
 weekday headers, representative weeks, and the complete 1979 calendar output.
+Change's transcript covers short, exact, and overpayment cases, verifies every
+needed bill and coin, then ends at the next cost prompt because it repeats forever.
 
 ## Testing
 
