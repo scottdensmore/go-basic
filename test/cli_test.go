@@ -748,6 +748,17 @@ func TestCLI(t *testing.T) {
 		assertHockeyTranscript(t, string(output))
 	})
 
+	t.Run("bets on the original Horserace program", func(t *testing.T) {
+		path := filepath.Join("scripts", "horserace.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("YES\n2\nALICE\nBOB\n5,0\n5,10\n5,100000\n1,20\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertHorseraceTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2368,6 +2379,41 @@ func assertHockeyTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "SHOTS ON NET\nRED:0\nBLUE:1\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
+}
+
+func assertHorseraceTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 31) + "HORSERACE\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"WELCOME TO SOUTH PORTLAND HIGH RACETRACK\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"UP TO 10 MAY PLAY.  A TABLE OF ODDS WILL BE PRINTED.",
+		"JOE MAW                     1             3.7:1",
+		"JOLLY                       5             9.25:1",
+		"THE RACE RESULTS ARE:",
+		"1PLACE HORSE NO.5           AT 9.25:1",
+		"8PLACE HORSE NO.7           AT 18.5:1",
+		"ALICE WINS $92.5",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "YOU CAN'T DO THAT!"), 2; got != want {
+		t.Fatalf("rejected bets: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "XXXXSTARTXXXX"), 7; got != want {
+		t.Fatalf("race frames started: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "XXXXFINISHXXXX"), 7; got != want {
+		t.Fatalf("race frames finished: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "DO YOU WANT TO BET ON THE NEXT RACE ?\nYES OR NO? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
 
