@@ -187,6 +187,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`70_Poetry/poetry.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/70_Poetry/poetry.bas) and the byte-different [alternate `poetry.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/70_Poetry/poetry.bas)
 - [`71_Poker/poker.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/71_Poker/poker.bas)
 - [`72_Queen/queen.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/72_Queen/queen.bas)
+- [`73_Reverse/reverse.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/73_Reverse/reverse.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -381,6 +382,9 @@ hands and bankrolls, validates continuation input, and exits normally.
 Queen's seeded transcript validates its instructions response, rejects an
 illegal start and move, follows a four-move winning strategy through every
 computer reply, validates replay input, and exits normally.
+Reverse's seeded transcript prints the rules, rejects an oversized move,
+verifies every permutation in a ten-reversal solution, wins, declines replay,
+and exits normally.
 
 ## Testing
 
