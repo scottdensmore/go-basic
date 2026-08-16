@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -82,6 +83,20 @@ func TestCLI(t *testing.T) {
 			t.Fatalf("exit: got %v, output %q", err, output)
 		}
 		want := animalOutput() + "go-basic: run " + path + ": BASIC line 130: read input: EOF\n"
+		if got := string(output); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%s\nwant:\n%s", got, want)
+		}
+	})
+
+	t.Run("plays a turn with the original Awari program", func(t *testing.T) {
+		path := filepath.Join("scripts", "awari.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("1\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		want := awariOutput() + "go-basic: run " + path + ": BASIC line 110: read input: EOF\n"
 		if got := string(output); got != want {
 			t.Fatalf("output mismatch:\ngot:\n%s\nwant:\n%s", got, want)
 		}
@@ -257,4 +272,23 @@ func animalOutput() string {
 	output.WriteString("WHY NOT TRY ANOTHER ANIMAL?\n")
 	output.WriteString("ARE YOU THINKING OF AN ANIMAL? ")
 	return output.String()
+}
+
+func awariOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 34) + "AWARI\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n")
+	output.WriteString(awariBoard("3 3 3 3 3 3", 0, 0, "3 3 3 3 3 3"))
+	output.WriteString("YOUR MOVE? \n")
+	output.WriteString(awariBoard("3 3 3 3 3 3", 0, 0, "0 4 4 4 3 3"))
+	output.WriteString("MY MOVE IS 5\n")
+	output.WriteString(awariBoard("0 0 3 3 3 3", 6, 0, "0 4 4 4 3 3"))
+	output.WriteString("YOUR MOVE? ")
+	return output.String()
+}
+
+func awariBoard(top string, left, right int, bottom string) string {
+	return "    " + top + "\n " + strconv.Itoa(left) + strings.Repeat(" ", 23) + strconv.Itoa(right) +
+		"\n    " + bottom + "\n\n"
 }

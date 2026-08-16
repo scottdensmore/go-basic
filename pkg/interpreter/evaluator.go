@@ -35,10 +35,15 @@ type BasicArray struct {
 
 // LoopContext stores the execution state of an active FOR/NEXT loop.
 type LoopContext struct {
-	VarName       string
-	End           float64
-	Step          float64
-	BodyLineIndex int
+	VarName string
+	End     float64
+	Step    float64
+	Body    executionPosition
+}
+
+type executionPosition struct {
+	LineIndex      int
+	StatementIndex int
 }
 
 // EvaluatorOption customizes evaluator dependencies.
@@ -82,7 +87,9 @@ type Evaluator struct {
 	functions        map[string]*DefFnStatement
 	dataValues       []any
 	dataIndex        int
-	returnStack      []int
+	instructions     [][]Statement
+	statementIndex   int
+	returnStack      []executionPosition
 	halted           bool
 	jumped           bool
 	input            *bufio.Reader
@@ -101,7 +108,7 @@ func NewEvaluator(program *Program, output io.Writer, options ...EvaluatorOption
 		Env:         NewEnvironment(),
 		Program:     program,
 		LoopStack:   []*LoopContext{},
-		returnStack: []int{},
+		returnStack: []executionPosition{},
 		Out:         output,
 		functions:   make(map[string]*DefFnStatement),
 		input:       bufio.NewReader(os.Stdin),
@@ -122,18 +129,53 @@ func (e *Evaluator) Run() error {
 	if err := e.loadProgramData(); err != nil {
 		return err
 	}
+	e.compileInstructions()
 	for e.CurrentLineIndex < len(e.Program.LineNumbers) && !e.halted {
+		statements := e.instructions[e.CurrentLineIndex]
+		if e.statementIndex >= len(statements) {
+			e.CurrentLineIndex++
+			e.statementIndex = 0
+			continue
+		}
 		lineNumber := e.Program.LineNumbers[e.CurrentLineIndex]
-		statement := e.Program.Lines[lineNumber]
+		statement := statements[e.statementIndex]
 		e.jumped = false
 		if err := e.evalStatement(statement); err != nil {
 			return fmt.Errorf("BASIC line %d: %w", lineNumber, err)
 		}
 		if !e.jumped && !e.halted {
-			e.CurrentLineIndex++
+			e.statementIndex++
 		}
 	}
 	return nil
+}
+
+func (e *Evaluator) compileInstructions() {
+	e.instructions = make([][]Statement, len(e.Program.LineNumbers))
+	for index, lineNumber := range e.Program.LineNumbers {
+		e.instructions[index] = flattenStatements(e.Program.Lines[lineNumber])
+	}
+}
+
+func flattenStatements(statement Statement) []Statement {
+	switch value := statement.(type) {
+	case *SequenceStatement:
+		if value == nil {
+			return []Statement{statement}
+		}
+		var flattened []Statement
+		for _, nested := range value.Statements {
+			flattened = append(flattened, flattenStatements(nested)...)
+		}
+		return flattened
+	case *IfStatement:
+		if value == nil || value.Consequence == nil {
+			return []Statement{statement}
+		}
+		return append([]Statement{statement}, flattenStatements(value.Consequence)...)
+	default:
+		return []Statement{statement}
+	}
 }
 
 func (e *Evaluator) evalStatement(statement Statement) error {
@@ -207,10 +249,14 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 		if err != nil {
 			return fmt.Errorf("IF condition: %w", err)
 		}
-		if condition != 0 {
-			if value.Consequence != nil {
-				return e.evalStatement(value.Consequence)
+		if value.Consequence != nil {
+			if condition == 0 {
+				e.statementIndex = len(e.instructions[e.CurrentLineIndex])
+				e.jumped = true
 			}
+			return nil
+		}
+		if condition != 0 {
 			return e.jumpTo(value.TargetLine)
 		}
 		return nil
@@ -223,11 +269,11 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 		if value == nil {
 			return errors.New("invalid GOSUB statement")
 		}
-		returnLineIndex := e.CurrentLineIndex + 1
+		returnPosition := executionPosition{LineIndex: e.CurrentLineIndex, StatementIndex: e.statementIndex + 1}
 		if err := e.jumpTo(value.TargetLine); err != nil {
 			return err
 		}
-		e.returnStack = append(e.returnStack, returnLineIndex)
+		e.returnStack = append(e.returnStack, returnPosition)
 		return nil
 	case *ReturnStatement:
 		if value == nil {
@@ -237,7 +283,8 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 			return errors.New("RETURN without GOSUB")
 		}
 		last := len(e.returnStack) - 1
-		e.CurrentLineIndex = e.returnStack[last]
+		e.CurrentLineIndex = e.returnStack[last].LineIndex
+		e.statementIndex = e.returnStack[last].StatementIndex
 		e.returnStack = e.returnStack[:last]
 		e.jumped = true
 		return nil
@@ -538,6 +585,7 @@ func (e *Evaluator) jumpTo(targetLine int) error {
 		return fmt.Errorf("undefined BASIC line %d", targetLine)
 	}
 	e.CurrentLineIndex = index
+	e.statementIndex = 0
 	e.jumped = true
 	return nil
 }
@@ -602,10 +650,13 @@ func (e *Evaluator) evalForStatement(statement *ForStatement) error {
 	variable := normalizeName(statement.Var.Value)
 	e.Env.Store[variable] = start
 	e.LoopStack = append(e.LoopStack, &LoopContext{
-		VarName:       variable,
-		End:           end,
-		Step:          step,
-		BodyLineIndex: e.CurrentLineIndex + 1,
+		VarName: variable,
+		End:     end,
+		Step:    step,
+		Body: executionPosition{
+			LineIndex:      e.CurrentLineIndex,
+			StatementIndex: e.statementIndex + 1,
+		},
 	})
 	return nil
 }
@@ -627,7 +678,8 @@ func (e *Evaluator) evalNextStatement(statement *NextStatement) error {
 
 	continues := context.Step > 0 && current <= context.End+1e-9 || context.Step < 0 && current >= context.End-1e-9
 	if continues {
-		e.CurrentLineIndex = context.BodyLineIndex
+		e.CurrentLineIndex = context.Body.LineIndex
+		e.statementIndex = context.Body.StatementIndex
 		e.jumped = true
 	} else {
 		e.LoopStack = e.LoopStack[:len(e.LoopStack)-1]
@@ -749,6 +801,15 @@ func (e *Evaluator) evalInfixExpression(expression *InfixExpression) (any, error
 			return nil, errors.New("division by zero")
 		}
 		return leftNumber / rightNumber, nil
+	case "^":
+		result := math.Pow(leftNumber, rightNumber)
+		if math.IsNaN(result) {
+			return nil, errors.New("exponentiation produced a non-real result")
+		}
+		if math.IsInf(result, 0) {
+			return nil, errors.New("exponentiation overflow")
+		}
+		return result, nil
 	case "AND":
 		leftInteger, err := logicalInteger(leftNumber)
 		if err != nil {
@@ -967,6 +1028,18 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 			return nil, err
 		}
 		return parseNumericPrefix(argument), nil
+	case "CHR$":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		if argument != math.Trunc(argument) {
+			return nil, errors.New("CHR$ argument must be an integer")
+		}
+		if argument < 0 || argument > 255 {
+			return nil, errors.New("CHR$ argument must be in the range 0..255")
+		}
+		return string([]byte{byte(argument)}), nil
 	default:
 		argument, err := e.singleNumberArgument(expression)
 		if err != nil {

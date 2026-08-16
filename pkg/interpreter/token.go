@@ -38,6 +38,8 @@ const (
 	ASTERISK TokenType = "*"
 	// SLASH is the division operator.
 	SLASH TokenType = "/"
+	// CARET raises a number to a power.
+	CARET TokenType = "^"
 	// SEMICOLON separates PRINT elements and can suppress its newline.
 	SEMICOLON TokenType = ";"
 	// COMMA separates values, dimensions, and branch targets.
@@ -115,6 +117,8 @@ const (
 	STR TokenType = "STR$"
 	// VAL converts the numeric prefix of a string to a number.
 	VAL TokenType = "VAL"
+	// CHR converts a byte value to a one-character string.
+	CHR TokenType = "CHR$"
 )
 
 // Token records a token's type, source spelling, and one-based position.
@@ -159,6 +163,7 @@ var keywords = map[string]TokenType{
 	"len":    LEN,
 	"str$":   STR,
 	"val":    VAL,
+	"chr$":   CHR,
 }
 
 // LookupIdent returns the keyword token for ident, or IDENT otherwise.

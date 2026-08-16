@@ -181,6 +181,42 @@ func TestEvaluatorRunsAnimalControlFlow(t *testing.T) {
 	}
 }
 
+func TestEvaluatorContinuesWithinColonSeparatedSourceLines(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 FOR I=1 TO 3:PRINT I;:NEXT I
+20 PRINT
+30 A=0:GOSUB 100:A=A+1:PRINT A
+40 FOR J=1 TO 2:PRINT "A";
+50 PRINT J;
+60 NEXT J
+70 PRINT:END
+100 A=A+10:RETURN
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "123\n11\nA1A2\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
+func TestEvaluatorRunsAwariExpressions(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 PRINT 2^3^2;":";-2^2;":";(-2)^2
+20 PRINT CHR$(65);CHR$(90)
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "512:-4:4\nAZ\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorReadsProgramDataIntoScalarsAndArrays(t *testing.T) {
 	t.Parallel()
 
@@ -342,6 +378,11 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "negative string length", program: mustParse(t, "10 PRINT LEFT$(\"x\",-1)\n"), want: "LEFT$ length must be at least 0"},
 		{name: "fractional string length", program: mustParse(t, "10 PRINT RIGHT$(\"x\",1.5)\n"), want: "RIGHT$ length must be an integer"},
 		{name: "zero mid start", program: mustParse(t, "10 PRINT MID$(\"x\",0)\n"), want: "MID$ start must be at least 1"},
+		{name: "non-real exponentiation", program: mustParse(t, "10 PRINT (-1)^.5\n"), want: "exponentiation produced a non-real result"},
+		{name: "exponentiation overflow", program: mustParse(t, "10 PRINT 10^1000\n"), want: "exponentiation overflow"},
+		{name: "fractional character code", program: mustParse(t, "10 PRINT CHR$(65.5)\n"), want: "CHR$ argument must be an integer"},
+		{name: "character code out of range", program: mustParse(t, "10 PRINT CHR$(256)\n"), want: "CHR$ argument must be in the range 0..255"},
+		{name: "character wrong arity", program: mustParse(t, "10 PRINT CHR$(65,66)\n"), want: "CHR$ expects 1 argument"},
 		{name: "oversized array", program: mustParse(t, "10 DIM A(1000000)\n"), want: "array A exceeds the maximum size"},
 		{name: "array redeclaration", program: mustParse(t, "10 DIM A(2)\n20 DIM A(3)\n"), want: "array A is already dimensioned"},
 		{name: "undimensioned array", program: mustParse(t, "10 PRINT A(1)\n"), want: "array A is not dimensioned"},
