@@ -161,6 +161,28 @@ func TestParserBuildsAceyDuceyInputStatements(t *testing.T) {
 	}
 }
 
+func TestParserBuildsArrayInputTargets(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 INPUT Z(I),A$\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	input := program.Lines[10].(*InputStatement)
+	if got, want := len(input.Targets), 2; got != want {
+		t.Fatalf("targets: got %d, want %d", got, want)
+	}
+	if got, want := input.Targets[0].Name.Value, "Z"; got != want {
+		t.Fatalf("array target: got %q, want %q", got, want)
+	}
+	if got, want := input.Targets[0].Indices[0].String(), "I"; got != want {
+		t.Fatalf("array index: got %q, want %q", got, want)
+	}
+	if got, want := input.Targets[1].Name.Value, "A$"; got != want {
+		t.Fatalf("scalar target: got %q, want %q", got, want)
+	}
+}
+
 func TestParserBuildsAmazingStatements(t *testing.T) {
 	t.Parallel()
 

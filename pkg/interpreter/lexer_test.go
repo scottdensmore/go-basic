@@ -95,6 +95,22 @@ func TestLexerRecognizesBattleSyntax(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesBlackjackSyntax(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("1890 INPUT Z(I)\n3186 S(I)=B(I)*SGN(A-C)\n")
+	want := []TokenType{
+		NUMBER, INPUT, IDENT, LPAREN, IDENT, RPAREN, EOL,
+		NUMBER, IDENT, LPAREN, IDENT, RPAREN, ASSIGN, IDENT, LPAREN, IDENT, RPAREN,
+		ASTERISK, SGN, LPAREN, IDENT, MINUS, IDENT, RPAREN, EOL, EOF,
+	}
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func TestLexerTreatsRemarkableAsRemark(t *testing.T) {
 	t.Parallel()
 

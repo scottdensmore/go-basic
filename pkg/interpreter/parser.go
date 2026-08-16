@@ -69,6 +69,7 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[SIN] = parser.parseCallExpression
 	parser.prefixParseFuncs[INT] = parser.parseCallExpression
 	parser.prefixParseFuncs[ABS] = parser.parseCallExpression
+	parser.prefixParseFuncs[SGN] = parser.parseCallExpression
 	parser.prefixParseFuncs[SQR] = parser.parseCallExpression
 	parser.prefixParseFuncs[EXP] = parser.parseCallExpression
 	parser.prefixParseFuncs[RND] = parser.parseCallExpression
@@ -243,7 +244,15 @@ func (p *Parser) parseInputStatement() Statement {
 		if !p.expectPeek(IDENT) {
 			return nil
 		}
-		statement.Variables = append(statement.Variables, &Identifier{Value: p.current.Literal})
+		target := InputTarget{Name: &Identifier{Value: p.current.Literal}}
+		if p.peek.Type == LPAREN {
+			p.nextToken()
+			target.Indices = p.parseExpressionList(RPAREN)
+			if len(target.Indices) == 0 {
+				return nil
+			}
+		}
+		statement.Targets = append(statement.Targets, target)
 		if p.peek.Type != COMMA {
 			break
 		}

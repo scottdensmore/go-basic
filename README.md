@@ -5,11 +5,11 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 ## Features
 
 -   **Variables**: Numeric and string scalars plus explicitly and implicitly dimensioned numeric and string arrays.
--   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `ABS`, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
+-   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `ABS`, `SGN`, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
 -   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, `ASC`, and single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, line and statement forms of `IF`...`THEN`, `GOTO`, `GOSUB`...`RETURN`, `ON`...`GOTO`, `END`, `STOP`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` and comma separators plus `TAB` function support.
--   **Input**: Prompted or unprompted `INPUT` for comma-separated numeric and string variables.
+-   **Input**: Prompted or unprompted `INPUT` for comma-separated numeric and string scalars or array elements.
 -   **Embedded Data**: Program-wide numeric and string `DATA` consumed by `READ` into scalars or array elements, with `RESTORE` support.
 -   **Source Lines**: `REM` comments and colon-separated statements.
 -   **Diagnostics**: Parse and runtime errors include BASIC source line context.
@@ -121,6 +121,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`07_Basketball/basketball.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/07_Basketball/basketball.bas)
 - [`08_Batnum/batnum.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/08_Batnum/batnum.bas)
 - [`09_Battle/battle.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/09_Battle/battle.bas)
+- [`10_Blackjack/blackjack.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/10_Blackjack/blackjack.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -137,6 +138,8 @@ prompt because the original program does not honor its documented stop input.
 Battle's seeded transcript exercises invalid and repeated shots, sinks all six
 ships, wins the game, then ends at the next game because the original program
 automatically starts a new fleet.
+Blackjack's seeded transcript rejects an invalid bet and command, plays a full
+hit-and-stand hand, settles the wager, then ends at the next round's bet prompt.
 
 ## Testing
 
