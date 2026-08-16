@@ -183,6 +183,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`66_Number/number.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/66_Number/number.bas)
 - [`67_One_Check/onecheck.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/67_One_Check/onecheck.bas)
 - [`68_Orbit/orbit.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/68_Orbit/orbit.bas)
+- [`69_Pizza/pizza.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/69_Pizza/pizza.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -365,6 +366,9 @@ summary, validates replay input, and exits normally.
 Orbit's seeded transcript fires a ranging shot, tracks the hidden ship into the
 second hour for an exact hit, verifies both calculated distances and mission
 success, declines another mission, and exits normally.
+Pizza's seeded transcript validates the directions prompt, renders the city
+map, corrects one wrong address, delivers five complete orders, declines
+another shift, and exits normally.
 
 ## Testing
 

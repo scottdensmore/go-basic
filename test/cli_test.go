@@ -1034,6 +1034,16 @@ func TestCLI(t *testing.T) {
 		assertOrbitTranscript(t, string(output))
 	})
 
+	t.Run("delivers orders in the original Pizza program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "pizza.bas"))
+		command.Stdin = strings.NewReader("ADA\nMAYBE\nYES\nYES\n1,1\n4,4\n4,1\n3,3\n1,1\n2,2\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertPizzaTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3269,6 +3279,37 @@ func assertOrbitTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "DO YOU WISH TO TRY TO DESTROY IT? GOOD BYE.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
+	}
+}
+
+func assertPizzaTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "PIZZA\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nPIZZA DELIVERY GAME\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"4     M     N     O     P     4",
+		"1     A     B     C     D     1",
+		"DO YOU NEED MORE DIRECTIONS? 'YES' OR 'NO' PLEASE, NOW THEN,",
+		"THIS IS A.  I DID NOT ORDER A PIZZA.",
+		"I LIVE AT 1,1",
+		"THIS IS P, THANKS FOR THE PIZZA.",
+		"THIS IS D, THANKS FOR THE PIZZA.",
+		"THIS IS K, THANKS FOR THE PIZZA.",
+		"THIS IS A, THANKS FOR THE PIZZA.",
+		"THIS IS F, THANKS FOR THE PIZZA.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "  DRIVER TO ADA:  WHERE DOES "), 6; got != want {
+		t.Fatalf("delivery prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nO.K. ADA, SEE YOU LATER!\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-40):])
 	}
 }
 
