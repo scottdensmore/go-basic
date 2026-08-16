@@ -134,6 +134,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`20_Buzzword/buzzword.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/20_Buzzword/buzzword.bas)
 - [`21_Calendar/calendar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/21_Calendar/calendar.bas)
 - [`22_Change/change.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/22_Change/change.bas)
+- [`23_Checkers/checkers.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/23_Checkers/checkers.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -179,6 +180,9 @@ Calendar's non-interactive transcript verifies all twelve formatted months,
 weekday headers, representative weeks, and the complete 1979 calendar output.
 Change's transcript covers short, exact, and overpayment cases, verifies every
 needed bill and coin, then ends at the next cost prompt because it repeats forever.
+The numbered Checkers transcript verifies the computer's opening, a legal player
+move, its reply, and both board states. The structured annotated rewrite remains
+tracked separately in [issue #33](https://github.com/scottdensmore/go-basic/issues/33).
 
 ## Testing
 

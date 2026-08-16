@@ -322,6 +322,17 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("plays a turn with the numbered Checkers program", func(t *testing.T) {
+		path := filepath.Join("scripts", "checkers.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("0,2\n1,3\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertCheckersTranscript(t, path, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -971,6 +982,36 @@ func changeOutput() string {
 	output.WriteString("1ONE HALF DOLLAR(S)\n1QUARTER(S)\n2DIME(S)\n1PENNY(S)\n")
 	output.WriteString("THANK YOU, COME AGAIN.\n\n\nCOST OF ITEM? ")
 	return output.String()
+}
+
+func assertCheckersTranscript(t *testing.T, path, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "CHECKERS\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THIS IS THE GAME OF CHECKERS.  THE COMPUTER IS X,\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"\x1eFROM15TO04",
+		"FROM? TO? \x1eFROM06TO15",
+		".    O    .    .    .    .    .    . \n",
+		".    X    .    X    .    X    .    X \n",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "FROM? "), 2; got != want {
+		t.Fatalf("move prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "\x1eFROM"), 2; got != want {
+		t.Fatalf("computer moves: got %d, want %d", got, want)
+	}
+	suffix := "FROM? go-basic: run " + path + ": BASIC line 1590: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
