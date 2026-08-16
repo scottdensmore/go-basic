@@ -299,6 +299,15 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("prints the original Calendar program", func(t *testing.T) {
+		path := filepath.Join("scripts", "calendar.bas")
+		output, err := exec.Command(binary, path).CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertCalendarTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -894,6 +903,44 @@ func buzzwordOutput() string {
 	output.WriteString("? BEHAVIORAL NON-GRADED FACILITY\n\n")
 	output.WriteString("? COME BACK WHEN YOU NEED HELP WITH ANOTHER REPORT!\n")
 	return output.String()
+}
+
+func assertCalendarTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "CALENDAR\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, month := range []string{
+		" JANUARY ", " FEBRUARY", "  MARCH  ", "  APRIL  ",
+		"   MAY   ", "   JUNE  ", "   JULY  ", "  AUGUST ",
+		"SEPTEMBER", " OCTOBER ", " NOVEMBER", " DECEMBER",
+	} {
+		if !strings.Contains(transcript, "******************"+month+"******************") {
+			t.Fatalf("transcript missing %s calendar", strings.TrimSpace(month))
+		}
+	}
+	if got, want := strings.Count(transcript, "     S       M       T       W       T       F       S\n"), 12; got != want {
+		t.Fatalf("weekday headers: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "***********************************************************\n"), 12; got != want {
+		t.Fatalf("calendar rules: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "\n"), 275; got != want {
+		t.Fatalf("output lines: got %d, want %d", got, want)
+	}
+	for _, week := range []string{
+		"            1       2       3       4       5       6       \n",
+		"30          31      \n",
+	} {
+		if !strings.Contains(transcript, week) {
+			t.Fatalf("transcript missing calendar week %q", week)
+		}
+	}
+	if !strings.HasSuffix(transcript, "30          31      \n\n\n\n\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-64):])
+	}
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
