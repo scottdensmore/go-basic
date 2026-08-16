@@ -174,6 +174,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`57_Literature_Quiz/litquiz.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/57_Literature_Quiz/litquiz.bas)
 - [`58_Love/love.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/58_Love/love.bas)
 - [`59_Lunar_LEM_Rocket/lem.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/lem.bas), [`lunar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/lunar.bas), the byte-different [alternate `lunar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/59_Lunar_LEM_Rocket/lunar.bas), and [`rocket.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/59_Lunar_LEM_Rocket/rocket.bas)
+- [`60_Mastermind/mastermind.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/60_Mastermind/mastermind.bas) and the byte-different [alternate `mastermind.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/60_Mastermind/mastermind.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -329,6 +330,9 @@ verifies updated telemetry, then performs a controlled abort and exits.
 Both Lunar transcripts complete a zero-burn crash and distinguish their
 byte-different fuel-weight text before ending at the replay prompt. Rocket
 exhausts its fuel, reports every free-fall second, crashes, and exits normally.
+Both Mastermind transcripts read unquoted color-name data, let the human solve
+a one-position code in two moves, then let the computer eliminate a candidate
+and solve the reciprocal code in two moves before reporting the tied score.
 
 ## Testing
 
