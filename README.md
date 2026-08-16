@@ -165,6 +165,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`51_Hurkle/hurkle.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/51_Hurkle/hurkle.bas)
 - [`52_Kinema/kinema.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/52_Kinema/kinema.bas)
 - [`53_King/king.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/53_King/king.bas), [`king_variable_update.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/53_King/king_variable_update.bas), and the byte-different [alternate `king_variable_update.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/53_King/king_variable_update.bas)
+- [`54_Letter/letter.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/54_Letter/letter.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -299,6 +300,9 @@ original program has no quit command.
 The three byte-distinct King transcripts complete a fiscal year, verify the
 population, harvest, agricultural income, tourism, and treasury results, then
 use the original all-zero budget command to save and exit normally.
+Letter's seeded transcript follows three higher-letter clues to a four-guess
+win, verifies the complete success bell sequence, and ends at the next round's
+first prompt because the original program has no quit command.
 
 ## Testing
 
