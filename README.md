@@ -145,6 +145,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`31_Depth_Charge/depthcharge.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/31_Depth_Charge/depthcharge.bas)
 - [`32_Diamond/diamond.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/32_Diamond/diamond.bas)
 - [`33_Dice/dice.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/33_Dice/dice.bas)
+- [`34_Digits/digits.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/34_Digits/digits.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -218,6 +219,9 @@ Diamond's transcript renders all 60 rows of the complete repeated pattern for a
 size-five diamond and exits normally.
 Dice's seeded transcript runs two simulations, verifies both complete
 histograms and the reset between them, then exits normally.
+Digits' seeded transcript prints the instructions, rejects an invalid digit,
+scores all 30 guesses across three rounds, declares the player's win, and exits
+normally.
 
 ## Testing
 
