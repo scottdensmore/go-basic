@@ -140,6 +140,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`26_Chomp/chomp.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/26_Chomp/chomp.bas)
 - [`27_Civil_War/civilwar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/27_Civil_War/civilwar.bas)
 - [`28_Combat/combat.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/28_Combat/combat.bas)
+- [`29_Craps/craps.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/29_Craps/craps.bas) and [`distributions.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/29_Craps/distributions.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -200,6 +201,9 @@ the final war and historical-loss summaries, and exits normally.
 Combat's transcript rejects an oversized force distribution and invalid attack
 sizes, resolves both attacks, verifies the remaining forces, and exits with a
 win.
+Craps' seeded transcript establishes a point, rolls until it wins at two-to-one
+odds, reports the player's winnings, and exits normally. Its companion
+distribution program completes 100,000 trials and verifies both dice histograms.
 
 ## Testing
 
