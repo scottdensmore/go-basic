@@ -759,6 +759,17 @@ func TestCLI(t *testing.T) {
 		assertHorseraceTranscript(t, string(output))
 	})
 
+	t.Run("finds the original Hurkle", func(t *testing.T) {
+		path := filepath.Join("scripts", "hurkle.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("0,0\n9,9\n9,2\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertHurkleTranscript(t, path, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2414,6 +2425,33 @@ func assertHorseraceTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "DO YOU WANT TO BET ON THE NEXT RACE ?\nYES OR NO? ") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
+	}
+}
+
+func assertHurkleTranscript(t *testing.T, path, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "HURKLE\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n\n" +
+		"A HURKLE IS HIDING ON A10BY10GRID. HOMEBASE\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"GUESS #1? GO NORTHEAST",
+		"GUESS #2? GO SOUTH",
+		"YOU FOUND HIM IN3GUESSES!",
+		"LET'S PLAY AGAIN, HURKLE IS HIDING.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "GUESS #"), 4; got != want {
+		t.Fatalf("guess prompts: got %d, want %d", got, want)
+	}
+	suffix := "GUESS #1? go-basic: run " + path + ": BASIC line 330: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
 }
 
