@@ -709,6 +709,28 @@ func TestCLI(t *testing.T) {
 		assertHiLoTranscript(t, string(output))
 	})
 
+	t.Run("solves the original High IQ program", func(t *testing.T) {
+		path := filepath.Join("scripts", "high-iq.bas")
+		command := exec.Command(binary, path)
+		inputs := []string{
+			"0", "23", "23",
+			"23", "41", "30", "32", "13", "31", "15", "13",
+			"32", "30", "29", "31", "33", "15", "35", "33",
+			"40", "22", "13", "31", "38", "40", "40", "22",
+			"42", "24", "15", "33", "44", "42", "42", "24",
+			"58", "40", "47", "49", "49", "31", "22", "40",
+			"40", "42", "51", "33", "24", "42", "53", "51",
+			"50", "52", "69", "51", "42", "60", "67", "69",
+			"69", "51", "52", "50", "50", "68", "NO",
+		}
+		command.Stdin = strings.NewReader(strings.Join(inputs, "\n") + "\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertHighIQTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2243,6 +2265,46 @@ func assertHiLoTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "PLAY AGAIN (YES OR NO)? \nSO LONG.  HOPE YOU ENJOYED YOURSELF!!!\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-70):])
+	}
+}
+
+func assertHighIQTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "H-I-Q\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"HERE IS THE BOARD:\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"ILLEGAL MOVE, TRY AGAIN...",
+		"THE GAME IS OVER.",
+		"YOU HAD1PIECES REMAINING.",
+		"BRAVO!  YOU MADE A PERFECT SCORE!",
+		"SAVE THIS PAPER AS A RECORD OF YOUR ACCOMPLISHMENT!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	finalBoard := strings.Repeat(" ", 8) + "O O O\n" +
+		strings.Repeat(" ", 8) + "O O O\n" +
+		strings.Repeat(" ", 4) + "O O O O O O O\n" +
+		strings.Repeat(" ", 4) + "O O O O O O O\n" +
+		strings.Repeat(" ", 4) + "O O O O O O O\n" +
+		strings.Repeat(" ", 8) + "O O O\n" +
+		strings.Repeat(" ", 8) + "O ! O\n"
+	if !strings.Contains(transcript, finalBoard) {
+		t.Fatalf("transcript missing final one-peg board:\n%s", finalBoard)
+	}
+	if got, want := strings.Count(transcript, "MOVE WHICH PIECE?"), 33; got != want {
+		t.Fatalf("piece prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "TO WHERE?"), 32; got != want {
+		t.Fatalf("destination prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "PLAY AGAIN (YES OR NO)? \nSO LONG FOR NOW.\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-50):])
 	}
 }
 
