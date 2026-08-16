@@ -945,6 +945,17 @@ func TestCLI(t *testing.T) {
 		assertMathDiceTranscript(t, path, string(output))
 	})
 
+	t.Run("finds every Mugwump in the original program", func(t *testing.T) {
+		path := filepath.Join("scripts", "mugwump.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("0,0\n9,3\n2,2\n6,1\n0,6\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertMugwumpTranscript(t, path, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3000,6 +3011,38 @@ func assertMathDiceTranscript(t *testing.T, path, transcript string) {
 		t.Fatalf("answer prompts: got %d, want %d", got, want)
 	}
 	suffix := "go-basic: run " + path + ": BASIC line 520: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertMugwumpTranscript(t *testing.T, path, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "MUGWUMP\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THE OBJECT OF THIS GAME IS TO FIND FOUR MUGWUMPS\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU ARE9.4UNITS FROM MUGWUMP1",
+		"YOU ARE2.8UNITS FROM MUGWUMP2",
+		"YOU ARE6UNITS FROM MUGWUMP3",
+		"YOU ARE6UNITS FROM MUGWUMP4",
+		"YOU HAVE FOUND MUGWUMP1",
+		"YOU HAVE FOUND MUGWUMP2",
+		"YOU HAVE FOUND MUGWUMP3",
+		"YOU HAVE FOUND MUGWUMP4",
+		"YOU GOT THEM ALL IN5TURNS!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "-- WHAT IS YOUR GUESS? "), 6; got != want {
+		t.Fatalf("guess prompts: got %d, want %d", got, want)
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 300: read input: EOF\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
