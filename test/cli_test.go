@@ -660,6 +660,17 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("solves the original Hangman program", func(t *testing.T) {
+		path := filepath.Join("scripts", "hangman.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("A\nWRONG\nA\nZ\nM\nMATRIMONIAL\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertHangmanTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2055,6 +2066,39 @@ func assertHammurabiTranscript(t *testing.T, transcript, firstReport string) {
 	suffix := strings.Repeat("\a", 10) + "SO LONG FOR NOW.\n\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertHangmanTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "HANGMAN\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"HERE ARE THE LETTERS YOU USED:\n\n\n-----------\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"-A-------A-",
+		"WRONG.  TRY ANOTHER LETTER.",
+		"YOU GUESSED THAT LETTER BEFORE!",
+		"SORRY, THAT LETTER ISN'T IN THE WORD.",
+		"FIRST, WE DRAW A HEAD",
+		"X   (. .)   ",
+		"MA---M---A-",
+		"RIGHT!!  IT TOOK YOU3GUESSES!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "WHAT IS YOUR GUESS FOR THE WORD?"), 2; got != want {
+		t.Fatalf("word guesses: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "HERE ARE THE LETTERS YOU USED:"), 4; got != want {
+		t.Fatalf("used-letter displays: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "WANT ANOTHER WORD? \nIT'S BEEN FUN!  BYE FOR NOW.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
 
