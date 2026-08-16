@@ -1082,7 +1082,9 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 			return nil, err
 		}
 		if argument < 0 {
-			return nil, errors.New("negative RND arguments are not supported")
+			seed := int64(math.Float64bits(argument))
+			generator := rand.New(rand.NewSource(seed))
+			e.random = generator.Float64
 		}
 		if argument == 0 && e.hasRandom {
 			return e.lastRandom, nil

@@ -366,6 +366,17 @@ func TestCLI(t *testing.T) {
 		assertChompTranscript(t, string(output))
 	})
 
+	t.Run("plays the original Civil War program", func(t *testing.T) {
+		path := filepath.Join("scripts", "civil-war.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("NO\nNO\nNO\n1\n1000\n1000\n1000\n1\n15\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertCivilWarTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1132,6 +1143,43 @@ func assertChompTranscript(t *testing.T, transcript string) {
 	}
 	suffix := "PLAYER2\nCOORDINATES OF CHOMP (ROW,COLUMN)? YOU LOSE, PLAYER2\n\n" +
 		"AGAIN (1=YES, 0=NO!)? "
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertCivilWarTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 26) + "CIVIL WAR\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n\n" +
+		"DO YOU WANT INSTRUCTIONS? "
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU ARE THE CONFEDERACY.   GOOD LUCK!",
+		"THIS IS THE BATTLE OF BULL RUN",
+		"MONEY         $81000        $83300",
+		"MORALE IS POOR",
+		"YOU ARE ON THE DEFENSIVE",
+		"UNION STRATEGY IS 3",
+		"CASUALTIES    11700         386",
+		"DESERTIONS    6300          5",
+		"YOU LOSE BULL RUN",
+		"THE CONFEDERACY HAS WON 0 BATTLES AND LOST 1",
+		"HISTORICAL LOSSES           1967          2708",
+		"SIMULATED LOSSES            18000         391",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "WHICH BATTLE DO YOU WISH TO SIMULATE? "), 2; got != want {
+		t.Fatalf("battle prompts: got %d, want %d", got, want)
+	}
+	suffix := "UNION INTELLIGENCE SUGGESTS THAT THE SOUTH USED \n" +
+		"STRATEGIES 1, 2, 3, 4 IN THE FOLLOWING PERCENTAGES\n" +
+		"34222222\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
