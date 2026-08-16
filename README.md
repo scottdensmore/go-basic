@@ -123,6 +123,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`09_Battle/battle.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/09_Battle/battle.bas)
 - [`10_Blackjack/blackjack.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/10_Blackjack/blackjack.bas)
 - [`11_Bombardment/bombardment.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/11_Bombardment/bombardment.bas)
+- [`12_Bombs_Away/bombsaway.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/12_Bombs_Away/bombsaway.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -144,6 +145,8 @@ hit-and-stand hand, settles the wager, then ends at the next round's bet prompt.
 Bombardment's seeded transcript places four legal outposts, destroys all four
 enemy platoons with unique shots, verifies the computer's return fire, and exits
 normally.
+Bombs Away's seeded transcript rejects invalid side, target, and mission-count
+answers before completing a successful bombing mission and exiting normally.
 
 ## Testing
 
