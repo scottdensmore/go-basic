@@ -537,6 +537,7 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "nonpositive logarithm", program: mustParse(t, "10 PRINT LOG(0)\n"), want: "LOG argument must be positive"},
 		{name: "exponential overflow", program: mustParse(t, "10 PRINT EXP(1000)\n"), want: "EXP overflow"},
 		{name: "input exhausted", program: mustParse(t, "10 INPUT A\n"), options: []EvaluatorOption{WithInput(strings.NewReader(""))}, want: "read input: EOF"},
+		{name: "statement limit", program: mustParse(t, "10 GOTO 10\n"), options: []EvaluatorOption{WithStatementLimit(3)}, want: "BASIC line 10: statement limit 3 reached"},
 		{name: "invalid random source", program: mustParse(t, "10 PRINT RND(1)\n"), options: []EvaluatorOption{WithRandom(func() float64 { return 1 })}, want: "outside [0, 1)"},
 		{name: "nil input statement", program: &Program{Lines: map[int]Statement{10: (*InputStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid INPUT statement"},
 		{name: "nil input target", program: &Program{Lines: map[int]Statement{10: &InputStatement{Targets: []InputTarget{{}}}}, LineNumbers: []int{10}}, want: "invalid INPUT target"},

@@ -812,6 +812,17 @@ func TestCLI(t *testing.T) {
 		assertLetterTranscript(t, path, string(output))
 	})
 
+	t.Run("evolves the original Life", func(t *testing.T) {
+		path := filepath.Join("scripts", "life.bas")
+		command := exec.Command(binary, "-max-statements", "4000", path)
+		command.Stdin = strings.NewReader(".***\nDONE\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertLifeTranscript(t, path, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2590,6 +2601,37 @@ func assertLetterTranscript(t *testing.T, path, transcript string) {
 	}
 	suffix := "WHAT IS YOUR GUESS? go-basic: run " + path +
 		": BASIC line 430: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertLifeTranscript(t *testing.T, path, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "LIFE\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nENTER YOUR PATTERN:\n? ? "
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for generation := 0; generation <= 2; generation++ {
+		milestone := "GENERATION:" + strconv.Itoa(generation) + "  POPULATION:3"
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "GENERATION:"), 3; got != want {
+		t.Fatalf("generations rendered: got %d, want %d", got, want)
+	}
+	horizontal := strings.Repeat(" ", 33) + "***"
+	if got, want := strings.Count(transcript, horizontal), 2; got != want {
+		t.Fatalf("horizontal blinker frames: got %d, want %d", got, want)
+	}
+	vertical := strings.Repeat(" ", 34) + "*\n" + strings.Repeat(" ", 34) + "*\n" +
+		strings.Repeat(" ", 34) + "*"
+	if !strings.Contains(transcript, vertical) {
+		t.Fatal("transcript missing vertical blinker frame")
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 530: statement limit 4000 reached\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
