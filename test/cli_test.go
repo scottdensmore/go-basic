@@ -73,6 +73,20 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("teaches and recalls an animal with the original Animal program", func(t *testing.T) {
+		path := filepath.Join("scripts", "animal.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("Y\nN\nN\nCAT\nDOES IT MEOW\nY\nY\nN\nY\nY\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		want := animalOutput() + "go-basic: run " + path + ": BASIC line 130: read input: EOF\n"
+		if got := string(output); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%s\nwant:\n%s", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -224,5 +238,23 @@ func amazingOutput() string {
 	output.WriteString(":  :--:--:  .\n")
 	output.WriteString("I     I     I\n")
 	output.WriteString(":--:--:  :--.\n")
+	return output.String()
+}
+
+func animalOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 32) + "ANIMAL\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n")
+	output.WriteString("PLAY 'GUESS THE ANIMAL'\n\n")
+	output.WriteString("THINK OF AN ANIMAL AND THE COMPUTER WILL TRY TO GUESS IT.\n\n")
+	output.WriteString("ARE YOU THINKING OF AN ANIMAL? DOES IT SWIM? IS IT A BIRD? ")
+	output.WriteString("THE ANIMAL YOU WERE THINKING OF WAS A ? ")
+	output.WriteString("PLEASE TYPE IN A QUESTION THAT WOULD DISTINGUISH A\n")
+	output.WriteString("CAT FROM A BIRD\n? ")
+	output.WriteString("FOR A CAT THE ANSWER WOULD BE ? ")
+	output.WriteString("ARE YOU THINKING OF AN ANIMAL? DOES IT SWIM? DOES IT MEOW? IS IT A CAT? ")
+	output.WriteString("WHY NOT TRY ANOTHER ANIMAL?\n")
+	output.WriteString("ARE YOU THINKING OF AN ANIMAL? ")
 	return output.String()
 }

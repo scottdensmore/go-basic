@@ -4,12 +4,13 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 
 ## Features
 
--   **Variables**: Numeric variables, scalar string variables ending in `$`, and dimensioned numeric arrays.
+-   **Variables**: Numeric and string scalars plus dimensioned numeric and string arrays.
 -   **Math Operations**: `+`, `-`, `*`, `/`, `AND`, numeric and string comparisons, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
--   **Functions**: Single-argument numeric functions defined with `DEF FN`.
--   **Control Flow**: `FOR`...`NEXT`, `IF`...`THEN`, `GOTO`, `ON`...`GOTO`, `END`, and `SLEEP`.
+-   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, and single-argument numeric functions defined with `DEF FN`.
+-   **Control Flow**: `FOR`...`NEXT`, line and statement forms of `IF`...`THEN`, `GOTO`, `GOSUB`...`RETURN`, `ON`...`GOTO`, `END`, `STOP`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` separator and `TAB` function support.
 -   **Input**: Prompted or unprompted `INPUT` for comma-separated numeric and string variables.
+-   **Embedded Data**: Program-wide numeric and string `DATA` consumed by `READ` into scalars or array elements.
 -   **Source Lines**: `REM` comments and colon-separated statements.
 -   **Diagnostics**: Parse and runtime errors include BASIC source line context.
 -   **Cross-Platform**: Compiles and runs on macOS, Linux, and Windows.
@@ -113,6 +114,10 @@ changes and verifies their complete output transcripts:
 - [`87_3-D_Plot/3dplot.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/87_3-D_Plot/3dplot.bas)
 - [`01_Acey_Ducey/aceyducey.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/01_Acey_Ducey/aceyducey.bas)
 - [`02_Amazing/amazing.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/02_Amazing/amazing.bas)
+- [`03_Animal/animal.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/03_Animal/animal.bas)
+
+Animal's deterministic transcript teaches and recalls a new animal, then ends
+at the next input prompt because the original program has no quit command.
 
 ## Testing
 
