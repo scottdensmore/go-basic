@@ -214,6 +214,18 @@ func TestParserBuildsAnimalStatements(t *testing.T) {
 	}
 }
 
+func TestParserBuildsRestoreStatement(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 RESTORE\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	if got, want := program.Lines[10].String(), "RESTORE"; got != want {
+		t.Fatalf("line 10: got %q, want %q", got, want)
+	}
+}
+
 func TestParserBuildsRightAssociativeExponentiation(t *testing.T) {
 	t.Parallel()
 
@@ -257,6 +269,7 @@ func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 		{name: "read missing array subscript", source: "10 READ A()\n", wantError: "expected expression", basicLine: 10},
 		{name: "data missing value", source: "10 DATA\n", wantError: "expected expression", basicLine: 10},
 		{name: "data requires literal", source: "10 DATA A\n", wantError: "DATA value must be a string or number", basicLine: 10},
+		{name: "restore line target", source: "10 RESTORE 100\n", wantError: "RESTORE line targets are not supported", basicLine: 10},
 		{name: "string function missing argument", source: "10 PRINT LEFT$()\n", wantError: "expected expression", basicLine: 10},
 		{name: "exponent missing right operand", source: "10 PRINT 2^\n", wantError: "expected expression", basicLine: 10},
 		{name: "character function missing argument", source: "10 PRINT CHR$()\n", wantError: "expected expression", basicLine: 10},

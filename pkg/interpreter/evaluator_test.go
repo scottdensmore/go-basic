@@ -291,6 +291,43 @@ func TestEvaluatorReadsProgramDataIntoScalarsAndArrays(t *testing.T) {
 	}
 }
 
+func TestEvaluatorRestoreResetsProgramData(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 READ A
+20 READ B
+30 RESTORE
+40 READ C
+50 PRINT A;":";B;":";C
+100 DATA 7,9
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "7:9:7\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
+func TestEvaluatorAutoDimensionsArrays(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 A(10)=7
+20 S$(1,2)="OK"
+30 READ B(3)
+40 PRINT A(0);":";A(10);":";S$(0,0);":";S$(1,2);":";B(3)
+100 DATA 9
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "0:7::OK:9\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorRunsAnimalStringExpressions(t *testing.T) {
 	t.Parallel()
 
@@ -442,7 +479,9 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "ASCII code wrong arity", program: mustParse(t, "10 PRINT ASC(\"A\",\"B\")\n"), want: "ASC expects 1 argument"},
 		{name: "oversized array", program: mustParse(t, "10 DIM A(1000000)\n"), want: "array A exceeds the maximum size"},
 		{name: "array redeclaration", program: mustParse(t, "10 DIM A(2)\n20 DIM A(3)\n"), want: "array A is already dimensioned"},
-		{name: "undimensioned array", program: mustParse(t, "10 PRINT A(1)\n"), want: "array A is not dimensioned"},
+		{name: "implicit array default bound", program: mustParse(t, "10 PRINT A(11)\n"), want: "array A subscript 1 out of range 0..10"},
+		{name: "dimension after implicit array", program: mustParse(t, "10 A(1)=1\n20 DIM A(5)\n"), want: "array A is already dimensioned"},
+		{name: "oversized implicit array", program: mustParse(t, "10 PRINT A(0,0,0,0,0,0)\n"), want: "array A exceeds the maximum size"},
 		{name: "wrong array dimensions", program: mustParse(t, "10 DIM A(2,2)\n20 PRINT A(1)\n"), want: "array A expects 2 subscripts"},
 		{name: "array subscript out of range", program: mustParse(t, "10 DIM A(2)\n20 PRINT A(3)\n"), want: "array A subscript 1 out of range"},
 		{name: "fractional array subscript", program: mustParse(t, "10 DIM A(2)\n20 PRINT A(1.5)\n"), want: "array A subscript 1 must be an integer"},
@@ -453,6 +492,7 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "nil dimension statement", program: &Program{Lines: map[int]Statement{10: (*DimStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DIM statement"},
 		{name: "nil data statement", program: &Program{Lines: map[int]Statement{10: (*DataStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DATA statement"},
 		{name: "nil read statement", program: &Program{Lines: map[int]Statement{10: (*ReadStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid READ statement"},
+		{name: "nil restore statement", program: &Program{Lines: map[int]Statement{10: (*RestoreStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid RESTORE statement"},
 		{name: "nil gosub statement", program: &Program{Lines: map[int]Statement{10: (*GosubStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid GOSUB statement"},
 		{name: "nil return statement", program: &Program{Lines: map[int]Statement{10: (*ReturnStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid RETURN statement"},
 		{name: "nil stop statement", program: &Program{Lines: map[int]Statement{10: (*StopStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid statement"},

@@ -208,6 +208,12 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 		return nil
 	case *ReadStatement:
 		return e.evalReadStatement(value)
+	case *RestoreStatement:
+		if value == nil {
+			return errors.New("invalid RESTORE statement")
+		}
+		e.dataIndex = 0
+		return nil
 	case *ForStatement:
 		if value == nil {
 			return errors.New("invalid statement")
@@ -396,7 +402,6 @@ func (e *Evaluator) evalDimStatement(statement *DimStatement) error {
 		}
 
 		bounds := make([]int, len(declaration.Dimensions))
-		size := 1
 		for index, dimension := range declaration.Dimensions {
 			bound, err := e.evalNumber(dimension)
 			if err != nil {
@@ -408,27 +413,41 @@ func (e *Evaluator) evalDimStatement(statement *DimStatement) error {
 			if bound < 0 {
 				return fmt.Errorf("array %s bound %d must be non-negative", name, index+1)
 			}
-			if bound >= maxArrayElements || size > maxArrayElements/(int(bound)+1) {
+			if bound >= maxArrayElements {
 				return fmt.Errorf("array %s exceeds the maximum size of %d elements", name, maxArrayElements)
 			}
 			bounds[index] = int(bound)
-			size *= bounds[index] + 1
 		}
-		isString := strings.HasSuffix(name, "$")
-		values := make([]any, size)
-		defaultValue := any(float64(0))
-		if isString {
-			defaultValue = ""
+		array, err := newBasicArray(name, bounds)
+		if err != nil {
+			return err
 		}
-		for index := range values {
-			values[index] = defaultValue
-		}
-		pending[normalized] = &BasicArray{Bounds: bounds, Values: values, IsString: isString}
+		pending[normalized] = array
 	}
 	for name, array := range pending {
 		e.Env.Arrays[name] = array
 	}
 	return nil
+}
+
+func newBasicArray(name string, bounds []int) (*BasicArray, error) {
+	size := 1
+	for _, bound := range bounds {
+		if bound >= maxArrayElements || size > maxArrayElements/(bound+1) {
+			return nil, fmt.Errorf("array %s exceeds the maximum size of %d elements", name, maxArrayElements)
+		}
+		size *= bound + 1
+	}
+	isString := strings.HasSuffix(name, "$")
+	values := make([]any, size)
+	defaultValue := any(float64(0))
+	if isString {
+		defaultValue = ""
+	}
+	for index := range values {
+		values[index] = defaultValue
+	}
+	return &BasicArray{Bounds: bounds, Values: values, IsString: isString}, nil
 }
 
 func (e *Evaluator) loadProgramData() error {
@@ -879,9 +898,20 @@ func (e *Evaluator) assignArray(name string, indices []Expression, value any) er
 }
 
 func (e *Evaluator) arrayOffset(name string, indices []Expression) (*BasicArray, int, error) {
-	array, exists := e.Env.Arrays[normalizeName(name)]
+	normalized := normalizeName(name)
+	array, exists := e.Env.Arrays[normalized]
 	if !exists {
-		return nil, 0, fmt.Errorf("array %s is not dimensioned", name)
+		const defaultArrayBound = 10
+		bounds := make([]int, len(indices))
+		for index := range bounds {
+			bounds[index] = defaultArrayBound
+		}
+		var err error
+		array, err = newBasicArray(name, bounds)
+		if err != nil {
+			return nil, 0, err
+		}
+		e.Env.Arrays[normalized] = array
 	}
 	if len(indices) != len(array.Bounds) {
 		return nil, 0, fmt.Errorf("array %s expects %d subscripts, got %d", name, len(array.Bounds), len(indices))

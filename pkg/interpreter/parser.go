@@ -203,6 +203,12 @@ func (p *Parser) parseStatement() Statement {
 		return p.parseDataStatement()
 	case READ:
 		return p.parseReadStatement()
+	case RESTORE:
+		if p.peek.Type != EOL && p.peek.Type != EOF && p.peek.Type != COLON {
+			p.addError(p.peek, "RESTORE line targets are not supported")
+			return nil
+		}
+		return &RestoreStatement{}
 	case DEF:
 		return p.parseDefFnStatement()
 	case IDENT:
