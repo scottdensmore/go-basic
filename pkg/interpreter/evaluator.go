@@ -858,6 +858,16 @@ func (e *Evaluator) evalInfixExpression(expression *InfixExpression) (any, error
 			return nil, fmt.Errorf("right AND operand: %w", err)
 		}
 		return float64(leftInteger & rightInteger), nil
+	case "OR":
+		leftInteger, err := logicalInteger(leftNumber)
+		if err != nil {
+			return nil, fmt.Errorf("left OR operand: %w", err)
+		}
+		rightInteger, err := logicalInteger(rightNumber)
+		if err != nil {
+			return nil, fmt.Errorf("right OR operand: %w", err)
+		}
+		return float64(leftInteger | rightInteger), nil
 	default:
 		return nil, fmt.Errorf("unsupported infix operator %q", expression.Operator)
 	}

@@ -9,7 +9,8 @@ import (
 
 const (
 	lowest int = iota
-	logical
+	disjunction
+	conjunction
 	equals
 	sum
 	product
@@ -19,7 +20,8 @@ const (
 )
 
 var precedences = map[TokenType]int{
-	AND:      logical,
+	OR:       disjunction,
+	AND:      conjunction,
 	ASSIGN:   equals,
 	NEQ:      equals,
 	LT:       equals,
@@ -91,6 +93,7 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.infixParseFuncs[GTE] = parser.parseInfixExpression
 	parser.infixParseFuncs[LPAREN] = parser.parseIdentifierCallExpression
 	parser.infixParseFuncs[AND] = parser.parseInfixExpression
+	parser.infixParseFuncs[OR] = parser.parseInfixExpression
 
 	parser.nextToken()
 	parser.nextToken()

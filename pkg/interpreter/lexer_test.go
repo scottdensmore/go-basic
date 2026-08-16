@@ -238,6 +238,18 @@ func TestLexerRecognizesBannerSyntax(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesBasketballSyntax(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("10 IF Z<0 OR Z>4 THEN 20\n")
+	want := []TokenType{NUMBER, IF, IDENT, LT, NUMBER, OR, IDENT, GT, NUMBER, THEN, NUMBER, EOL, EOF}
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func FuzzLexerTerminates(f *testing.F) {
 	for _, seed := range []string{"", "10 PRINT \"HELLO\"\n", "5 DEF FNA(Z)=EXP(SQR(Z))\n", "10 READ A$(I)\n20 DATA \"CAT\"\n30 GOSUB 100\n", "10 PRINT 6^(7-C);CHR$(42+M)\n", "\r\n", "10 @@@\n", "10 PRINT \"unterminated"} {
 		f.Add(seed)

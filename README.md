@@ -5,7 +5,7 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 ## Features
 
 -   **Variables**: Numeric and string scalars plus explicitly and implicitly dimensioned numeric and string arrays.
--   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, numeric and string comparisons, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
+-   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
 -   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, `ASC`, and single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, line and statement forms of `IF`...`THEN`, `GOTO`, `GOSUB`...`RETURN`, `ON`...`GOTO`, `END`, `STOP`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` and comma separators plus `TAB` function support.
@@ -108,7 +108,7 @@ Hello World
 ### BASIC Computer Games compatibility
 
 The CLI test suite runs these original public-domain programs without source
-changes and verifies their complete output transcripts:
+changes and verifies exact transcripts or stable full-gameplay milestones:
 
 - [`78_Sine_Wave/sinewave.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/78_Sine_Wave/sinewave.bas)
 - [`87_3-D_Plot/3dplot.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/87_3-D_Plot/3dplot.bas)
@@ -118,6 +118,7 @@ changes and verifies their complete output transcripts:
 - [`04_Awari/awari.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/04_Awari/awari.bas)
 - [`05_Bagels/bagels.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/05_Bagels/bagels.bas)
 - [`06_Banner/banner.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/06_Banner/banner.bas)
+- [`07_Basketball/basketball.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/07_Basketball/basketball.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -127,6 +128,8 @@ Bagels' seeded transcript covers invalid guesses, clue generation, a win, and a
 normal exit.
 Banner's transcript generates a complete one-character banner and exits
 normally.
+Basketball's seeded transcript rejects an invalid shot, plays a complete game,
+checks the halftime score, and verifies the final score.
 
 ## Testing
 

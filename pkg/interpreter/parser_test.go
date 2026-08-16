@@ -243,6 +243,19 @@ func TestParserBuildsRightAssociativeExponentiation(t *testing.T) {
 	}
 }
 
+func TestParserOrdersLogicalOperators(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 A=Z<0 OR Z>4 AND X=1\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	assignment := program.Lines[10].(*LetStatement)
+	if got, want := assignment.Value.String(), "((Z < 0) OR ((Z > 4) AND (X = 1)))"; got != want {
+		t.Fatalf("logical expression: got %q, want %q", got, want)
+	}
+}
+
 func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 	t.Parallel()
 
