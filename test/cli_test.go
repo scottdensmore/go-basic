@@ -308,6 +308,20 @@ func TestCLI(t *testing.T) {
 		assertCalendarTranscript(t, string(output))
 	})
 
+	t.Run("makes change with the original Change program", func(t *testing.T) {
+		path := filepath.Join("scripts", "change.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("10\n5\n10\n10\n1.01\n28.97\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		want := changeOutput() + "go-basic: run " + path + ": BASIC line 10: read input: EOF\n"
+		if got := string(output); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -941,6 +955,22 @@ func assertCalendarTranscript(t *testing.T, transcript string) {
 	if !strings.HasSuffix(transcript, "30          31      \n\n\n\n\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-64):])
 	}
+}
+
+func changeOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 33) + "CHANGE\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n")
+	output.WriteString("I, YOUR FRIENDLY MICROCOMPUTER, WILL DETERMINE\n")
+	output.WriteString("THE CORRECT CHANGE FOR ITEMS COSTING UP TO $100.\n\n\n")
+	output.WriteString("COST OF ITEM? AMOUNT OF PAYMENT? SORRY, YOU HAVE SHORT-CHANGED ME $5\n")
+	output.WriteString("COST OF ITEM? AMOUNT OF PAYMENT? CORRECT AMOUNT, THANK YOU.\n")
+	output.WriteString("COST OF ITEM? AMOUNT OF PAYMENT? YOUR CHANGE, $27.96\n")
+	output.WriteString("2TEN DOLLAR BILL(S)\n1FIVE DOLLARS BILL(S)\n2ONE DOLLAR BILL(S)\n")
+	output.WriteString("1ONE HALF DOLLAR(S)\n1QUARTER(S)\n2DIME(S)\n1PENNY(S)\n")
+	output.WriteString("THANK YOU, COME AGAIN.\n\n\nCOST OF ITEM? ")
+	return output.String()
 }
 
 func awariBoard(top string, left, right int, bottom string) string {

@@ -1365,7 +1365,14 @@ func formatValue(value any) string {
 		if typed == math.Trunc(typed) {
 			return fmt.Sprintf("%d", int64(typed))
 		}
-		return fmt.Sprintf("%g", typed)
+		exact := strconv.FormatFloat(typed, 'g', -1, 64)
+		// Hide insignificant binary residue without shortening meaningful values such as RND output.
+		rounded := strconv.FormatFloat(typed, 'g', 12, 64)
+		candidate, err := strconv.ParseFloat(rounded, 64)
+		if err == nil && math.Abs(candidate-typed) <= math.Abs(typed)*1e-14 {
+			return rounded
+		}
+		return exact
 	case string:
 		return typed
 	case TabValue:
