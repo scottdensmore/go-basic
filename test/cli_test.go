@@ -979,6 +979,18 @@ func TestCLI(t *testing.T) {
 		assertNicomachusTranscript(t, path, string(output))
 	})
 
+	t.Run("wins the original Nim program", func(t *testing.T) {
+		path := filepath.Join("scripts", "nim.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("MAYBE\nNO\n3\n1\n3\n3\n4\n5\nMAYBE\nYES\n" +
+			"4,1\n1,4\n1,2\n2,2\n3,3\n1,1\nMAYBE\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertNimTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3111,6 +3123,35 @@ func assertNicomachusTranscript(t *testing.T, path, transcript string) {
 	suffix := "go-basic: run " + path + ": BASIC line 45: read input: EOF\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertNimTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "NIM\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nTHIS IS THE GAME OF NIM.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"DO YOU WANT INSTRUCTIONS? PLEASE ANSWER YES OR NO",
+		"ENTER WIN OPTION - 1 TO TAKE LAST, 2 TO AVOID LAST? ENTER WIN OPTION",
+		"DO YOU WANT TO MOVE FIRST? PLEASE ANSWER YES OR NO.",
+		"PILE  SIZE\n11\n24\n33",
+		"PILE  SIZE\n11\n21\n33",
+		"PILE  SIZE\n11\n20\n30",
+		"MACHINE LOSES",
+		"do you want to play another game? PLEASE.  YES OR NO.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "YOUR MOVE - PILE, NUMBER TO BE REMOVED? "), 6; got != want {
+		t.Fatalf("move prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-25):])
 	}
 }
 

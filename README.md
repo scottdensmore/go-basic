@@ -179,6 +179,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`62_Mugwump/mugwump.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/62_Mugwump/mugwump.bas)
 - [`63_Name/name.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/63_Name/name.bas)
 - [`64_Nicomachus/nicomachus.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/64_Nicomachus/nicomachus.bas)
+- [`65_Nim/nim.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/65_Nim/nim.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -349,6 +350,9 @@ and exits normally.
 Nicomachus's transcript reconstructs 73 from its remainders modulo three, five,
 and seven, rejects an ambiguous confirmation, verifies the successful reveal,
 and ends at the next puzzle because the original program has no quit command.
+Nim's seeded transcript validates setup and move inputs, plays an optimal
+three-pile game through every computer response, wins by taking the last
+object, validates the replay response, and exits normally.
 
 ## Testing
 
