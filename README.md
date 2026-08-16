@@ -196,6 +196,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`80_Slots/slots.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/80_Slots/slots.bas)
 - [`81_Splat/splat.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/81_Splat/splat.bas)
 - [`82_Stars/stars.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/82_Stars/stars.bas)
+- [`83_Stock_Market/stockmarket.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/83_Stock_Market/stockmarket.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -417,6 +418,9 @@ jump, and exits normally through the original confirmation sequence.
 Stars' seeded transcript prints the instructions, verifies one through six hint
 stars, and wins on the seventh guess. It then stops at a configured statement
 limit because the original program immediately begins another round.
+Stock Market's seeded transcript prints the instructions, rejects overselling
+and overspending, buys and sells shares across two trading days, verifies
+prices, holdings, cash, and total assets, then exits normally.
 
 ## Testing
 

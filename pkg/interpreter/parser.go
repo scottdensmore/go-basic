@@ -527,7 +527,14 @@ func (p *Parser) parsePrintStatement() *PrintStmt {
 		if p.current.Type == SEMICOLON || p.current.Type == COMMA {
 			statement.Items = append(statement.Items, PrintElement{Separator: p.current.Type})
 		} else {
-			expression := p.parseExpression(lowest)
+			var expression Expression
+			// Microsoft BASIC permits adjacent PRINT items. A minus after a
+			// string starts the next numeric item rather than string arithmetic.
+			if p.current.Type == STRING && p.peek.Type == MINUS {
+				expression = p.parseStringLiteral()
+			} else {
+				expression = p.parseExpression(lowest)
+			}
 			if expression == nil {
 				return nil
 			}

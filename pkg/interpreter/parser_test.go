@@ -66,6 +66,23 @@ func TestParserBuildsCommaSeparatedPrintStatement(t *testing.T) {
 	}
 }
 
+func TestParserBuildsImplicitPrintItemsAroundNegativeExpression(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 PRINT \"YOU HAVE USED $\"-C5\" MORE THAN YOU HAVE.\"\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	statement, ok := program.Lines[10].(*PrintStmt)
+	if !ok || len(statement.Items) != 3 {
+		t.Fatalf("line 10: got %#v", program.Lines[10])
+	}
+	negative, ok := statement.Items[1].Expr.(*PrefixExpression)
+	if !ok || negative.Operator != "-" || negative.Right.String() != "C5" {
+		t.Fatalf("negative item: got %#v", statement.Items[1].Expr)
+	}
+}
+
 func TestParserExpandsCommaSeparatedNextVariables(t *testing.T) {
 	t.Parallel()
 

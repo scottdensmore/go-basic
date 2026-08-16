@@ -419,6 +419,19 @@ func TestEvaluatorRunsAnimalStringExpressions(t *testing.T) {
 	}
 }
 
+func TestEvaluatorPrintsImplicitAdjacentExpressions(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, "10 C5=-25: PRINT \"YOU HAVE USED $\"-C5\" MORE THAN YOU HAVE.\"\n")
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "YOU HAVE USED $25 MORE THAN YOU HAVE.\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorReadsScalarInput(t *testing.T) {
 	t.Parallel()
 
