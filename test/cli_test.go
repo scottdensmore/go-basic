@@ -408,6 +408,17 @@ func TestCLI(t *testing.T) {
 		assertCrapsDistributions(t, string(output))
 	})
 
+	t.Run("wins the original Cube program", func(t *testing.T) {
+		path := filepath.Join("scripts", "cube.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("1\n1\n600\n100\n2,1,1\n3,1,1\n3,2,1\n3,3,1\n3,3,2\n3,3,3\n0\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertCubeTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1303,6 +1314,35 @@ func assertCrapsDistributions(t *testing.T, transcript string) {
 	}
 	if got, want := strings.Join(strings.Fields(lines[6]), " "), "2752 5602 8377 10973 13869 16503 13929 11040 8539 5625 2791"; got != want {
 		t.Fatalf("standard counts: got %q, want %q", got, want)
+	}
+}
+
+func assertCubeTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "CUBE\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"DO YOU WANT TO SEE THE INSTRUCTIONS? (YES--1,NO--0)\n? "
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"THE GAME IS TO GET TO LOCATION 3,3,3.",
+		"THE COMPUTER WILL PICK, AT RANDOM, 5 LOCATIONS AT WHICH",
+		"500 DOLLARS IN YOUR ACCOUNT.",
+		"TRIED TO FOOL ME; BET AGAIN?",
+		"IT'S YOUR MOVE:  ?",
+		"CONGRATULATIONS!",
+		"YOU NOW HAVE600DOLLARS.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "NEXT MOVE: "), 5; got != want {
+		t.Fatalf("next-move prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRY AGAIN ? TOUGH LUCK!\n\nGOODBYE.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-60):])
 	}
 }
 
