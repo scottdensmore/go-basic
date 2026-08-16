@@ -486,6 +486,19 @@ func TestEvaluatorInjectsRandomNumbers(t *testing.T) {
 	}
 }
 
+func TestEvaluatorRestartsRandomSequenceWithNegativeArgument(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, "10 A=RND(-1): B=RND(1): C=RND(-1): D=RND(1)\n20 PRINT A=C;\" \";B=D;\" \";RND(0)=D\n")
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "-1 -1 -1\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 	t.Parallel()
 
@@ -513,7 +526,6 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "negative square root", program: mustParse(t, "10 PRINT SQR(-1)\n"), want: "SQR argument cannot be negative"},
 		{name: "exponential overflow", program: mustParse(t, "10 PRINT EXP(1000)\n"), want: "EXP overflow"},
 		{name: "input exhausted", program: mustParse(t, "10 INPUT A\n"), options: []EvaluatorOption{WithInput(strings.NewReader(""))}, want: "read input: EOF"},
-		{name: "negative random argument", program: mustParse(t, "10 PRINT RND(-1)\n"), want: "negative RND arguments are not supported"},
 		{name: "invalid random source", program: mustParse(t, "10 PRINT RND(1)\n"), options: []EvaluatorOption{WithRandom(func() float64 { return 1 })}, want: "outside [0, 1)"},
 		{name: "nil input statement", program: &Program{Lines: map[int]Statement{10: (*InputStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid INPUT statement"},
 		{name: "nil input target", program: &Program{Lines: map[int]Statement{10: &InputStatement{Targets: []InputTarget{{}}}}, LineNumbers: []int{10}}, want: "invalid INPUT target"},
