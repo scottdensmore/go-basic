@@ -76,6 +76,7 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[STR] = parser.parseCallExpression
 	parser.prefixParseFuncs[VAL] = parser.parseCallExpression
 	parser.prefixParseFuncs[CHR] = parser.parseCallExpression
+	parser.prefixParseFuncs[ASC] = parser.parseCallExpression
 
 	parser.infixParseFuncs[PLUS] = parser.parseInfixExpression
 	parser.infixParseFuncs[MINUS] = parser.parseInfixExpression
@@ -476,8 +477,8 @@ func (p *Parser) parsePrintStatement() *PrintStmt {
 	}
 	p.nextToken()
 	for p.current.Type != EOL && p.current.Type != EOF && p.current.Type != COLON {
-		if p.current.Type == SEMICOLON {
-			statement.Items = append(statement.Items, PrintElement{IsSeparator: true})
+		if p.current.Type == SEMICOLON || p.current.Type == COMMA {
+			statement.Items = append(statement.Items, PrintElement{Separator: p.current.Type})
 		} else {
 			expression := p.parseExpression(lowest)
 			if expression == nil {

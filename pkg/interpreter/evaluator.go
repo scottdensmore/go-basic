@@ -592,7 +592,17 @@ func (e *Evaluator) jumpTo(targetLine int) error {
 
 func (e *Evaluator) evalPrintStatement(statement *PrintStmt) error {
 	for _, item := range statement.Items {
-		if item.IsSeparator {
+		if item.Separator == SEMICOLON {
+			continue
+		}
+		if item.Separator == COMMA {
+			const printZoneWidth = 14
+			targetColumn := (e.OutputColumn/printZoneWidth + 1) * printZoneWidth
+			padding := strings.Repeat(" ", targetColumn-e.OutputColumn)
+			if _, err := io.WriteString(e.Out, padding); err != nil {
+				return fmt.Errorf("write output: %w", err)
+			}
+			e.OutputColumn = targetColumn
 			continue
 		}
 		if item.Expr == nil {
@@ -615,7 +625,7 @@ func (e *Evaluator) evalPrintStatement(statement *PrintStmt) error {
 		e.OutputColumn += len(text)
 	}
 
-	if len(statement.Items) == 0 || !statement.Items[len(statement.Items)-1].IsSeparator {
+	if len(statement.Items) == 0 || statement.Items[len(statement.Items)-1].Separator == "" {
 		if _, err := io.WriteString(e.Out, "\n"); err != nil {
 			return fmt.Errorf("write output: %w", err)
 		}
@@ -665,10 +675,19 @@ func (e *Evaluator) evalNextStatement(statement *NextStatement) error {
 	if len(e.LoopStack) == 0 {
 		return errors.New("NEXT without FOR")
 	}
-	context := e.LoopStack[len(e.LoopStack)-1]
-	if statement.Var != nil && normalizeName(statement.Var.Value) != context.VarName {
-		return fmt.Errorf("NEXT %s does not match FOR %s", statement.Var.Value, context.VarName)
+	contextIndex := len(e.LoopStack) - 1
+	if statement.Var != nil {
+		variable := normalizeName(statement.Var.Value)
+		for contextIndex >= 0 && e.LoopStack[contextIndex].VarName != variable {
+			contextIndex--
+		}
+		if contextIndex < 0 {
+			active := e.LoopStack[len(e.LoopStack)-1]
+			return fmt.Errorf("NEXT %s does not match FOR %s", statement.Var.Value, active.VarName)
+		}
+		e.LoopStack = e.LoopStack[:contextIndex+1]
 	}
+	context := e.LoopStack[contextIndex]
 	current, err := numericValue(e.Env.Store[context.VarName])
 	if err != nil {
 		return fmt.Errorf("loop variable %s: %w", context.VarName, err)
@@ -682,7 +701,7 @@ func (e *Evaluator) evalNextStatement(statement *NextStatement) error {
 		e.statementIndex = context.Body.StatementIndex
 		e.jumped = true
 	} else {
-		e.LoopStack = e.LoopStack[:len(e.LoopStack)-1]
+		e.LoopStack = e.LoopStack[:contextIndex]
 	}
 	return nil
 }
@@ -1040,6 +1059,15 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 			return nil, errors.New("CHR$ argument must be in the range 0..255")
 		}
 		return string([]byte{byte(argument)}), nil
+	case "ASC":
+		argument, err := e.singleStringArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		if argument == "" {
+			return nil, errors.New("ASC requires a non-empty string")
+		}
+		return float64(argument[0]), nil
 	default:
 		argument, err := e.singleNumberArgument(expression)
 		if err != nil {

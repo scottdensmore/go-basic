@@ -163,10 +163,10 @@ type ReadStatement struct {
 func (rs *ReadStatement) statementNode() {}
 func (rs *ReadStatement) String() string { return "READ ..." }
 
-// PrintElement is either an expression or a semicolon separator.
+// PrintElement is either an expression or a PRINT separator.
 type PrintElement struct {
-	Expr        Expression
-	IsSeparator bool
+	Expr      Expression
+	Separator TokenType
 }
 
 // PrintStmt writes expressions and optionally suppresses the trailing newline.

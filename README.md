@@ -6,9 +6,9 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 
 -   **Variables**: Numeric and string scalars plus dimensioned numeric and string arrays.
 -   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, numeric and string comparisons, `INT`, `SIN`, `SQR`, `EXP`, and `RND`.
--   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, and single-argument numeric functions defined with `DEF FN`.
+-   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, `ASC`, and single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, line and statement forms of `IF`...`THEN`, `GOTO`, `GOSUB`...`RETURN`, `ON`...`GOTO`, `END`, `STOP`, and `SLEEP`.
--   **Output**: `PRINT` statement with `;` separator and `TAB` function support.
+-   **Output**: `PRINT` statement with `;` and comma separators plus `TAB` function support.
 -   **Input**: Prompted or unprompted `INPUT` for comma-separated numeric and string variables.
 -   **Embedded Data**: Program-wide numeric and string `DATA` consumed by `READ` into scalars or array elements.
 -   **Source Lines**: `REM` comments and colon-separated statements.
@@ -116,11 +116,14 @@ changes and verifies their complete output transcripts:
 - [`02_Amazing/amazing.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/02_Amazing/amazing.bas)
 - [`03_Animal/animal.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/03_Animal/animal.bas)
 - [`04_Awari/awari.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/04_Awari/awari.bas)
+- [`05_Bagels/bagels.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/05_Bagels/bagels.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
 Awari's transcript plays a complete human and computer turn, then ends at the
 next move prompt because the original program automatically continues play.
+Bagels' seeded transcript covers invalid guesses, clue generation, a win, and a
+normal exit.
 
 ## Testing
 

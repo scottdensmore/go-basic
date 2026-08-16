@@ -35,8 +35,21 @@ func TestParserBuildsSupportedStatements(t *testing.T) {
 	}
 
 	printStmt, ok := program.Lines[30].(*PrintStmt)
-	if !ok || len(printStmt.Items) != 5 || !printStmt.Items[1].IsSeparator {
+	if !ok || len(printStmt.Items) != 5 || printStmt.Items[1].Separator != SEMICOLON {
 		t.Fatalf("line 30: got %#v", program.Lines[30])
+	}
+}
+
+func TestParserBuildsCommaSeparatedPrintStatement(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 PRINT \"GUESS #\";I,\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	statement, ok := program.Lines[10].(*PrintStmt)
+	if !ok || len(statement.Items) != 4 || statement.Items[1].Separator != SEMICOLON || statement.Items[3].Separator != COMMA {
+		t.Fatalf("line 10: got %#v", program.Lines[10])
 	}
 }
 
