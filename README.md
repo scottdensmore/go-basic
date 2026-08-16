@@ -161,6 +161,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`47_Hi-Lo/hi-lo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/47_Hi-Lo/hi-lo.bas)
 - [`48_High_IQ/highiq.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/48_High_IQ/highiq.bas)
 - [`49_Hockey/hockey.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/49_Hockey/hockey.bas)
+- [`50_Horserace/horserace.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/50_Horserace/horserace.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -283,6 +284,9 @@ board and perfect-score certificate, and exits normally.
 Hockey's seeded transcript prints the rules, rejects invalid setup and play
 inputs, completes a four-player passing play and saved slap shot, verifies the
 siren, final summaries, and shot totals, and exits normally.
+Horserace's seeded transcript prints the directions and odds, rejects invalid
+wagers from two bettors, renders all seven race frames, verifies every placing
+and the winning payout, and exits normally.
 
 ## Testing
 
