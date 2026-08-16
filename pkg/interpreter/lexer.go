@@ -39,6 +39,8 @@ func (l *Lexer) NextToken() Token {
 		return l.singleCharacterToken(ASTERISK, line, column)
 	case '/':
 		return l.singleCharacterToken(SLASH, line, column)
+	case '^':
+		return l.singleCharacterToken(CARET, line, column)
 	case ';':
 		return l.singleCharacterToken(SEMICOLON, line, column)
 	case ',':

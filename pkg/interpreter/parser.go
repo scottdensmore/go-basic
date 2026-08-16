@@ -14,6 +14,7 @@ const (
 	sum
 	product
 	prefix
+	exponent
 	call
 )
 
@@ -29,6 +30,7 @@ var precedences = map[TokenType]int{
 	MINUS:    sum,
 	ASTERISK: product,
 	SLASH:    product,
+	CARET:    exponent,
 	LPAREN:   call,
 }
 
@@ -73,11 +75,13 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[LEN] = parser.parseCallExpression
 	parser.prefixParseFuncs[STR] = parser.parseCallExpression
 	parser.prefixParseFuncs[VAL] = parser.parseCallExpression
+	parser.prefixParseFuncs[CHR] = parser.parseCallExpression
 
 	parser.infixParseFuncs[PLUS] = parser.parseInfixExpression
 	parser.infixParseFuncs[MINUS] = parser.parseInfixExpression
 	parser.infixParseFuncs[SLASH] = parser.parseInfixExpression
 	parser.infixParseFuncs[ASTERISK] = parser.parseInfixExpression
+	parser.infixParseFuncs[CARET] = parser.parseExponentExpression
 	parser.infixParseFuncs[ASSIGN] = parser.parseInfixExpression
 	parser.infixParseFuncs[NEQ] = parser.parseInfixExpression
 	parser.infixParseFuncs[LT] = parser.parseInfixExpression
@@ -587,6 +591,17 @@ func (p *Parser) parseInfixExpression(left Expression) Expression {
 	precedence := p.currentPrecedence()
 	p.nextToken()
 	expression.Right = p.parseExpression(precedence)
+	if expression.Right == nil {
+		return nil
+	}
+	return expression
+}
+
+func (p *Parser) parseExponentExpression(left Expression) Expression {
+	expression := &InfixExpression{Left: left, Operator: p.current.Literal}
+	precedence := p.currentPrecedence()
+	p.nextToken()
+	expression.Right = p.parseExpression(precedence - 1)
 	if expression.Right == nil {
 		return nil
 	}

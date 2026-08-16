@@ -201,6 +201,23 @@ func TestParserBuildsAnimalStatements(t *testing.T) {
 	}
 }
 
+func TestParserBuildsRightAssociativeExponentiation(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 A=2^3^2\n20 B=CHR$(42+A)\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	assignment := program.Lines[10].(*LetStatement)
+	if got, want := assignment.Value.String(), "(2 ^ (3 ^ 2))"; got != want {
+		t.Fatalf("exponentiation: got %q, want %q", got, want)
+	}
+	character := program.Lines[20].(*LetStatement)
+	if got, want := character.Value.String(), "CHR$(...)"; got != want {
+		t.Fatalf("character expression: got %q, want %q", got, want)
+	}
+}
+
 func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 	t.Parallel()
 
@@ -228,6 +245,8 @@ func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 		{name: "data missing value", source: "10 DATA\n", wantError: "expected expression", basicLine: 10},
 		{name: "data requires literal", source: "10 DATA A\n", wantError: "DATA value must be a string or number", basicLine: 10},
 		{name: "string function missing argument", source: "10 PRINT LEFT$()\n", wantError: "expected expression", basicLine: 10},
+		{name: "exponent missing right operand", source: "10 PRINT 2^\n", wantError: "expected expression", basicLine: 10},
+		{name: "character function missing argument", source: "10 PRINT CHR$()\n", wantError: "expected expression", basicLine: 10},
 		{name: "definition missing function name", source: "10 DEF (X)=X\n", wantError: "expected IDENT", basicLine: 10},
 		{name: "definition requires FN prefix", source: "10 DEF A(X)=X\n", wantError: "must start with FN", basicLine: 10},
 		{name: "definition missing parameter", source: "10 DEF FNA()=1\n", wantError: "expected IDENT", basicLine: 10},
@@ -258,6 +277,7 @@ func FuzzParserDoesNotPanic(f *testing.F) {
 		"5 DEF FNA(Z)=30*EXP(-Z*Z/100)\n10 IF FNA(SQR(9))<=30 THEN 20\n",
 		"10 INPUT A\n",
 		"10 DIM A$(2)\n20 READ A$(1)\n30 IF LEFT$(A$(1),1)=\"C\" THEN GOSUB 100: STOP\n40 DATA \"CAT\"\n100 RETURN\n",
+		"10 FOR I=1 TO 2:PRINT CHR$(64+I);2^I;:NEXT I\n",
 		"not BASIC",
 	} {
 		f.Add(seed)
