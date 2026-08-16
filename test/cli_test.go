@@ -1136,6 +1136,16 @@ func TestCLI(t *testing.T) {
 		assertSalvoTranscript(t, string(output))
 	})
 
+	t.Run("wins a medal in the original Slalom program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "slalom.bas"))
+		command.Stdin = strings.NewReader("0\n1\nBAD\nINS\nRUN\n0\n3\n0\n9\n6\nMAYBE\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertSlalomTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3641,6 +3651,39 @@ func assertSalvoTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "I HAVE0SHOTS.\nYOU HAVE WON.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-50):])
+	}
+}
+
+func assertSlalomTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "SLALOM\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"HOW MANY GATES DOES THIS COURSE HAVE (1 TO 25)? TRY AGAIN,\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"TYPE \"INS\" FOR INSTRUCTIONS",
+		"\"BAD\" IS AN ILLEGAL COMMAND--RETRY",
+		"THIS IS THE 1976 WINTER OLYMPIC GIANT SLALOM.",
+		"RATE YOURSELF AS A SKIER, (1=WORST, 3=BEST)? THE BOUNDS ARE 1-3",
+		"THE STARTER COUNTS DOWN...5...4...3...2...1...GO!",
+		"HERE COMES GATE # 1:\n17M.P.H.",
+		"YOU'VE TAKEN0.24496508529377975SECONDS.",
+		"OPTION? WHAT?\nOPTION? 13M.P.H.",
+		"YOU TOOK2.0543438395997002SECONDS.",
+		"YOU WON A SILVER MEDAL",
+		"PLEASE TYPE 'YES' OR 'NO'",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "DO YOU WANT TO RACE AGAIN? "), 2; got != want {
+		t.Fatalf("replay prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "THANKS FOR THE RACE\nSILVER MEDALS:1\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
 
