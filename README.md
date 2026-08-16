@@ -153,6 +153,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`39_Golf/golf.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/39_Golf/golf.bas)
 - [`40_Gomoko/gomoko.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/40_Gomoko/gomoko.bas) and the byte-different [alternate `gomoko.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/40_Gomoko/gomoko.bas)
 - [`41_Guess/guess.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/41_Guess/guess.bas)
+- [`42_Gunner/gunner.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/42_Gunner/gunner.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -250,6 +251,9 @@ exit normally through the documented sentinel.
 Guess's seeded transcript follows low and high hints to win a round in six
 tries, verifies its rating, then ends at the next guess prompt because the
 original program automatically starts another round.
+Gunner's seeded transcript rejects invalid elevations, corrects short and
+over-target shots, destroys all five targets in seven rounds, earns the top
+rating, and exits normally.
 
 ## Testing
 

@@ -613,6 +613,17 @@ func TestCLI(t *testing.T) {
 		assertGuessTranscript(t, path, string(output))
 	})
 
+	t.Run("destroys every target in the original Gunner program", func(t *testing.T) {
+		path := filepath.Join("scripts", "gunner.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("0\n90\n1\n20\n8.6\n19.33\n4.12\n11.6\n9.68\nN\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertGunnerTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1937,6 +1948,38 @@ func assertGuessTranscript(t *testing.T, path, transcript string) {
 		": BASIC line 20: read input: EOF\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertGunnerTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "GUNNER\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"YOU ARE THE OFFICER-IN-CHARGE, GIVING ORDERS TO A GUN\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"MAXIMUM RANGE OF YOUR GUN IS57807 YARDS.",
+		"MINIMUM ELEVATION IS ONE DEGREE.",
+		"MAXIMUM ELEVATION IS 89 DEGREES.",
+		"SHORT OF TARGET BY 15091YARDS.",
+		"OVER TARGET BY 20047YARDS.",
+		"TOTAL ROUNDS EXPENDED WERE:7",
+		"NICE SHOOTING !!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "*** TARGET DESTROYED ***"), 5; got != want {
+		t.Fatalf("targets destroyed: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "THE FORWARD OBSERVER HAS SIGHTED MORE ENEMY ACTIVITY..."), 4; got != want {
+		t.Fatalf("additional targets: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "TRY AGAIN (Y OR N)? \nOK.  RETURN TO BASE CAMP.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
 
