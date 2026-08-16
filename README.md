@@ -184,6 +184,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`67_One_Check/onecheck.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/67_One_Check/onecheck.bas)
 - [`68_Orbit/orbit.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/68_Orbit/orbit.bas)
 - [`69_Pizza/pizza.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/69_Pizza/pizza.bas)
+- [`70_Poetry/poetry.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/70_Poetry/poetry.bas) and the byte-different [alternate `poetry.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/70_Poetry/poetry.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -369,6 +370,9 @@ success, declines another mission, and exits normally.
 Pizza's seeded transcript validates the directions prompt, renders the city
 map, corrects one wrong address, delivers five complete orders, declines
 another shift, and exits normally.
+Both Poetry transcripts generate multiple deterministic lines, preserve their
+different random-draw implementations and resulting poems, then stop at the
+configured statement limit because the original generators run forever.
 
 ## Testing
 

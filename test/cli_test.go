@@ -1044,6 +1044,22 @@ func TestCLI(t *testing.T) {
 		assertPizzaTranscript(t, string(output))
 	})
 
+	t.Run("generates the original Poetry programs", func(t *testing.T) {
+		for _, fixture := range []string{"poetry.bas", "poetry-alternate.bas"} {
+			t.Run(fixture, func(t *testing.T) {
+				path := filepath.Join("scripts", fixture)
+				command := exec.Command(binary, "-seed", "0", "-max-statements", "300", path)
+				output, err := command.CombinedOutput()
+				if exitCode(err) != 1 {
+					t.Fatalf("exit: got %v, output %q", err, output)
+				}
+				if got, want := string(output), poetryOutput(path, fixture); got != want {
+					t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+				}
+			})
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3311,6 +3327,29 @@ func assertPizzaTranscript(t *testing.T, transcript string) {
 	if !strings.HasSuffix(transcript, "\nO.K. ADA, SEE YOU LATER!\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-40):])
 	}
+}
+
+func poetryOutput(path, fixture string) string {
+	prefix := strings.Repeat(" ", 30) + "POETRY\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n"
+	if fixture == "poetry.bas" {
+		return prefix + "MIDNIGHT DREARY THING OF EVIL\n" +
+			"     STILL SITTING....\n" +
+			"AND MY SOUL ...EVERMORE\n\n" +
+			"MIDNIGHT DREARY BURNED\n" +
+			"DARKNESS THERE NOTHING MORE, \n" +
+			"BIRD OR FIEND THRILLED ME" +
+			"go-basic: run " + path + ": BASIC line 212: statement limit 300 reached\n"
+	}
+	return prefix + "MIDNIGHT DREARY THING OF EVIL, THRILLED ME\n" +
+		" NEVERMORE \n" +
+		"FIERY EYES NEVER FLITTING SHALL BE LIFTED YET AGAIN \n" +
+		"THING OF EVIL THRILLED ME,\n" +
+		"DARKNESS THERE YET AGAIN \n" +
+		"MIDNIGHT DREARY BURNED,\n\n" +
+		"     NOTHING MORE \n" +
+		"MIDNIGHT DREARY BURNED, QUOTH THE RAVEN " +
+		"go-basic: run " + path + ": BASIC line 220: statement limit 300 reached\n"
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
