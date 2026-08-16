@@ -99,6 +99,12 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "1 2 -1\n",
 		},
 		{
+			name: "OR uses Microsoft integer truth semantics",
+			source: `10 PRINT 5 OR 2; " "; -1 OR 2; " "; (0<>1) OR (1=2)
+`,
+			want: "7 -1 -1\n",
+		},
+		{
 			name: "out of range ON GOTO falls through",
 			source: `10 ON 0 GOTO 40,50
 20 ON 3 GOTO 40,50
@@ -487,6 +493,8 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "fractional array subscript", program: mustParse(t, "10 DIM A(2)\n20 PRINT A(1.5)\n"), want: "array A subscript 1 must be an integer"},
 		{name: "string assigned to numeric array", program: mustParse(t, "10 DIM A(2)\n20 A(1)=\"x\"\n"), want: "array A assignment: expected number"},
 		{name: "fractional AND operand", program: mustParse(t, "10 PRINT 1.5 AND 1\n"), want: "left AND operand: operand must be an integer"},
+		{name: "fractional left OR operand", program: mustParse(t, "10 PRINT 1.5 OR 1\n"), want: "left OR operand: operand must be an integer"},
+		{name: "fractional OR operand", program: mustParse(t, "10 PRINT 1 OR 1.5\n"), want: "right OR operand: operand must be an integer"},
 		{name: "negative ON GOTO selector", program: mustParse(t, "10 ON -1 GOTO 20\n20 END\n"), want: "ON GOTO selector must be non-negative"},
 		{name: "fractional ON GOTO selector", program: mustParse(t, "10 ON 1.5 GOTO 20\n20 END\n"), want: "ON GOTO selector must be an integer"},
 		{name: "nil dimension statement", program: &Program{Lines: map[int]Statement{10: (*DimStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DIM statement"},

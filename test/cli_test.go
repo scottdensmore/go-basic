@@ -126,6 +126,17 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("plays the original Basketball program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "basketball.bas"))
+		command.Stdin = strings.NewReader("6\nHARVARD\n5\n" + strings.Repeat("1\n", 100))
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		transcript := string(output)
+		assertBasketballTranscript(t, transcript)
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -349,6 +360,29 @@ func bannerOutput() string {
 	output.WriteString(" ******\n")
 	output.WriteString(strings.Repeat("\n", 77))
 	return output.String()
+}
+
+func assertBasketballTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 31) + "BASKETBALL\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THIS IS DARTMOUTH COLLEGE BASKETBALL.  YOU WILL BE DARTMOUTH\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	if !strings.Contains(transcript, "YOUR SHOT? INCORRECT ANSWER.  RETYPE IT. YOUR SHOT? JUMP SHOT") {
+		t.Fatal("transcript did not exercise invalid-shot retry")
+	}
+	if got, want := strings.Count(transcript, "YOUR SHOT? "), 54; got != want {
+		t.Fatalf("shot prompts: got %d, want %d", got, want)
+	}
+	if !strings.Contains(transcript, "   ***** END OF FIRST HALF *****\n\nSCORE: DARTMOUTH:21  HARVARD:21") {
+		t.Fatal("transcript missing deterministic halftime score")
+	}
+	final := "\n   ***** END OF GAME *****\nFINAL SCORE: DARTMOUTH:42  HARVARD:53\n"
+	if !strings.HasSuffix(transcript, final) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(final)):])
+	}
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
