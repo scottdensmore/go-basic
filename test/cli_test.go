@@ -244,6 +244,17 @@ func TestCLI(t *testing.T) {
 		assertBoxingTranscript(t, string(output))
 	})
 
+	t.Run("finishes the original Bug program", func(t *testing.T) {
+		path := filepath.Join("scripts", "bug.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader(strings.Repeat("NO\n", 16) + "YES\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertBugTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -698,6 +709,37 @@ func assertBoxingTranscript(t *testing.T, transcript string) {
 	}
 	suffix := "PLAYER IS KNOCKED COLD AND CPU IS THE WINNER AND CHAMP!\n\n" +
 		"AND NOW GOODBYE FROM THE OLYMPIC ARENA.\n\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertBugTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "BUG\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THE GAME BUG\nI HOPE YOU ENJOY THIS GAME.\n\nDO YOU WANT INSTRUCTIONS? "
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU NOW HAVE A BODY.",
+		"I NOW HAVE A BODY.",
+		"YOU NEEDED A HEAD.",
+		"I NEEDED A HEAD.",
+		"I NOW HAVE6LEGS.",
+		"MY BUG IS FINISHED.",
+		"*****YOUR BUG*****",
+		"*****MY BUG*****",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "DO YOU WANT THE PICTURES? "), 16; got != want {
+		t.Fatalf("picture prompts: got %d, want %d", got, want)
+	}
+	suffix := "I HOPE YOU ENJOYED THE GAME, PLAY IT AGAIN SOON!!\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
