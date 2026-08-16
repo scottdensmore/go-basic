@@ -62,6 +62,11 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "1.5 7\n",
 		},
 		{
+			name:   "numeric sign",
+			source: "10 PRINT SGN(-2); \" \"; SGN(0); \" \"; SGN(2)\n",
+			want:   "-1 0 1\n",
+		},
+		{
 			name: "conditionals jumps comments and end",
 			source: `10 REMARKABLE CONTROL FLOW
 20 A=INT(1.9)
@@ -422,6 +427,20 @@ func TestEvaluatorReadsScalarInput(t *testing.T) {
 	}
 }
 
+func TestEvaluatorReadsArrayInput(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, "10 DIM Z(2): I=1: INPUT Z(I),A$: PRINT Z(1);\":\";A$\n")
+	var output bytes.Buffer
+	evaluator := NewEvaluator(program, &output, WithInput(strings.NewReader("10,CAT\n")))
+	if err := evaluator.Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "? 10:CAT\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorInjectsRandomNumbers(t *testing.T) {
 	t.Parallel()
 
@@ -471,8 +490,10 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "negative random argument", program: mustParse(t, "10 PRINT RND(-1)\n"), want: "negative RND arguments are not supported"},
 		{name: "invalid random source", program: mustParse(t, "10 PRINT RND(1)\n"), options: []EvaluatorOption{WithRandom(func() float64 { return 1 })}, want: "outside [0, 1)"},
 		{name: "nil input statement", program: &Program{Lines: map[int]Statement{10: (*InputStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid INPUT statement"},
+		{name: "nil input target", program: &Program{Lines: map[int]Statement{10: &InputStatement{Targets: []InputTarget{{}}}}, LineNumbers: []int{10}}, want: "invalid INPUT target"},
 		{name: "negative array bound", program: mustParse(t, "10 DIM A(-1)\n"), want: "array A bound 1 must be non-negative"},
 		{name: "absolute value wrong arity", program: mustParse(t, "10 PRINT ABS(1,2)\n"), want: "ABS expects 1 argument"},
+		{name: "sign wrong arity", program: mustParse(t, "10 PRINT SGN(1,2)\n"), want: "SGN expects 1 argument"},
 		{name: "return without gosub", program: mustParse(t, "10 RETURN\n"), want: "RETURN without GOSUB"},
 		{name: "out of data", program: mustParse(t, "10 READ A\n"), want: "out of DATA"},
 		{name: "read string into number", program: mustParse(t, "10 READ A\n20 DATA \"x\"\n"), want: "numeric variable A requires a number"},

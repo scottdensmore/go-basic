@@ -170,6 +170,20 @@ func TestCLI(t *testing.T) {
 		assertBattleTranscript(t, path, string(output))
 	})
 
+	t.Run("plays the original Blackjack program", func(t *testing.T) {
+		path := filepath.Join("scripts", "blackjack.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("N\n1\n0\n10\nX\nH\nS\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		want := blackjackOutput() + "go-basic: run " + path + ": BASIC line 1890: read input: EOF\n"
+		if got := string(output); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -475,6 +489,28 @@ func assertBattleTranscript(t *testing.T, path, transcript string) {
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
+}
+
+func blackjackOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 31) + "BLACK JACK\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n")
+	output.WriteString("DO YOU WANT INSTRUCTIONS? NUMBER OF PLAYERS? \n")
+	output.WriteString("RESHUFFLING\n")
+	output.WriteString("BETS:\n")
+	output.WriteString("#1? BETS:\n")
+	output.WriteString("#1? PLAYER1   DEALER\n")
+	output.WriteString("       5    10   \n")
+	output.WriteString("       6   \n\n")
+	output.WriteString("NO DEALER BLACKJACK.\n")
+	output.WriteString("PLAYER1? TYPE H,S,D, OR /, PLEASE? RECEIVED A  2  HIT? TOTAL IS13\n")
+	output.WriteString("DEALER HAS A  Q CONCEALED FOR A TOTAL OF20\n\n\n")
+	output.WriteString("PLAYER1LOSES  10TOTAL=-10\n")
+	output.WriteString("DEALER'S TOTAL=10\n\n")
+	output.WriteString("BETS:\n")
+	output.WriteString("#1? ")
+	return output.String()
 }
 
 func awariBoard(top string, left, right int, bottom string) string {

@@ -183,10 +183,16 @@ type PrintStmt struct {
 func (ps *PrintStmt) statementNode() {}
 func (ps *PrintStmt) String() string { return "PRINT ..." }
 
-// InputStatement reads one scalar value, optionally after displaying a prompt.
+// InputTarget identifies a scalar variable or indexed array element assigned by INPUT.
+type InputTarget struct {
+	Name    *Identifier
+	Indices []Expression
+}
+
+// InputStatement reads values, optionally after displaying a prompt.
 type InputStatement struct {
-	Prompt    *StringLiteral
-	Variables []*Identifier
+	Prompt  *StringLiteral
+	Targets []InputTarget
 }
 
 func (is *InputStatement) statementNode() {}

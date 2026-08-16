@@ -93,6 +93,8 @@ const (
 	INT TokenType = "INT"
 	// ABS returns the absolute value of a number.
 	ABS TokenType = "ABS"
+	// SGN returns the sign of a number.
+	SGN TokenType = "SGN"
 	// DEF begins a user-defined numeric function definition.
 	DEF TokenType = "DEF"
 	// SQR computes a square root.
@@ -159,6 +161,7 @@ var keywords = map[string]TokenType{
 	"stop":    STOP,
 	"int":     INT,
 	"abs":     ABS,
+	"sgn":     SGN,
 	"def":     DEF,
 	"sqr":     SQR,
 	"exp":     EXP,

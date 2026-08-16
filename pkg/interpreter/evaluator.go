@@ -320,8 +320,13 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 }
 
 func (e *Evaluator) evalInputStatement(statement *InputStatement) error {
-	if statement == nil || len(statement.Variables) == 0 {
+	if statement == nil || len(statement.Targets) == 0 {
 		return errors.New("invalid INPUT statement")
+	}
+	for _, target := range statement.Targets {
+		if target.Name == nil {
+			return errors.New("invalid INPUT target")
+		}
 	}
 	prompt := "? "
 	if statement.Prompt != nil {
@@ -336,10 +341,16 @@ func (e *Evaluator) evalInputStatement(statement *InputStatement) error {
 		if err != nil && len(line) == 0 {
 			return fmt.Errorf("read input: %w", err)
 		}
-		values, valid := parseInputValues(line, statement.Variables)
+		values, valid := parseInputValues(line, statement.Targets)
 		if valid {
-			for index, variable := range statement.Variables {
-				if err := e.assignScalar(variable.Value, values[index]); err != nil {
+			for index, target := range statement.Targets {
+				var err error
+				if len(target.Indices) == 0 {
+					err = e.assignScalar(target.Name.Value, values[index])
+				} else {
+					err = e.assignArray(target.Name.Value, target.Indices, values[index])
+				}
+				if err != nil {
 					return err
 				}
 			}
@@ -354,21 +365,21 @@ func (e *Evaluator) evalInputStatement(statement *InputStatement) error {
 	}
 }
 
-func parseInputValues(line string, variables []*Identifier) ([]any, bool) {
+func parseInputValues(line string, targets []InputTarget) ([]any, bool) {
 	record := strings.TrimRight(line, "\r\n")
-	if record == "" && len(variables) == 1 && strings.HasSuffix(variables[0].Value, "$") {
+	if record == "" && len(targets) == 1 && strings.HasSuffix(targets[0].Name.Value, "$") {
 		return []any{""}, true
 	}
 	reader := csv.NewReader(strings.NewReader(record))
 	reader.FieldsPerRecord = -1
 	reader.TrimLeadingSpace = true
 	fields, err := reader.Read()
-	if err != nil || len(fields) != len(variables) {
+	if err != nil || len(fields) != len(targets) {
 		return nil, false
 	}
 	values := make([]any, len(fields))
 	for index, field := range fields {
-		if strings.HasSuffix(variables[index].Value, "$") {
+		if strings.HasSuffix(targets[index].Name.Value, "$") {
 			values[index] = field
 			continue
 		}
@@ -1033,6 +1044,19 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 			return nil, err
 		}
 		return math.Abs(argument), nil
+	case "SGN":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		switch {
+		case argument < 0:
+			return float64(-1), nil
+		case argument > 0:
+			return float64(1), nil
+		default:
+			return float64(0), nil
+		}
 	case "SQR":
 		argument, err := e.singleNumberArgument(expression)
 		if err != nil {
