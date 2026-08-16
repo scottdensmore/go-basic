@@ -159,6 +159,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`45_Hello/hello.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/45_Hello/hello.bas)
 - [`46_Hexapawn/hexapawn.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/46_Hexapawn/hexapawn.bas)
 - [`47_Hi-Lo/hi-lo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/47_Hi-Lo/hi-lo.bas)
+- [`48_High_IQ/highiq.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/48_High_IQ/highiq.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -275,6 +276,9 @@ command.
 Hi-Lo's seeded transcript follows three hints to win one jackpot, replays,
 exhausts all six guesses with high and low hints, verifies the losing number,
 and exits normally.
+High IQ's transcript rejects illegal source and destination choices, performs
+all 31 jumps of a complete peg-solitaire solution, verifies the final one-peg
+board and perfect-score certificate, and exits normally.
 
 ## Testing
 
