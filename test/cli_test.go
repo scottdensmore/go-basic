@@ -1003,6 +1003,27 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("finishes the original One Check program", func(t *testing.T) {
+		path := filepath.Join("scripts", "one-check.bas")
+		command := exec.Command(binary, path)
+		moves := []string{
+			"1,2", // illegal: moves must be two squares diagonally
+			"1,19", "56,38", "64,46", "57,43", "8,22", "16,30", "63,45",
+			"58,44", "3,21", "5,23", "32,14", "17,35", "46,32", "33,51",
+			"41,27", "21,39", "18,36", "6,20", "36,54", "31,45", "48,30",
+			"4,18", "25,11", "44,26", "11,29", "54,36", "60,42", "36,50",
+			"59,45", "19,33", "62,44", "22,36", "49,35", "36,54", "7,21",
+			"44,26", "30,12", "33,19", "61,47", "12,26", "40,54",
+		}
+		input := strings.ReplaceAll(strings.Join(moves, "\n")+"\n0\nMAYBE\nNO\n", ",", "\n")
+		command.Stdin = strings.NewReader(input)
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertOneCheckTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3182,6 +3203,34 @@ func numberOutput() string {
 		"GUESS A NUMBER FROM 1 TO 5? YOU HAVE405POINTS.\n\n" +
 		"GUESS A NUMBER FROM 1 TO 5? YOU HIT THE JACKPOT!!!\n" +
 		"!!!!YOU WIN!!!! WITH 810POINTS.\n"
+}
+
+func assertOneCheckTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "ONE CHECK\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"SOLITAIRE CHECKER PUZZLE BY DAVID AHL\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"AND HERE IS THE OPENING POSITION OF THE CHECKERS.\n\n" +
+			"11111111\n11111111\n11000011\n11000011\n11000011\n11000011\n11111111\n11111111",
+		"ILLEGAL MOVE.  TRY AGAIN...",
+		"01000000\n10000000\n00000001\n01000001\n00000000\n00000000\n01000100\n00000000",
+		"YOU MADE41JUMPS AND HAD7PIECES",
+		"TRY AGAIN? PLEASE ANSWER 'YES' OR 'NO'.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "JUMP FROM? "), 43; got != want {
+		t.Fatalf("jump prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nO.K.  HOPE YOU HAD FUN!!\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
