@@ -1122,6 +1122,20 @@ func TestCLI(t *testing.T) {
 		assertRussianRouletteTranscript(t, string(output), path)
 	})
 
+	t.Run("wins the original Salvo program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "salvo.bas"))
+		command.Stdin = strings.NewReader("1,1\n1,2\n1,3\n1,4\n1,5\n" +
+			"2,1\n2,2\n2,3\n3,1\n3,2\n4,1\n4,2\n" +
+			"WHERE ARE YOUR SHIPS?\nYES\nYES\n" +
+			"0,0\n10,3\n9,3\n8,3\n7,3\n6,3\n3,7\n2,7\n" +
+			"10,3\n1,7\n5,10\n6,9\n3,1\n2,1\n10,10\n10,9\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertSalvoTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3593,6 +3607,40 @@ func assertRussianRouletteTranscript(t *testing.T, transcript, path string) {
 	suffix := "go-basic: run " + path + ": BASIC line 10: statement limit 100 reached\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)-50):])
+	}
+}
+
+func assertSalvoTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "SALVO\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nENTER COORDINATES FOR...\nBATTLESHIP\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"DO YOU WANT TO START? BATTLESHIP\n103\n93\n83\n73\n63\nCRUISER\n37\n27\n17",
+		"DESTROYER<A>\n510\n69\nDESTROYER<B>\n31\n21",
+		"TURN1\nYOU HAVE7SHOTS.\n? ILLEGAL, ENTER AGAIN.",
+		"I HAVE4SHOTS.\n27\n38\n29\n36",
+		"TURN2\nYOU HAVE7SHOTS.\n? YOU SHOT THERE BEFORE ON TURN1",
+		"I HAVE0SHOTS.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	for hit, want := range map[string]int{
+		"YOU HIT MY BATTLESHIP.":   5,
+		"YOU HIT MY CRUISER.":      3,
+		"YOU HIT MY DESTROYER<A>.": 2,
+		"YOU HIT MY DESTROYER<B>.": 2,
+	} {
+		if got := strings.Count(transcript, hit); got != want {
+			t.Fatalf("%s count: got %d, want %d", hit, got, want)
+		}
+	}
+	if !strings.HasSuffix(transcript, "I HAVE0SHOTS.\nYOU HAVE WON.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-50):])
 	}
 }
 

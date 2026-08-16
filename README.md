@@ -191,6 +191,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`74_Rock_Scissors_Paper/rockscissors.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/74_Rock_Scissors_Paper/rockscissors.bas)
 - [`75_Roulette/roulette.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/75_Roulette/roulette.bas)
 - [`76_Russian_Roulette/russianroulette.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/76_Russian_Roulette/russianroulette.bas)
+- [`77_Salvo/salvo.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/77_Salvo/salvo.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -397,6 +398,9 @@ dated cash-out check, and exits normally.
 Russian Roulette's seeded transcript survives eleven trigger pulls and wins a
 complete round. It then stops at a configured statement limit because the
 original program immediately starts another round and has no exit path.
+Salvo's seeded transcript places a full fleet, reveals and targets the opposing
+fleet, rejects illegal and repeated shots, verifies both sides' salvos, sinks
+all four enemy ships in two turns, and exits normally.
 
 ## Testing
 
