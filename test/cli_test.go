@@ -441,6 +441,17 @@ func TestCLI(t *testing.T) {
 		assertDiamondTranscript(t, string(output))
 	})
 
+	t.Run("rolls the original Dice program", func(t *testing.T) {
+		path := filepath.Join("scripts", "dice.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("12\nYES\n6\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertDiceTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1413,6 +1424,38 @@ func assertDiamondTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, narrow) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(narrow)):])
+	}
+}
+
+func assertDiceTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "DICE\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THIS PROGRAM SIMULATES THE ROLLING OF A\nPAIR OF DICE.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	first := "TOTAL SPOTS   NUMBER OF TIMES\n" +
+		"2             0\n3             0\n4             0\n5             2\n" +
+		"6             5\n7             0\n8             4\n9             0\n" +
+		"10            1\n11            0\n12            0\n"
+	second := "TOTAL SPOTS   NUMBER OF TIMES\n" +
+		"2             0\n3             1\n4             0\n5             2\n" +
+		"6             1\n7             1\n8             1\n9             0\n" +
+		"10            0\n11            0\n12            0\n"
+	for name, histogram := range map[string]string{"first": first, "second": second} {
+		if !strings.Contains(transcript, histogram) {
+			t.Fatalf("transcript missing %s histogram", name)
+		}
+	}
+	if got, want := strings.Count(transcript, "HOW MANY ROLLS? "), 2; got != want {
+		t.Fatalf("roll prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "TRY AGAIN? "), 2; got != want {
+		t.Fatalf("replay prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "TRY AGAIN? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-20):])
 	}
 }
 
