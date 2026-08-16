@@ -1024,6 +1024,16 @@ func TestCLI(t *testing.T) {
 		assertOneCheckTranscript(t, string(output))
 	})
 
+	t.Run("destroys the ship in the original Orbit program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "orbit.bas"))
+		command.Stdin = strings.NewReader("0\n100\n26\n248\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertOrbitTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3230,6 +3240,35 @@ func assertOneCheckTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "\nO.K.  HOPE YOU HAD FUN!!\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
+}
+
+func assertOrbitTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "ORBIT\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"SOMEWHERE ABOVE YOUR PLANET IS A ROMULAN SHIP.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"180<== 00000     XXXXXXXXXXXXXXXXXXX     00000 ==>0",
+		"THIS IS HOUR1, AT WHAT ANGLE DO YOU WISH TO SEND",
+		"YOUR PHOTON BOMB EXPLODED148.22946725050062*10^2 MILES FROM THE",
+		"THIS IS HOUR2, AT WHAT ANGLE DO YOU WISH TO SEND",
+		"YOUR PHOTON BOMB EXPLODED0*10^2 MILES FROM THE",
+		"YOU HAVE SUCCES" + "FULLY COMPLETED YOUR MISSION.",
+		"ANOTHER ROMULAN SHIP HAS GONE INTO ORBIT.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "YOUR PHOTON BOMB? "), 2; got != want {
+		t.Fatalf("angle prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "DO YOU WISH TO TRY TO DESTROY IT? GOOD BYE.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
 
