@@ -452,6 +452,17 @@ func TestCLI(t *testing.T) {
 		assertDiceTranscript(t, string(output))
 	})
 
+	t.Run("beats the original Digits program", func(t *testing.T) {
+		path := filepath.Join("scripts", "digits.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("1\n0,1,2,3,0,1,2,0,1,2\n0,0,0,0,0,0,0,0,0,0\n1,1,1,1,1,1,1,1,1,1\n2,2,2,2,2,2,2,2,2,2\n0\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertDigitsTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1456,6 +1467,39 @@ func assertDiceTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "TRY AGAIN? ") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-20):])
+	}
+}
+
+func assertDigitsTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "DIGITS\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THIS IS A GAME OF GUESSING.\nFOR INSTRUCTIONS, TYPE '1', ELSE TYPE '0'? "
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"THE DIGITS '0', '1', OR '2' THIRTY TIMES AT RANDOM.",
+		"ONLY USE THE DIGITS '0', '1', OR '2'.",
+		"LET'S TRY AGAIN.",
+		"I GUESSED LESS THAN 1/3 OF YOUR NUMBERS.",
+		"YOU BEAT ME.  CONGRATULATIONS *****",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "TEN NUMBERS, PLEASE? "), 4; got != want {
+		t.Fatalf("number prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "           RIGHT"), 6; got != want {
+		t.Fatalf("right guesses: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "           WRONG"), 24; got != want {
+		t.Fatalf("wrong guesses: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRY AGAIN (1 FOR YES, 0 FOR NO)? \nTHANKS FOR THE GAME.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-80):])
 	}
 }
 
