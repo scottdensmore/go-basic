@@ -59,6 +59,31 @@ func TestLexerReportsIllegalCharacters(t *testing.T) {
 	t.Fatal("expected an ILLEGAL token")
 }
 
+func TestLexerTokenizesScientificNotation(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("10 PRINT 3.287828E-04;1E3;.5e+2;1E\n")
+	want := []Token{
+		{Type: NUMBER, Literal: "10", Line: 1, Column: 1},
+		{Type: PRINT, Literal: "PRINT", Line: 1, Column: 4},
+		{Type: NUMBER, Literal: "3.287828E-04", Line: 1, Column: 10},
+		{Type: SEMICOLON, Literal: ";", Line: 1, Column: 22},
+		{Type: NUMBER, Literal: "1E3", Line: 1, Column: 23},
+		{Type: SEMICOLON, Literal: ";", Line: 1, Column: 26},
+		{Type: NUMBER, Literal: ".5e+2", Line: 1, Column: 27},
+		{Type: SEMICOLON, Literal: ";", Line: 1, Column: 32},
+		{Type: NUMBER, Literal: "1", Line: 1, Column: 33},
+		{Type: IDENT, Literal: "E", Line: 1, Column: 34},
+		{Type: EOL, Literal: "\n", Line: 1, Column: 35},
+		{Type: EOF, Line: 2, Column: 1},
+	}
+	for index, expected := range want {
+		if actual := lexer.NextToken(); actual != expected {
+			t.Fatalf("token %d: got %#v, want %#v", index, actual, expected)
+		}
+	}
+}
+
 func TestLexerRecognizesSineWaveControlFlow(t *testing.T) {
 	t.Parallel()
 

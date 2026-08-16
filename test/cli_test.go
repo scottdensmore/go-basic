@@ -874,6 +874,51 @@ func TestCLI(t *testing.T) {
 		assertLoveTranscript(t, string(output))
 	})
 
+	t.Run("flies the original LEM mission", func(t *testing.T) {
+		path := filepath.Join("scripts", "lem.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("NO\n0\n10,65,-60\n0,0,0\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertLEMTranscript(t, string(output))
+	})
+
+	t.Run("crashes the original Lunar programs", func(t *testing.T) {
+		variants := []struct {
+			name       string
+			fixture    string
+			fuelWeight string
+		}{
+			{name: "main", fixture: "lunar.bas", fuelWeight: "16,000"},
+			{name: "alternate", fixture: "lunar-alternate.bas", fuelWeight: "16,500"},
+		}
+		for _, variant := range variants {
+			t.Run(variant.name, func(t *testing.T) {
+				path := filepath.Join("scripts", variant.fixture)
+				command := exec.Command(binary, path)
+				command.Stdin = strings.NewReader(strings.Repeat("0\n", 12))
+				output, err := command.CombinedOutput()
+				if exitCode(err) != 1 {
+					t.Fatalf("exit: got %v, output %q", err, output)
+				}
+				assertLunarTranscript(t, path, variant.fuelWeight, string(output))
+			})
+		}
+	})
+
+	t.Run("flies the original Rocket mission", func(t *testing.T) {
+		path := filepath.Join("scripts", "rocket.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("NO\n30\n30\n30\n30\n30\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertRocketTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2783,6 +2828,90 @@ func assertLoveTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, fullRow+strings.Repeat("\n", 10)) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-75):])
+	}
+}
+
+func assertLEMTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "LEM\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\nLUNAR LANDING SIMULATION\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"OUTPUT: TOTAL TIME IN ELAPSED SECONDS",
+		" 0        364800       -19283024     0           5301.63807168750",
+		"245.354056071945743.5",
+		"MISSION ABENDED",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "T,P,A? "), 3; got != want {
+		t.Fatalf("maneuver prompts: got %d, want %d", got, want)
+	}
+	suffix := "TOO BAD, THE SPACE PROGRAM HATES TO LOSE EXPERIENCED\nASTRONAUTS.\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertLunarTranscript(t *testing.T, path, fuelWeight, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "LUNAR\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING MORRISTOWN, NEW JERSEY\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	weight := "CAPSULE WEIGHT 32,500 LBS; FUEL WEIGHT " + fuelWeight + " LBS."
+	if got, want := strings.Count(transcript, weight), 2; got != want {
+		t.Fatalf("%q count: got %d, want %d", weight, got, want)
+	}
+	for _, milestone := range []string{
+		"ON MOON AT113.5528725660044SECONDS - IMPACT VELOCITY4008.790341237616MPH",
+		"SORRY THERE WERE NO SURVIVORS. YOU BLEW IT!",
+		"IN FACT, YOU BLASTED A NEW LUNAR CRATER909.9954074609388FEET DEEP!",
+		"TRY AGAIN??",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "? "), 13; got != want {
+		t.Fatalf("burn prompts: got %d, want %d", got, want)
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 150: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertRocketTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "ROCKET\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nLUNAR LANDING SIMULATION\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"**** OUT OF FUEL ****",
+		"***** CONTACT *****",
+		"TOUCHDOWN AT45.495097567963924SECONDS.",
+		"LANDING VELOCITY=127.47548783981962FEET/SEC.",
+		"0UNITS OF FUEL REMAINING.",
+		"***** SORRY, BUT YOU BLEW IT!!!!",
+		"APPROPRIATE CONDOLENCES WILL BE SENT TO YOUR NEXT OF KIN.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "? "), 7; got != want {
+		t.Fatalf("mission prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "CONTROL OUT.\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-25):])
 	}
 }
 
