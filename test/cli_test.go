@@ -687,6 +687,17 @@ func TestCLI(t *testing.T) {
 		assertHelloTranscript(t, string(output))
 	})
 
+	t.Run("plays the original Hexapawn program", func(t *testing.T) {
+		path := filepath.Join("scripts", "hexapawn.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("X\nY\n0,0\n1,4\n7,4\n8,4\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertHexapawnTranscript(t, path, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2151,6 +2162,42 @@ func assertHelloTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "DON'T PAY THEIR BILLS?\n\nTAKE A WALK, SCOTT.\n\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-60):])
+	}
+}
+
+func assertHexapawnTranscript(t *testing.T, path, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "HEXAPAWN\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"INSTRUCTIONS (Y-N)? INSTRUCTIONS (Y-N)? \n" +
+		"THIS PROGRAM PLAYS THE GAME OF HEXAPAWN.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"THE NUMBERING OF THE BOARD IS AS FOLLOWS:",
+		"ILLEGAL CO-ORDINATES.",
+		"ILLEGAL MOVE.",
+		"I MOVE FROM  2 TO  4",
+		"I MOVE FROM  3 TO  6",
+		"YOU CAN'T MOVE, SO I WIN.",
+		"I HAVE WON1AND YOU0OUT OF1GAMES.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	initialBoard := strings.Repeat(" ", 10) + "XXX\n" +
+		strings.Repeat(" ", 10) + "...\n" + strings.Repeat(" ", 10) + "OOO\n"
+	if got, want := strings.Count(transcript, initialBoard), 2; got != want {
+		t.Fatalf("initial boards: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "YOUR MOVE?"), 5; got != want {
+		t.Fatalf("move prompts: got %d, want %d", got, want)
+	}
+	suffix := "YOUR MOVE? go-basic: run " + path + ": BASIC line 121: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
 }
 

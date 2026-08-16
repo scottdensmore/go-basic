@@ -157,6 +157,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`43_Hammurabi/hammurabi.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/43_Hammurabi/hammurabi.bas) and the byte-different [alternate `hammurabi.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/43_Hammurabi/hammurabi.bas)
 - [`44_Hangman/hangman.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/44_Hangman/hangman.bas)
 - [`45_Hello/hello.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/45_Hello/hello.bas)
+- [`46_Hexapawn/hexapawn.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/46_Hexapawn/hexapawn.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -266,6 +267,10 @@ solves the word in three guesses, and exits normally.
 Hello's transcript rejects malformed replies, exercises all four advice
 categories and both sex-detail prompts, validates its payment dialogue, and
 exits normally through the honest nonpayment branch.
+Hexapawn's seeded transcript prints the rules, rejects invalid coordinates and
+an illegal move, completes a game with captures and computer replies, records
+the loss, then ends at the next board because the learning game has no quit
+command.
 
 ## Testing
 
