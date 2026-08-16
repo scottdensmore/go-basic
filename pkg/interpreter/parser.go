@@ -67,6 +67,8 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[LPAREN] = parser.parseGroupedExpression
 	parser.prefixParseFuncs[TAB] = parser.parseCallExpression
 	parser.prefixParseFuncs[SIN] = parser.parseCallExpression
+	parser.prefixParseFuncs[COS] = parser.parseCallExpression
+	parser.prefixParseFuncs[TAN] = parser.parseCallExpression
 	parser.prefixParseFuncs[INT] = parser.parseCallExpression
 	parser.prefixParseFuncs[ABS] = parser.parseCallExpression
 	parser.prefixParseFuncs[SGN] = parser.parseCallExpression

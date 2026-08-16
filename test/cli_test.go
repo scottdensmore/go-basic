@@ -485,6 +485,17 @@ func TestCLI(t *testing.T) {
 		assertGameOfEvenWinsTranscript(t, string(output))
 	})
 
+	t.Run("solves the original Flip Flop program", func(t *testing.T) {
+		path := filepath.Join("scripts", "flip-flop.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("1.5\n12\n2\n2\n6\n8\n9\n9\n10\n9\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertFlipFlopTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1577,6 +1588,37 @@ func assertGameOfEvenWinsTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "COMPUTER TAKES 1 CHIP LEAVING12... YOUR MOVE? ") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
+	}
+}
+
+func assertFlipFlopTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "FLIPFLOP\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n" +
+		"THE OBJECT OF THIS PUZZLE IS TO CHANGE THIS:\n\nX X X X X X X X X X\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	if got, want := strings.Count(transcript, "ILLEGAL ENTRY--TRY AGAIN."), 2; got != want {
+		t.Fatalf("invalid-entry messages: got %d, want %d", got, want)
+	}
+	for _, board := range []string{
+		"X O X X O X X X X X ",
+		"O O O X O O O O O X ",
+		"O O O O O O O O O O ",
+	} {
+		if !strings.Contains(transcript, board) {
+			t.Fatalf("transcript missing board %q", board)
+		}
+	}
+	if got, want := strings.Count(transcript, "1 2 3 4 5 6 7 8 9 10\n"), 9; got != want {
+		t.Fatalf("rendered boards: got %d, want %d", got, want)
+	}
+	if !strings.Contains(transcript, "VERY GOOD.  YOU GUESSED IT IN ONLY8GUESSES.") {
+		t.Fatal("transcript missing eight-move solution")
+	}
+	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRY ANOTHER PUZZLE? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-40):])
 	}
 }
 

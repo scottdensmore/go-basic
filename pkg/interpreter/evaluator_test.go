@@ -74,6 +74,11 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "   0\n",
 		},
 		{
+			name:   "cosine and tangent",
+			source: "10 PRINT COS(0); \" \"; TAN(0)\n",
+			want:   "1 0\n",
+		},
+		{
 			name:   "natural logarithm",
 			source: "10 PRINT LOG(EXP(1)); \" \"; LOG(1)\n",
 			want:   "1 0\n",

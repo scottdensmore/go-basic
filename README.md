@@ -5,7 +5,7 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 ## Features
 
 -   **Variables**: Numeric and string scalars plus explicitly and implicitly dimensioned numeric and string arrays.
--   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `ABS`, `SGN`, `INT`, `SIN`, `SQR`, `LOG`, `EXP`, and `RND`.
+-   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `ABS`, `SGN`, `INT`, `SIN`, `COS`, `TAN`, `SQR`, `LOG`, `EXP`, and `RND`.
 -   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, `ASC`, and single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, line and statement forms of `IF`...`THEN`, `GOTO`, `GOSUB`...`RETURN`, `ON`...`GOTO`, `END`, `STOP`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` and comma separators plus `TAB` function support.
@@ -147,6 +147,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`33_Dice/dice.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/33_Dice/dice.bas)
 - [`34_Digits/digits.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/34_Digits/digits.bas)
 - [`35_Even_Wins/evenwins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/35_Even_Wins/evenwins.bas) and [`gameofevenwins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/35_Even_Wins/gameofevenwins.bas)
+- [`36_Flip_Flop/flipflop.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/36_Flip_Flop/flipflop.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -226,6 +227,9 @@ normally.
 The two Even Wins transcripts reject illegal moves and complete full marble and
 chip games. The learning variant then starts a second game and exits through its
 documented zero-move command.
+Flip Flop's seeded transcript uses `COS` and `TAN` to reject invalid entries,
+render every board in an eight-move solution, complete the puzzle, and exit
+normally.
 
 ## Testing
 
