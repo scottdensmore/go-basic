@@ -119,6 +119,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`05_Bagels/bagels.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/05_Bagels/bagels.bas)
 - [`06_Banner/banner.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/06_Banner/banner.bas)
 - [`07_Basketball/basketball.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/07_Basketball/basketball.bas)
+- [`08_Batnum/batnum.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/08_Batnum/batnum.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -130,6 +131,8 @@ Banner's transcript generates a complete one-character banner and exits
 normally.
 Basketball's seeded transcript rejects an invalid shot, plays a complete game,
 checks the halftime score, and verifies the final score.
+Batnum's transcript plays a complete winning game, then ends at the next pile
+prompt because the original program does not honor its documented stop input.
 
 ## Testing
 
