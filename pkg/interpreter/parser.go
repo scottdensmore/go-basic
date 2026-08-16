@@ -514,12 +514,30 @@ func (p *Parser) parsePrintStatement() *PrintStmt {
 }
 
 func (p *Parser) parseNextStatement() Statement {
-	statement := &NextStatement{}
+	var variables []*Identifier
 	if p.peek.Type == IDENT {
 		p.nextToken()
-		statement.Var = &Identifier{Value: p.current.Literal}
+		variables = append(variables, &Identifier{Value: p.current.Literal})
 	}
-	return statement
+	for p.peek.Type == COMMA {
+		p.nextToken()
+		if !p.expectPeek(IDENT) {
+			return nil
+		}
+		variables = append(variables, &Identifier{Value: p.current.Literal})
+	}
+	if len(variables) <= 1 {
+		statement := &NextStatement{}
+		if len(variables) == 1 {
+			statement.Var = variables[0]
+		}
+		return statement
+	}
+	statements := make([]Statement, len(variables))
+	for index, variable := range variables {
+		statements[index] = &NextStatement{Var: variable}
+	}
+	return &SequenceStatement{Statements: statements}
 }
 
 func (p *Parser) parseSleepStatement() *SleepStatement {

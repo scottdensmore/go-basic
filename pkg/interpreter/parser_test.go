@@ -53,6 +53,25 @@ func TestParserBuildsCommaSeparatedPrintStatement(t *testing.T) {
 	}
 }
 
+func TestParserExpandsCommaSeparatedNextVariables(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 NEXT Y,X\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	sequence, ok := program.Lines[10].(*SequenceStatement)
+	if !ok || len(sequence.Statements) != 2 {
+		t.Fatalf("line 10: got %#v", program.Lines[10])
+	}
+	for index, want := range []string{"Y", "X"} {
+		next, ok := sequence.Statements[index].(*NextStatement)
+		if !ok || next.Var == nil || next.Var.Value != want {
+			t.Fatalf("NEXT %d: got %#v, want %s", index, sequence.Statements[index], want)
+		}
+	}
+}
+
 func TestParserSortsSourceLines(t *testing.T) {
 	t.Parallel()
 

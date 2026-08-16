@@ -33,6 +33,16 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "123\n",
 		},
 		{
+			name: "comma separated next variables",
+			source: `10 FOR X=1 TO 2
+20 FOR Y=1 TO 2
+30 PRINT X;Y;" ";
+40 NEXT Y,X
+50 PRINT
+`,
+			want: "11 12 21 22 \n",
+		},
+		{
 			name: "negative and fractional steps",
 			source: `10 FOR i=1 TO 0 STEP -.5
 20 PRINT i; " ";
