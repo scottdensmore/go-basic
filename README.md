@@ -152,6 +152,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`38_Fur_Trader/furtrader.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/38_Fur_Trader/furtrader.bas)
 - [`39_Golf/golf.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/39_Golf/golf.bas)
 - [`40_Gomoko/gomoko.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/40_Gomoko/gomoko.bas) and the byte-different [alternate `gomoko.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/00_Alternate_Languages/40_Gomoko/gomoko.bas)
+- [`41_Guess/guess.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/41_Guess/guess.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -246,6 +247,9 @@ final 84 against par 72, and exits normally.
 The two Gomoko transcripts reject invalid and occupied moves, exercise random
 and adjacent computer responses, verify both byte-different board layouts, and
 exit normally through the documented sentinel.
+Guess's seeded transcript follows low and high hints to win a round in six
+tries, verifies its rating, then ends at the next guess prompt because the
+original program automatically starts another round.
 
 ## Testing
 
