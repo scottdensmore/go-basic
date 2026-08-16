@@ -141,6 +141,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`27_Civil_War/civilwar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/27_Civil_War/civilwar.bas)
 - [`28_Combat/combat.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/28_Combat/combat.bas)
 - [`29_Craps/craps.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/29_Craps/craps.bas) and [`distributions.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/29_Craps/distributions.bas)
+- [`30_Cube/cube.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/30_Cube/cube.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -204,6 +205,9 @@ win.
 Craps' seeded transcript establishes a point, rolls until it wins at two-to-one
 odds, reports the player's winnings, and exits normally. Its companion
 distribution program completes 100,000 trials and verifies both dice histograms.
+Cube's seeded transcript prints the rules, rejects an unaffordable wager,
+navigates six legal moves around the land mines, wins the wager, and exits
+normally.
 
 ## Testing
 
