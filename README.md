@@ -190,6 +190,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`73_Reverse/reverse.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/73_Reverse/reverse.bas)
 - [`74_Rock_Scissors_Paper/rockscissors.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/74_Rock_Scissors_Paper/rockscissors.bas)
 - [`75_Roulette/roulette.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/75_Roulette/roulette.bas)
+- [`76_Russian_Roulette/russianroulette.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/76_Russian_Roulette/russianroulette.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -393,6 +394,9 @@ score, and exits normally.
 Roulette's seeded transcript validates bet count, type, uniqueness, and amount,
 covers straight, color, and dozen payouts, verifies both bankrolls and the
 dated cash-out check, and exits normally.
+Russian Roulette's seeded transcript survives eleven trigger pulls and wins a
+complete round. It then stops at a configured statement limit because the
+original program immediately starts another round and has no exit path.
 
 ## Testing
 
