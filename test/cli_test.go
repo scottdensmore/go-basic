@@ -968,6 +968,17 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("solves the original Nicomachus puzzle", func(t *testing.T) {
+		path := filepath.Join("scripts", "nicomachus.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("1\n3\n3\nMAYBE\nYES\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertNicomachusTranscript(t, path, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3074,6 +3085,33 @@ func nameOutput() string {
 		"I KNEW YOU'D AGREE!!\n\n" +
 		"I REALLY ENJOYED MEETING YOU ADA LOVELACE.\n" +
 		"HAVE A NICE DAY!\n"
+}
+
+func assertNicomachusTranscript(t *testing.T, path, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "NICOMA\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"BOOMERANG PUZZLE FROM ARITHMETICA OF NICOMACHUS -- A.D. 90!\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOUR NUMBER WAS73, RIGHT? ",
+		"EH?  I DON'T UNDERSTAND 'MAYBE'  TRY 'YES' OR 'NO'.",
+		"HOW ABOUT THAT!!",
+		"LET'S TRY ANOTHER.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "HAS A REMAINDER OF? "), 4; got != want {
+		t.Fatalf("remainder prompts: got %d, want %d", got, want)
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 45: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
