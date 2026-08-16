@@ -122,6 +122,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`08_Batnum/batnum.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/08_Batnum/batnum.bas)
 - [`09_Battle/battle.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/09_Battle/battle.bas)
 - [`10_Blackjack/blackjack.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/10_Blackjack/blackjack.bas)
+- [`11_Bombardment/bombardment.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/11_Bombardment/bombardment.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -140,6 +141,9 @@ ships, wins the game, then ends at the next game because the original program
 automatically starts a new fleet.
 Blackjack's seeded transcript rejects an invalid bet and command, plays a full
 hit-and-stand hand, settles the wager, then ends at the next round's bet prompt.
+Bombardment's seeded transcript places four legal outposts, destroys all four
+enemy platoons with unique shots, verifies the computer's return fire, and exits
+normally.
 
 ## Testing
 
