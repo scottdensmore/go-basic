@@ -139,6 +139,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`25_Chief/chief.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/25_Chief/chief.bas)
 - [`26_Chomp/chomp.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/26_Chomp/chomp.bas)
 - [`27_Civil_War/civilwar.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/27_Civil_War/civilwar.bas)
+- [`28_Combat/combat.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/28_Combat/combat.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -196,6 +197,9 @@ move, plays a complete two-player cookie, and exits normally after the poison.
 Civil War's transcript uses the program's negative `RND` seed, allocates a
 Confederate budget, fights Bull Run through casualties and desertions, prints
 the final war and historical-loss summaries, and exits normally.
+Combat's transcript rejects an oversized force distribution and invalid attack
+sizes, resolves both attacks, verifies the remaining forces, and exits with a
+win.
 
 ## Testing
 

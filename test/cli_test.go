@@ -377,6 +377,17 @@ func TestCLI(t *testing.T) {
 		assertCivilWarTranscript(t, string(output))
 	})
 
+	t.Run("wins the original Combat program", func(t *testing.T) {
+		path := filepath.Join("scripts", "combat.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("72001\n0\n0\n30000\n20000\n22000\n1\n-1\n30001\n30000\n3\n-1\n7333\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertCombatTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1182,6 +1193,38 @@ func assertCivilWarTranscript(t *testing.T, transcript string) {
 		"34222222\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertCombatTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "COMBAT\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"I AM AT WAR WITH YOU.\nWE HAVE 72000 SOLDIERS APIECE.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU SUNK ONE OF MY PATROL BOATS, BUT I WIPED OUT TWO",
+		"OF YOUR AIR FORCE BASES AND 3 ARMY BASES.",
+		"ARMY          10000         30000",
+		"NAVY          20000         13333",
+		"A. F.         7333          22000",
+		"ONE OF YOUR PLANES CRASHED INTO MY HOUSE. I AM DEAD.",
+		"MY COUNTRY FELL APART.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "DISTRIBUTE YOUR FORCES."), 2; got != want {
+		t.Fatalf("distribution prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "HOW MANY MEN\n? "), 5; got != want {
+		t.Fatalf("attack-size prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "YOU WON, OH! SHUCKS!!!!\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-30):])
 	}
 }
 
