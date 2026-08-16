@@ -770,6 +770,17 @@ func TestCLI(t *testing.T) {
 		assertHurkleTranscript(t, path, string(output))
 	})
 
+	t.Run("answers the original Kinema quiz", func(t *testing.T) {
+		path := filepath.Join("scripts", "kinema.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("72.2\n7.6\n10\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertKinemaTranscript(t, path, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -2450,6 +2461,35 @@ func assertHurkleTranscript(t *testing.T, path, transcript string) {
 		t.Fatalf("guess prompts: got %d, want %d", got, want)
 	}
 	suffix := "GUESS #1? go-basic: run " + path + ": BASIC line 330: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertKinemaTranscript(t *testing.T, path, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "KINEMA\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n\n\n" +
+		"A BALL IS THROWN UPWARDS AT38METERS PER SECOND.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"HOW HIGH WILL IT GO (IN METERS)? CLOSE ENOUGH.\nCORRECT ANSWER IS 72.2",
+		"HOW LONG UNTIL IT RETURNS (IN SECONDS)? CLOSE ENOUGH.\nCORRECT ANSWER IS 7.6",
+		"WHAT WILL ITS VELOCITY BE AFTER2.8SECONDS? CLOSE ENOUGH.\nCORRECT ANSWER IS 10",
+		"3RIGHT OUT OF 3.  NOT BAD.",
+		"A BALL IS THROWN UPWARDS AT27METERS PER SECOND.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "CLOSE ENOUGH."), 3; got != want {
+		t.Fatalf("correct answers: got %d, want %d", got, want)
+	}
+	suffix := "HOW HIGH WILL IT GO (IN METERS)? go-basic: run " + path +
+		": BASIC line 500: read input: EOF\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
