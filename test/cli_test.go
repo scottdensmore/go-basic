@@ -286,6 +286,19 @@ func TestCLI(t *testing.T) {
 		assertBunnyTranscript(t, string(output))
 	})
 
+	t.Run("generates phrases with the original Buzzword program", func(t *testing.T) {
+		path := filepath.Join("scripts", "buzzword.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("Y\nY\nN\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		if got, want := string(output), buzzwordOutput(); got != want {
+			t.Fatalf("output mismatch:\ngot:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -864,6 +877,23 @@ func assertBunnyTranscript(t *testing.T, transcript string) {
 	if !strings.HasSuffix(transcript, "                            NY\n\n\n\n\n\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-64):])
 	}
+}
+
+func buzzwordOutput() string {
+	var output strings.Builder
+	output.WriteString(strings.Repeat(" ", 26) + "BUZZWORD GENERATOR\n")
+	output.WriteString(strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n")
+	output.WriteString("\n\n\n")
+	output.WriteString("THIS PROGRAM PRINTS HIGHLY ACCEPTABLE PHRASES IN\n")
+	output.WriteString("'EDUCATOR-SPEAK' THAT YOU CAN WORK INTO REPORTS\n")
+	output.WriteString("AND SPEECHES.  WHENEVER A QUESTION MARK IS PRINTED,\n")
+	output.WriteString("TYPE A 'Y' FOR ANOTHER PHRASE OR 'N' TO QUIT.\n")
+	output.WriteString("\n\nHERE'S THE FIRST PHRASE:\n")
+	output.WriteString("INDIVIDUALIZED COGNITIVE OPEN CLASSROOM\n\n")
+	output.WriteString("? ABILITY ENRICHMENT PROCESS\n\n")
+	output.WriteString("? BEHAVIORAL NON-GRADED FACILITY\n\n")
+	output.WriteString("? COME BACK WHEN YOU NEED HELP WITH ANOTHER REPORT!\n")
+	return output.String()
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
