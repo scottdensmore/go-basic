@@ -150,6 +150,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`36_Flip_Flop/flipflop.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/36_Flip_Flop/flipflop.bas)
 - [`37_Football/football.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/37_Football/football.bas) and [`ftball.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/37_Football/ftball.bas)
 - [`38_Fur_Trader/furtrader.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/38_Fur_Trader/furtrader.bas)
+- [`39_Golf/golf.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/39_Golf/golf.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -238,6 +239,9 @@ football completes its timed game and final score.
 Fur Trader's seeded transcript allocates all 190 pelts, rejects an invalid fort,
 completes the Hochelaga expedition, verifies every sale and the final balance,
 and exits normally.
+Golf's seeded transcript rejects an invalid handicap and difficulty, plays all
+18 holes through tee shots, hazards, percentage swings, and putts, verifies the
+final 84 against par 72, and exits normally.
 
 ## Testing
 

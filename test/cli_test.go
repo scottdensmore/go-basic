@@ -529,6 +529,38 @@ func TestCLI(t *testing.T) {
 		assertFurTraderTranscript(t, string(output))
 	})
 
+	t.Run("plays all eighteen holes of the original Golf program", func(t *testing.T) {
+		path := filepath.Join("scripts", "golf.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		inputs := []string{
+			"31", "0", "6", "5",
+			"1", "23", "45", "1", "1",
+			"1", "19", "2", "1",
+			"4", "19", "23", "50", "2", "1",
+			"1", "3", "23", "15", "1", "1",
+			"1", "17", "3", "1",
+			"1", "1", "1", "17", "19", "23", "35", "1",
+			"1", "17", "6", "1",
+			"1", "19", "12",
+			"13", "19", "23", "45", "4", "1",
+			"1", "19", "23", "15", "1", "1",
+			"1", "1", "10", "1",
+			"19", "23", "30", "1",
+			"1", "23", "45", "2",
+			"1", "23", "15", "1", "1",
+			"1", "1", "1", "1", "1", "17", "19", "23", "35", "1",
+			"1", "23", "55", "5",
+			"15", "6",
+			"1", "1", "1", "1", "1", "1", "3", "19", "23", "60", "1",
+		}
+		command.Stdin = strings.NewReader(strings.Join(inputs, "\n") + "\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertGolfTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1744,6 +1776,45 @@ func assertFurTraderTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRADE FURS NEXT YEAR?\nANSWER YES OR NO            ? ") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-75):])
+	}
+}
+
+func assertGolfTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "GOLF\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"WELCOME TO THE CREATIVE COMPUTING COUNTRY CLUB,\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"PGA HANDICAPS RANGE FROM 0 TO 30.",
+		"YOU ARE AT THE TEE OFF HOLE1DISTANCE361YARDS, PAR4",
+		"TOO MUCH CLUB. YOU'RE PAST THE HOLE.",
+		"BALL HIT TREE - BOUNCED INTO ROUGH",
+		"YOU DUBBED IT.",
+		"ON GREEN,",
+		"PUTT SHORT.",
+		"PASSED BY CUP.",
+		"A PAR.  NICE GOING.",
+		"A BIRDIE.",
+		"YOUR SCORE ON HOLE18WAS10",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "WHAT IS YOUR HANDICAP"), 2; got != want {
+		t.Fatalf("handicap prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "YOU ARE AT THE TEE OFF HOLE"), 18; got != want {
+		t.Fatalf("holes started: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "YOU HOLED IT."), 18; got != want {
+		t.Fatalf("holes completed: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "TOTAL PAR FOR18HOLES IS72  YOUR TOTAL IS84\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
 
