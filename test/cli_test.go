@@ -266,6 +266,17 @@ func TestCLI(t *testing.T) {
 		assertBullfightTranscript(t, string(output))
 	})
 
+	t.Run("wins the original Bullseye program", func(t *testing.T) {
+		path := filepath.Join("scripts", "bullseye.bas")
+		command := exec.Command(binary, "-seed", "0", path)
+		command.Stdin = strings.NewReader("1\nPLAYER\n4\n2\n1\n1\n2\n1\n2\n2\n2\n1\n2\n1\n1\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertBullseyeTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -785,6 +796,38 @@ func assertBullfightTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "ADIOS\n\n\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-12):])
+	}
+}
+
+func assertBullseyeTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "BULLSEYE\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"IN THIS GAME, UP TO 20 PLAYERS THROW DARTS AT A TARGET\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"INPUT 1, 2, OR 3!",
+		"30-POINT ZONE!",
+		"20-POINT ZONE",
+		"WHEW!  10 POINTS.",
+		"MISSED THE TARGET!  TOO BAD.",
+		"BULLSEYE!!  40 POINTS!",
+		"ROUND12",
+		"TOTAL SCORE =210",
+		"WE HAVE A WINNER!!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "PLAYER'S THROW? "), 13; got != want {
+		t.Fatalf("throw prompts: got %d, want %d", got, want)
+	}
+	suffix := "PLAYER SCORED210POINTS.\n\nTHANKS FOR THE GAME.\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
 }
 
