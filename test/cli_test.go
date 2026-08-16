@@ -561,6 +561,47 @@ func TestCLI(t *testing.T) {
 		assertGolfTranscript(t, string(output))
 	})
 
+	t.Run("plays both original Gomoko variants", func(t *testing.T) {
+		variants := []struct {
+			name       string
+			fixture    string
+			input      string
+			wantBoards []string
+		}{
+			{
+				name:    "main",
+				fixture: "gomoko.bas",
+				input:   "6\n7\n0,0\n4,4\n7,2\n4,5\n-1,-1\n0\n",
+				wantBoards: []string{
+					"0000000\n0000000\n0000000\n0001000\n0000000\n0000000\n0200000\n",
+					"0000000\n0000000\n0000000\n0001120\n0000000\n0000000\n0200000\n",
+				},
+			},
+			{
+				name:    "alternate",
+				fixture: "gomoko-alternate.bas",
+				input:   "6\n7\n0,0\n4,4\n5,4\n4,5\n-1,-1\n0\n",
+				wantBoards: []string{
+					"0000000\n0000000\n0000000\n0001000\n0002000\n0000000\n0000000\n",
+					"0000000\n0000000\n0000000\n0001100\n0002200\n0000000\n0000000\n",
+				},
+			},
+		}
+
+		for _, variant := range variants {
+			t.Run(variant.name, func(t *testing.T) {
+				path := filepath.Join("scripts", variant.fixture)
+				command := exec.Command(binary, "-seed", "0", path)
+				command.Stdin = strings.NewReader(variant.input)
+				output, err := command.CombinedOutput()
+				if err != nil {
+					t.Fatalf("run CLI: %v\n%s", err, output)
+				}
+				assertGomokoTranscript(t, string(output), variant.wantBoards)
+			})
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -1815,6 +1856,43 @@ func assertGolfTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "TOTAL PAR FOR18HOLES IS72  YOUR TOTAL IS84\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
+	}
+}
+
+func assertGomokoTranscript(t *testing.T, transcript string, wantBoards []string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "GOMOKO\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"WELCOME TO THE ORIENTAL GAME OF GOMOKO.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"I SAID, THE MINIMUM IS 7, THE MAXIMUM IS 19.",
+		"ILLEGAL MOVE.  TRY AGAIN...",
+		"SQUARE OCCUPIED.  TRY AGAIN...",
+		"THANKS FOR THE GAME!!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	previous := -1
+	for _, board := range wantBoards {
+		index := strings.Index(transcript, board)
+		if index < 0 {
+			t.Fatalf("transcript missing board:\n%s", board)
+		}
+		if index <= previous {
+			t.Fatalf("board appeared out of order:\n%s", board)
+		}
+		previous = index
+	}
+	if got, want := strings.Count(transcript, "YOUR PLAY (I,J)"), 5; got != want {
+		t.Fatalf("move prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "PLAY AGAIN (1 FOR YES, 0 FOR NO)? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-45):])
 	}
 }
 
