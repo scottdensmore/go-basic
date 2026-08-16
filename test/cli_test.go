@@ -277,6 +277,15 @@ func TestCLI(t *testing.T) {
 		assertBullseyeTranscript(t, string(output))
 	})
 
+	t.Run("draws the original Bunny program", func(t *testing.T) {
+		path := filepath.Join("scripts", "bunny.bas")
+		output, err := exec.Command(binary, path).CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertBunnyTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -828,6 +837,32 @@ func assertBullseyeTranscript(t *testing.T, transcript string) {
 	suffix := "PLAYER SCORED210POINTS.\n\nTHANKS FOR THE GAME.\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertBunnyTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "BUNNY\n" +
+		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, row := range []string{
+		"BUN                                          BUNNYB\n",
+		"             NYBUNNYBUNNYBUNNYBUNNY\n",
+		" UNNYBUNNYBUNNYBUNNYBUNNYBUNNYBUNNYB\n",
+		"             NYBUNN    NYBUNNY   NYBUNN\n",
+		"                            NY\n",
+	} {
+		if !strings.Contains(transcript, row) {
+			t.Fatalf("transcript missing picture row %q", row)
+		}
+	}
+	if got, want := strings.Count(transcript, "\n"), 67; got != want {
+		t.Fatalf("output lines: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "                            NY\n\n\n\n\n\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-64):])
 	}
 }
 

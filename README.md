@@ -130,6 +130,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`16_Bug/bug.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/16_Bug/bug.bas)
 - [`17_Bullfight/bullfight.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/17_Bullfight/bullfight.bas)
 - [`18_Bullseye/bullseye.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/18_Bullseye/bullseye.bas)
+- [`19_Bunny/bunny.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/19_Bunny/bunny.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -167,6 +168,8 @@ Bullfight's seeded transcript shows the instructions, rejects invalid answers,
 survives two cape passes, kills the bull on the third pass, and exits normally.
 Bullseye's seeded transcript rejects an invalid throw, exercises every scoring
 outcome, reaches 210 points after twelve rounds, and exits normally.
+Bunny's non-interactive transcript verifies the complete 67-line word-art
+picture, including representative outline, body, and tail rows, and exits normally.
 
 ## Testing
 
