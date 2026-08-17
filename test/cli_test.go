@@ -1224,6 +1224,18 @@ func TestCLI(t *testing.T) {
 		assertSynonymTranscript(t, string(output))
 	})
 
+	t.Run("destroys a target in the original Target program", func(t *testing.T) {
+		path := filepath.Join("scripts", "target.bas")
+		command := exec.Command(binary, "-seed", "0", "-max-statements", "110", path)
+		command.Stdin = strings.NewReader("340,88,65590\n" +
+			"340.2716357675742,88.18769558160814,65595.6808633801\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertTargetTranscript(t, string(output), path)
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3994,6 +4006,41 @@ func assertSynonymTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "\nSYNONYM DRILL COMPLETED.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-40):])
+	}
+}
+
+func assertTargetTranscript(t *testing.T, transcript, path string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "TARGET\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"YOU ARE THE WEAPONS OFFICER ON THE STARSHIP ENTERPRISE\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"RADIANS FROM X AXIS =5.938837541321806   FROM Z AXIS =1.539159724616171",
+		"X=61714.04435126647  Y=-22132.893117780306  Z=2074.8783041997776",
+		"ESTIMATED DISTANCE:65590",
+		"SHOT BEHIND TARGET117.67608333250246KILOMETERS.",
+		"SHOT TO RIGHT OF TARGET287.94441971766355KILOMETERS.",
+		"SHOT ABOVE TARGET214.56711296569665KILOMETERS.",
+		"DISTANCE FROM TARGET =377.88714638295664",
+		"ESTIMATED DISTANCE:65594",
+		"* * * HIT * * *   TARGET IS NON-FUNCTIONAL",
+		"DISTANCE OF EXPLOSION FROM TARGET WAS1.6275889873371198e-11KILOMETERS.",
+		"MISSION ACCOMPLISHED IN 3 SHOTS.",
+		"NEXT TARGET...",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "INPUT ANGLE DEVIATION FROM X, DEVIATION FROM Z, DISTANCE? "), 2; got != want {
+		t.Fatalf("shot prompts: got %d, want %d", got, want)
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 220: statement limit 110 reached\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)-30):])
 	}
 }
 
