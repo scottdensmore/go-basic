@@ -205,6 +205,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`90_Tower/tower.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/90_Tower/tower.bas)
 - [`91_Train/train.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/91_Train/train.bas)
 - [`92_Trap/trap.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/92_Trap/trap.bas)
+- [`93_23_Matches/23matches.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/93_23_Matches/23matches.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -453,6 +454,9 @@ then declines another problem and exits normally.
 Trap's seeded transcript prints the instructions, exercises larger, smaller,
 and trapped hints including reversed bounds, guesses the exact number on its
 fourth turn, and stops at a stable limit before the automatic next round.
+23 Matches' seeded transcript loses the coin toss, rejects an illegal move,
+plays every turn through the computer's one-, two-, and three-match strategy,
+verifies the final result, and exits normally.
 
 ## Testing
 
