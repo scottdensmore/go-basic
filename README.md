@@ -201,6 +201,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`85_Synonym/synonym.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/85_Synonym/synonym.bas)
 - [`86_Target/target.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/86_Target/target.bas)
 - [`88_3-D_Tic-Tac-Toe/qubit.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/88_3-D_Tic-Tac-Toe/qubit.bas)
+- [`89_Tic-Tac-Toe/tictactoe1.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/89_Tic-Tac-Toe/tictactoe1.bas) and [`tictactoe2.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/89_Tic-Tac-Toe/tictactoe2.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -437,6 +438,9 @@ at a configured statement limit before the original starts its next target.
 3-D Tic-Tac-Toe's transcript prints the cube, validates setup and moves,
 exercises blocking and strategic machine responses, verifies the machine's
 winning line, validates replay input, and exits normally.
+Both Tic-Tac-Toe programs play complete deterministic computer wins. The first
+stops at a configured statement limit before its automatic replay; the second
+rejects occupied squares, renders every board, and exits normally.
 
 ## Testing
 

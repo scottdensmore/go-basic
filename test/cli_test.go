@@ -1247,6 +1247,29 @@ func TestCLI(t *testing.T) {
 		assert3DTicTacToeTranscript(t, string(output))
 	})
 
+	t.Run("plays the original Tic-Tac-Toe programs", func(t *testing.T) {
+		t.Run("variant 1", func(t *testing.T) {
+			path := filepath.Join("scripts", "tic-tac-toe-1.bas")
+			command := exec.Command(binary, "-max-statements", "55", path)
+			command.Stdin = strings.NewReader("1\n2\n")
+			output, err := command.CombinedOutput()
+			if exitCode(err) != 1 {
+				t.Fatalf("exit: got %v, output %q", err, output)
+			}
+			assertTicTacToe1Transcript(t, string(output), path)
+		})
+
+		t.Run("variant 2", func(t *testing.T) {
+			command := exec.Command(binary, filepath.Join("scripts", "tic-tac-toe-2.bas"))
+			command.Stdin = strings.NewReader("O\n5\n1\n2\n3\n")
+			output, err := command.CombinedOutput()
+			if err != nil {
+				t.Fatalf("run CLI: %v\n%s", err, output)
+			}
+			assertTicTacToe2Transcript(t, string(output))
+		})
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -4089,6 +4112,61 @@ func assert3DTicTacToeTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "INCORRECT ANSWER. PLEASE TYPE 'YES' OR 'NO'? ") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-60):])
+	}
+}
+
+func assertTicTacToe1Transcript(t *testing.T, transcript, path string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "TIC TAC TOE\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THE GAME BOARD IS NUMBERED:\n\n1  2  3\n8  9  4\n7  6  5\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"COMPUTER MOVES9\nYOUR MOVE? COMPUTER MOVES2",
+		"YOUR MOVE? COMPUTER MOVES6\nAND WINS ********",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "YOUR MOVE? "), 2; got != want {
+		t.Fatalf("move prompts: got %d, want %d", got, want)
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 250: statement limit 55 reached\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)-30):])
+	}
+}
+
+func assertTicTacToe2Transcript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 30) + "TIC-TAC-TOE\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THE BOARD IS NUMBERED:\n 1  2  3\n 4  5  6\n 7  8  9\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"DO YOU WANT 'X' OR 'O'? \nTHE COMPUTER MOVES TO...",
+		" O ! X ! O \n---+---+---\n   ! X !   \n---+---+---\n   ! X !   ",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "THAT SQUARE IS OCCUPIED."), 2; got != want {
+		t.Fatalf("occupied errors: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "WHERE DO YOU MOVE? "), 4; got != want {
+		t.Fatalf("move prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "THE COMPUTER MOVES TO..."), 3; got != want {
+		t.Fatalf("computer moves: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nI WIN, TURKEY!!!\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
 	}
 }
 
