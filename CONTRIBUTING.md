@@ -84,3 +84,10 @@ include:
 
 Unsupported or malformed BASIC must return an actionable diagnostic. Do not
 silently skip syntax or introduce panic paths.
+
+## Community and security
+
+Participation in project spaces is governed by the
+[Code of Conduct](CODE_OF_CONDUCT.md). Report suspected vulnerabilities through
+the private process in the [Security Policy](SECURITY.md), not through a public
+issue.
