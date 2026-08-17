@@ -378,6 +378,19 @@ func TestParserOrdersLogicalOperators(t *testing.T) {
 	}
 }
 
+func TestParserBuildsArctangentCall(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 A=ATN(1)\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	assignment := program.Lines[10].(*LetStatement)
+	if got, want := assignment.Value.String(), "ATN(...)"; got != want {
+		t.Fatalf("arctangent expression: got %q, want %q", got, want)
+	}
+}
+
 func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 	t.Parallel()
 

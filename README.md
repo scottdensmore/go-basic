@@ -5,7 +5,7 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 ## Features
 
 -   **Variables**: Numeric and string scalars plus explicitly and implicitly dimensioned numeric and string arrays.
--   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `ABS`, `SGN`, `INT`, `SIN`, `COS`, `TAN`, `SQR`, `LOG`, `EXP`, and `RND`.
+-   **Math Operations**: `+`, `-`, `*`, `/`, right-associative `^`, `AND`, `OR`, numeric and string comparisons, `ABS`, `SGN`, `INT`, `SIN`, `COS`, `TAN`, `ATN`, `SQR`, `LOG`, `EXP`, and `RND`.
 -   **Functions**: `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, `ASC`, and single-argument numeric functions defined with `DEF FN`.
 -   **Control Flow**: `FOR`...`NEXT`, line and statement forms of `IF`...`THEN`, `GOTO`, `GOSUB`...`RETURN`, `ON`...`GOTO`, `END`, `STOP`, and `SLEEP`.
 -   **Output**: `PRINT` statement with `;` and comma separators plus `TAB` function support.

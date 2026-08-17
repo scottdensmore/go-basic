@@ -73,6 +73,8 @@ const (
 	COS TokenType = "COS"
 	// TAN computes a tangent value.
 	TAN TokenType = "TAN"
+	// ATN computes an arctangent value in radians.
+	ATN TokenType = "ATN"
 	// INPUT is recognized so the parser can report that it is unsupported.
 	INPUT TokenType = "INPUT"
 	// AND performs Microsoft BASIC integer logical conjunction.
@@ -159,6 +161,7 @@ var keywords = map[string]TokenType{
 	"sin":     SIN,
 	"cos":     COS,
 	"tan":     TAN,
+	"atn":     ATN,
 	"input":   INPUT,
 	"and":     AND,
 	"or":      OR,

@@ -85,6 +85,11 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want:   "1 0\n",
 		},
 		{
+			name:   "arctangent",
+			source: "10 PRINT ATN(0); \" \"; ATN(1); \" \"; ATN(-1)\n",
+			want:   "0 0.7853981633974483 -0.7853981633974483\n",
+		},
+		{
 			name:   "natural logarithm",
 			source: "10 PRINT LOG(EXP(1)); \" \"; LOG(1)\n",
 			want:   "1 0\n",
