@@ -86,6 +86,13 @@ func WithStatementLimit(limit int) EvaluatorOption {
 	}
 }
 
+// WithLineObserver reports each BASIC line immediately before it executes.
+func WithLineObserver(observer func(int)) EvaluatorOption {
+	return func(evaluator *Evaluator) {
+		evaluator.lineObserver = observer
+	}
+}
+
 // Evaluator executes a parsed BASIC program.
 type Evaluator struct {
 	Env              *Environment
@@ -109,6 +116,7 @@ type Evaluator struct {
 	hasRandom        bool
 	random           func() float64
 	sleep            func(time.Duration)
+	lineObserver     func(int)
 }
 
 // NewEvaluator creates an evaluator with injectable output and options.
@@ -154,6 +162,9 @@ func (e *Evaluator) Run() error {
 			return fmt.Errorf("BASIC line %d: statement limit %d reached", lineNumber, e.statementLimit)
 		}
 		statement := statements[e.statementIndex]
+		if e.lineObserver != nil {
+			e.lineObserver(lineNumber)
+		}
 		e.jumped = false
 		if err := e.evalStatement(statement); err != nil {
 			return fmt.Errorf("BASIC line %d: %w", lineNumber, err)

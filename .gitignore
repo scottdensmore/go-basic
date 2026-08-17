@@ -9,6 +9,7 @@
 /go-basic
 bin/
 .tools/
+.cache/
 
 # Test binary, built with 'go test -c'
 *.test

@@ -3,6 +3,7 @@ package interpreter
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -666,6 +667,22 @@ func TestEvaluatorInjectsSleep(t *testing.T) {
 	}
 	if slept != 250*time.Millisecond {
 		t.Fatalf("sleep duration: got %s, want 250ms", slept)
+	}
+}
+
+func TestEvaluatorReportsExecutedLines(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, "10 PRINT \"A\"\n20 END\n")
+	var lines []int
+	evaluator := NewEvaluator(program, &bytes.Buffer{}, WithLineObserver(func(line int) {
+		lines = append(lines, line)
+	}))
+	if err := evaluator.Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := fmt.Sprint(lines), "[10 20]"; got != want {
+		t.Fatalf("observed lines: got %s, want %s", got, want)
 	}
 }
 

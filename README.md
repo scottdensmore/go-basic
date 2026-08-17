@@ -21,12 +21,14 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 ## Project Structure
 
 -   `cmd/go-basic/`: Main application entry point.
+-   `cmd/corpus-fetch/` and `cmd/corpus-smoke/`: Pinned external-corpus test tools.
+-   `internal/corpus/`: Corpus download, discovery, and bounded execution logic.
 -   `pkg/interpreter/`: Core interpreter logic (Lexer, Parser, AST, Evaluator).
 -   `test/`: Integration tests and sample BASIC scripts.
 
 ## Prerequisites
 
--   [Go](https://go.dev/dl/) 1.25.5 or newer
+-   [Go](https://go.dev/dl/) 1.25.13 or newer
 
 ## Building
 
@@ -473,6 +475,14 @@ Word's seeded transcript rejects a short guess, verifies common-letter and
 exact-position clues across two valid guesses, finds the secret word on the
 third counted guess, declines replay, and exits normally.
 
+The fast external-corpus tier downloads only original `.bas` files from pinned
+commit `5301155192d91d74d337899cecc59dbda59c4c17`. It checks all 105 main-tree
+programs and the 7 byte-different alternate versions with deterministic input,
+randomness, and sleep behavior. Each program is parsed and executed to normal
+completion, an input boundary, or a statement limit; failures report the last
+executed BASIC line. The cache lives under ignored `.cache/` and is reused after
+its commit marker is verified.
+
 ## Testing
 
 The project follows test-driven development: write a failing behavior test, make
@@ -484,6 +494,8 @@ make test        # race-enabled unit and CLI integration tests
 make check       # formatting, vet, coverage, and golangci-lint
 make fuzz        # bounded lexer and parser fuzzing
 make vuln        # Go vulnerability database scan
+make corpus-smoke    # pinned 112-variant fast compatibility tier (also in CI)
+make corpus-playable # complete deterministic CLI gameplay suite
 ```
 
 Install the pinned local tool versions under `.tools/` with:

@@ -2,11 +2,13 @@ GO ?= go
 COVERAGE_MIN ?= 80
 GOLANGCI_LINT_VERSION ?= v2.12.2
 GOVULNCHECK_VERSION ?= v1.6.0
+CORPUS_COMMIT ?= 5301155192d91d74d337899cecc59dbda59c4c17
 TOOLS_BIN := $(CURDIR)/.tools/bin
 GOLANGCI_LINT := $(TOOLS_BIN)/golangci-lint
 GOVULNCHECK := $(TOOLS_BIN)/govulncheck
+CORPUS_CACHE ?= $(CURDIR)/.cache/basic-computer-games/$(CORPUS_COMMIT)
 
-.PHONY: build check clean coverage-check fmt fmt-check fuzz lint test tools vet vuln
+.PHONY: build check clean corpus-fetch corpus-playable corpus-smoke coverage-check fmt fmt-check fuzz lint test tools vet vuln
 
 build:
 	mkdir -p bin
@@ -16,8 +18,17 @@ fmt:
 	$(GO) fmt ./...
 
 fmt-check:
-	@output="$$(find cmd pkg test -type f -name '*.go' -exec gofmt -l {} +)"; \
+	@output="$$(find cmd internal pkg test -type f -name '*.go' -exec gofmt -l {} +)"; \
 	test -z "$$output" || { echo "Unformatted Go files:"; echo "$$output"; exit 1; }
+
+corpus-fetch:
+	$(GO) run ./cmd/corpus-fetch -commit $(CORPUS_COMMIT) -target $(CORPUS_CACHE)
+
+corpus-smoke: corpus-fetch
+	$(GO) run ./cmd/corpus-smoke -corpus $(CORPUS_CACHE) -commit $(CORPUS_COMMIT)
+
+corpus-playable:
+	$(GO) test -count=1 ./test -run '^TestCLI$$'
 
 test:
 	$(GO) test -count=1 -race -covermode=atomic -coverprofile=coverage.out ./...
