@@ -1281,6 +1281,16 @@ func TestCLI(t *testing.T) {
 		assertTowerTranscript(t, string(output))
 	})
 
+	t.Run("solves the original Train program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "train.bas"))
+		command.Stdin = strings.NewReader("4\nYES\n15.6\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertTrainTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -4207,6 +4217,36 @@ func assertTowerTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "\nTHANKS FOR THE GAME!\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
+}
+
+func assertTrainTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "TRAIN\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"TIME - SPEED DISTANCE EXERCISE\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"A CAR TRAVELING63MPH",
+		"8HOURS LESS THAN A TRAIN TRAVELING AT32MPH.",
+		"SORRY.  YOU WERE OFF BY106PERCENT.",
+		"CORRECT ANSWER IS8.258064516129032HOURS.",
+		"A CAR TRAVELING41MPH",
+		"10HOURS LESS THAN A TRAIN TRAVELING AT25MPH.",
+		"GOOD! ANSWER WITHIN0PERCENT.",
+		"CORRECT ANSWER IS15.625HOURS.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "HOW LONG DOES THE TRIP TAKE BY CAR? "), 2; got != want {
+		t.Fatalf("answer prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nANOTHER PROBLEM (YES OR NO)? \n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-45):])
 	}
 }
 
