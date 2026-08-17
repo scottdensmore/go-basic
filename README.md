@@ -207,6 +207,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`92_Trap/trap.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/92_Trap/trap.bas)
 - [`93_23_Matches/23matches.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/93_23_Matches/23matches.bas)
 - [`94_War/war.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/94_War/war.bas)
+- [`95_Weekday/weekday.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/95_Weekday/weekday.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -461,6 +462,9 @@ verifies the final result, and exits normally.
 War's seeded transcript validates the directions answer, deals the complete
 52-card pack, verifies player wins, computer wins, and ties across 26 rounds,
 checks the final score, and exits normally.
+Weekday's transcripts verify current, past, and future date phrasing, Sunday,
+Tuesday, and Friday-the-thirteenth calculations, age and retirement facts, and
+the unsupported pre-Gregorian-calendar path; every run exits normally.
 
 ## Testing
 

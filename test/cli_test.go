@@ -1322,6 +1322,38 @@ func TestCLI(t *testing.T) {
 		assertWarTranscript(t, string(output))
 	})
 
+	t.Run("evaluates dates in the original Weekday program", func(t *testing.T) {
+		testCases := []struct {
+			name       string
+			input      string
+			milestones []string
+		}{
+			{"current", "8,16,2026\n8,16,2026\n", []string{"8/16/2026 IS A SUNDAY."}},
+			{"past Friday the thirteenth", "8,16,2026\n12,13,1985\n", []string{
+				"12/13/1985 WAS A FRIDAY THE THIRTEENTH---BEWARE!",
+				"YOUR AGE (IF BIRTHDATE)     40            8             3",
+				"YOU HAVE SLEPT              14            2             26",
+				"YOU HAVE WORKED/PLAYED      9             4             9",
+				"***  YOU MAY RETIRE IN2050 ***",
+			}},
+			{"future", "8,16,2026\n1,1,2030\n", []string{"1/1/2030 WILL BE A TUESDAY."}},
+			{"unsupported calendar", "8,16,2026\n1,1,1500\n", []string{
+				"NOT PREPARED TO GIVE DAY OF WEEK PRIOR TO MDLXXXII.",
+			}},
+		}
+		for _, testCase := range testCases {
+			t.Run(testCase.name, func(t *testing.T) {
+				command := exec.Command(binary, filepath.Join("scripts", "weekday.bas"))
+				command.Stdin = strings.NewReader(testCase.input)
+				output, err := command.CombinedOutput()
+				if err != nil {
+					t.Fatalf("run CLI: %v\n%s", err, output)
+				}
+				assertWeekdayTranscript(t, string(output), testCase.milestones)
+			})
+		}
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -4383,6 +4415,28 @@ func assertWarTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "THANKS FOR PLAYING.  IT WAS FUN.\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-45):])
+	}
+}
+
+func assertWeekdayTranscript(t *testing.T, transcript string, milestones []string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 32) + "WEEKDAY\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"WEEKDAY IS A COMPUTER DEMONSTRATION THAT\n" +
+		"GIVES FACTS ABOUT A DATE OF INTEREST TO YOU.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range milestones {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "ENTER TODAY'S DATE IN THE FORM: 3,24,1979  ? "), 1; got != want {
+		t.Fatalf("today prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "ENTER DAY OF BIRTH (OR OTHER DAY OF INTEREST)? "), 1; got != want {
+		t.Fatalf("interest prompts: got %d, want %d", got, want)
 	}
 }
 
