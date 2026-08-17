@@ -1,0 +1,67 @@
+name: Bug report
+description: Report incorrect interpreter or CLI behavior
+title: ""
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve go-basic. Please provide a small BASIC program that reproduces the problem.
+  - type: textarea
+    id: program
+    attributes:
+      label: Reproduction program
+      description: Paste the smallest BASIC source that demonstrates the problem.
+      render: basic
+    validations:
+      required: true
+  - type: input
+    id: command
+    attributes:
+      label: Command
+      description: Include any flags, such as `-seed` or `-max-statements`.
+      placeholder: go-basic -seed 1 program.bas
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the complete output or diagnostic.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: Explain what you expected and, when relevant, which BASIC dialect or source supports that expectation.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: go-basic version
+      description: Run `go-basic -version`, or provide the commit SHA for a source build.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include operating system and architecture; include `go version` for source builds.
+      placeholder: macOS 15 arm64; go1.26.6
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other details that may help reproduce or diagnose the problem.
+  - type: checkboxes
+    id: conduct
+    attributes:
+      label: Code of Conduct
+      options:
+        - label: I agree to follow the repository's Code of Conduct.
+          required: true

@@ -56,6 +56,8 @@ Hello World
 | [Language reference](docs/language-reference.md) | Supported syntax, statements, operators, functions, and extensions |
 | [Compatibility](docs/compatibility.md) | Pinned corpus, acceptance tiers, results, and known upstream exception |
 | [Contributing](CONTRIBUTING.md) | Development workflow, testing expectations, and pull requests |
+| [Security](SECURITY.md) | Supported versions, private reporting, trust boundaries, and limitations |
+| [Code of Conduct](CODE_OF_CONDUCT.md) | Expected behavior and reporting options for project spaces |
 
 ## Supported at a glance
 
