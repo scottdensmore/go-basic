@@ -1236,6 +1236,17 @@ func TestCLI(t *testing.T) {
 		assertTargetTranscript(t, string(output), path)
 	})
 
+	t.Run("plays the original 3-D Tic-Tac-Toe program", func(t *testing.T) {
+		command := exec.Command(binary, filepath.Join("scripts", "3d-tic-tac-toe.bas"))
+		command.Stdin = strings.NewReader("MAYBE\nYES\nMAYBE\nYES\n0\n555\n111\n111\n" +
+			"112\n113\n121\n122\n123\n131\n132\nMAYBE\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assert3DTicTacToeTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -4041,6 +4052,43 @@ func assertTargetTranscript(t *testing.T, transcript, path string) {
 	suffix := "go-basic: run " + path + ": BASIC line 220: statement limit 110 reached\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)-30):])
+	}
+}
+
+func assert3DTicTacToeTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := "\x1a\n" + strings.Repeat(" ", 33) + "QUBIC\n\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"DO YOU WANT INSTRUCTIONS? INCORRECT ANSWER.  PLEASE TYPE 'YES' OR 'NO'?",
+		"THE GAME IS TIC-TAC-TOE IN A 4 X 4 X 4 CUBE.",
+		"TO PRINT THE PLAYING BOARD, TYPE 0 (ZERO) AS YOUR MOVE.",
+		"DO YOU WANT TO MOVE FIRST? INCORRECT ANSWER.  PLEASE TYPE 'YES' OR 'NO'.?",
+		"INCORRECT MOVE, RETYPE IT--? MACHINE MOVES TO411",
+		"THAT SQUARE IS USED, TRY AGAIN.",
+		"MACHINE MOVES TO414",
+		"NICE TRY. MACHINE MOVES TO114",
+		"MACHINE TAKES141",
+		"MACHINE MOVES TO441",
+		"NICE TRY. MACHINE MOVES TO124",
+		"MACHINE TAKES232",
+		"MACHINE MOVES TO323, AND WINS AS FOLLOWS\n141232323414",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "( )"), 65; got != want {
+		t.Fatalf("empty board cells: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "YOUR MOVE? "), 10; got != want {
+		t.Fatalf("move prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "INCORRECT ANSWER. PLEASE TYPE 'YES' OR 'NO'? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-60):])
 	}
 }
 
