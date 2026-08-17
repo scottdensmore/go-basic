@@ -199,6 +199,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`83_Stock_Market/stockmarket.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/83_Stock_Market/stockmarket.bas)
 - [`84_Super_Star_Trek/superstartrek.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/84_Super_Star_Trek/superstartrek.bas) and [`superstartrekins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/84_Super_Star_Trek/superstartrekins.bas)
 - [`85_Synonym/synonym.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/85_Synonym/synonym.bas)
+- [`86_Target/target.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/86_Target/target.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -429,6 +430,9 @@ normal resignation; its companion program renders the complete instructions.
 Synonym's seeded transcript rejects a wrong answer, exercises the help path,
 answers all ten distinct questions, verifies the randomized praise, and exits
 normally after completing the drill.
+Target's seeded transcript fires an approximate three-dimensional shot, verifies
+all miss directions, corrects the trajectory to destroy the target, then stops
+at a configured statement limit before the original starts its next target.
 
 ## Testing
 
