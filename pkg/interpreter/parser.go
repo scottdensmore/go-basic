@@ -11,6 +11,7 @@ const (
 	lowest int = iota
 	disjunction
 	conjunction
+	negation
 	equals
 	sum
 	product
@@ -64,6 +65,7 @@ func NewParser(lexer *Lexer) *Parser {
 	parser.prefixParseFuncs[NUMBER] = parser.parseNumberLiteral
 	parser.prefixParseFuncs[STRING] = parser.parseStringLiteral
 	parser.prefixParseFuncs[MINUS] = parser.parsePrefixExpression
+	parser.prefixParseFuncs[NOT] = parser.parsePrefixExpression
 	parser.prefixParseFuncs[LPAREN] = parser.parseGroupedExpression
 	parser.prefixParseFuncs[TAB] = parser.parseCallExpression
 	parser.prefixParseFuncs[SIN] = parser.parseCallExpression
@@ -198,7 +200,7 @@ func (p *Parser) parseStatement() Statement {
 	case DIM:
 		return p.parseDimStatement()
 	case ON:
-		return p.parseOnGotoStatement()
+		return p.parseOnBranchStatement()
 	case NEXT:
 		return p.parseNextStatement()
 	case SLEEP:
@@ -301,13 +303,19 @@ func (p *Parser) parseDimStatement() Statement {
 	return statement
 }
 
-func (p *Parser) parseOnGotoStatement() Statement {
-	statement := &OnGotoStatement{}
+func (p *Parser) parseOnBranchStatement() Statement {
 	p.nextToken()
-	statement.Selector = p.parseExpression(lowest)
-	if statement.Selector == nil || !p.expectPeek(GOTO) {
+	selector := p.parseExpression(lowest)
+	if selector == nil {
 		return nil
 	}
+	if p.peek.Type != GOTO && p.peek.Type != GOSUB {
+		p.addError(p.peek, "expected GOTO or GOSUB, got %s", tokenDescription(p.peek))
+		return nil
+	}
+	p.nextToken()
+	gosub := p.current.Type == GOSUB
+	var targets []int
 	for {
 		if !p.expectPeek(NUMBER) {
 			return nil
@@ -317,13 +325,16 @@ func (p *Parser) parseOnGotoStatement() Statement {
 			p.addError(p.current, "invalid BASIC line number %q", p.current.Literal)
 			return nil
 		}
-		statement.Targets = append(statement.Targets, target)
+		targets = append(targets, target)
 		if p.peek.Type != COMMA {
 			break
 		}
 		p.nextToken()
 	}
-	return statement
+	if gosub {
+		return &OnGosubStatement{Selector: selector, Targets: targets}
+	}
+	return &OnGotoStatement{Selector: selector, Targets: targets}
 }
 
 func (p *Parser) parseDefFnStatement() Statement {
@@ -651,9 +662,15 @@ func (p *Parser) parseStringLiteral() Expression {
 }
 
 func (p *Parser) parsePrefixExpression() Expression {
-	expression := &PrefixExpression{Operator: p.current.Literal}
+	operator := p.current.Literal
+	rightPrecedence := prefix
+	if p.current.Type == NOT {
+		operator = string(NOT)
+		rightPrecedence = negation
+	}
+	expression := &PrefixExpression{Operator: operator}
 	p.nextToken()
-	expression.Right = p.parseExpression(prefix)
+	expression.Right = p.parseExpression(rightPrecedence)
 	if expression.Right == nil {
 		return nil
 	}

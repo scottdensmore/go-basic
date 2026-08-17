@@ -378,6 +378,32 @@ func TestParserOrdersLogicalOperators(t *testing.T) {
 	}
 }
 
+func TestParserOrdersNotBetweenComparisonsAndConjunction(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 A=NOT X=1 AND Y=2\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	assignment := program.Lines[10].(*LetStatement)
+	if got, want := assignment.Value.String(), "((NOT (X = 1)) AND (Y = 2))"; got != want {
+		t.Fatalf("logical expression: got %q, want %q", got, want)
+	}
+}
+
+func TestParserBuildsOnGosub(t *testing.T) {
+	t.Parallel()
+
+	program, errors := parseSource("10 ON X GOSUB 100,200\n")
+	if len(errors) != 0 {
+		t.Fatalf("unexpected parser errors: %v", errors)
+	}
+	branch, ok := program.Lines[10].(*OnGosubStatement)
+	if !ok || branch.Selector.String() != "X" || !equalInts(branch.Targets, []int{100, 200}) {
+		t.Fatalf("computed subroutine branch: %#v", program.Lines[10])
+	}
+}
+
 func TestParserBuildsArctangentCall(t *testing.T) {
 	t.Parallel()
 
@@ -405,6 +431,8 @@ func TestParserRejectsInvalidProgramsWithoutTypedNilStatements(t *testing.T) {
 		{name: "dimension missing bound", source: "10 DIM A()\n", wantError: "expected expression", basicLine: 10},
 		{name: "array missing subscript", source: "10 PRINT A()\n", wantError: "expected expression", basicLine: 10},
 		{name: "on goto missing target", source: "10 ON X GOTO\n", wantError: "expected NUMBER", basicLine: 10},
+		{name: "on gosub missing target", source: "10 ON X GOSUB\n", wantError: "expected NUMBER", basicLine: 10},
+		{name: "on missing branch kind", source: "10 ON X PRINT 1\n", wantError: "expected GOTO or GOSUB", basicLine: 10},
 		{name: "missing line number", source: "PRINT 1\n", wantError: "expected BASIC line number"},
 		{name: "malformed assignment", source: "10 value 42\n", wantError: "expected =", basicLine: 10},
 		{name: "missing expression", source: "10 PRINT 1 +\n", wantError: "expected expression", basicLine: 10},
@@ -526,6 +554,8 @@ func isNilStatement(statement Statement) bool {
 	case *ReturnStatement:
 		return value == nil
 	case *OnGotoStatement:
+		return value == nil
+	case *OnGosubStatement:
 		return value == nil
 	case *EndStatement:
 		return value == nil

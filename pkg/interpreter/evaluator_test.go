@@ -165,12 +165,27 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			want: "7 -1 -1\n",
 		},
 		{
+			name:   "NOT uses Microsoft integer truth semantics",
+			source: "10 PRINT NOT 0; \" \"; NOT -1; \" \"; NOT 1; \" \"; NOT 1=2 AND 1\n",
+			want:   "-1 0 -2 1\n",
+		},
+		{
 			name: "out of range ON GOTO falls through",
 			source: `10 ON 0 GOTO 40,50
 20 ON 3 GOTO 40,50
 30 PRINT "continued":END
 40 PRINT "wrong":END
 50 PRINT "wrong":END
+`,
+			want: "continued\n",
+		},
+		{
+			name: "out of range ON GOSUB falls through",
+			source: `10 ON 0 GOSUB 40,50
+20 ON 3 GOSUB 40,50
+30 PRINT "continued":END
+40 PRINT "wrong":RETURN
+50 PRINT "wrong":RETURN
 `,
 			want: "continued\n",
 		},
@@ -243,6 +258,23 @@ func TestEvaluatorRunsAnimalControlFlow(t *testing.T) {
 		t.Fatalf("run: %v", err)
 	}
 	if got, want := output.String(), "RIGHT!\nSUBINNERMAIN\n"; got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
+func TestEvaluatorOnGosubReturnsToTheFollowingStatement(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 X=2
+20 PRINT "A";:ON X GOSUB 100,200:PRINT "B":END
+100 PRINT "wrong":RETURN
+200 PRINT "SUB";:RETURN
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if got, want := output.String(), "ASUBB\n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -624,8 +656,10 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "fractional AND operand", program: mustParse(t, "10 PRINT 1.5 AND 1\n"), want: "left AND operand: operand must be an integer"},
 		{name: "fractional left OR operand", program: mustParse(t, "10 PRINT 1.5 OR 1\n"), want: "left OR operand: operand must be an integer"},
 		{name: "fractional OR operand", program: mustParse(t, "10 PRINT 1 OR 1.5\n"), want: "right OR operand: operand must be an integer"},
+		{name: "fractional NOT operand", program: mustParse(t, "10 PRINT NOT 1.5\n"), want: "NOT operand: operand must be an integer"},
 		{name: "negative ON GOTO selector", program: mustParse(t, "10 ON -1 GOTO 20\n20 END\n"), want: "ON GOTO selector must be non-negative"},
 		{name: "fractional ON GOTO selector", program: mustParse(t, "10 ON 1.5 GOTO 20\n20 END\n"), want: "ON GOTO selector must be an integer"},
+		{name: "negative ON GOSUB selector", program: mustParse(t, "10 ON -1 GOSUB 20\n20 RETURN\n"), want: "ON GOSUB selector must be non-negative"},
 		{name: "nil dimension statement", program: &Program{Lines: map[int]Statement{10: (*DimStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DIM statement"},
 		{name: "nil data statement", program: &Program{Lines: map[int]Statement{10: (*DataStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DATA statement"},
 		{name: "nil read statement", program: &Program{Lines: map[int]Statement{10: (*ReadStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid READ statement"},
@@ -634,6 +668,7 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "nil return statement", program: &Program{Lines: map[int]Statement{10: (*ReturnStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid RETURN statement"},
 		{name: "nil stop statement", program: &Program{Lines: map[int]Statement{10: (*StopStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid statement"},
 		{name: "nil computed branch", program: &Program{Lines: map[int]Statement{10: (*OnGotoStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid ON GOTO statement"},
+		{name: "nil computed subroutine", program: &Program{Lines: map[int]Statement{10: (*OnGosubStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid ON GOSUB statement"},
 		{name: "nil function definition", program: &Program{Lines: map[int]Statement{10: (*DefFnStatement)(nil)}, LineNumbers: []int{10}}, want: "invalid DEF FN statement"},
 		{name: "nil program", program: nil, want: "program is nil"},
 	}
