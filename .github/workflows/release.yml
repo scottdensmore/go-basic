@@ -12,6 +12,7 @@ jobs:
   verify-build-release:
     name: Verify, build, and release
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -30,6 +31,9 @@ jobs:
 
       - name: Run quality gate
         run: make check
+
+      - name: Fuzz lexer and parser
+        run: make fuzz
 
       - name: Run pinned corpus smoke tier
         run: make corpus-smoke

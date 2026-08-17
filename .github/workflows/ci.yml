@@ -13,6 +13,7 @@ jobs:
   test:
     name: Test and build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -41,6 +42,9 @@ jobs:
       - name: Test with race detector and coverage
         run: make coverage-check
 
+      - name: Fuzz lexer and parser
+        run: make fuzz
+
       - name: Build CLI and release archives
         run: |
           make build
@@ -49,6 +53,7 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -67,6 +72,7 @@ jobs:
   vulnerability-scan:
     name: Vulnerability scan
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
