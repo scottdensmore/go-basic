@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 
-	"go-basic/pkg/interpreter"
+	"github.com/scottdensmore/go-basic/pkg/interpreter"
 )
 
 // version is replaced by the release build through -ldflags.

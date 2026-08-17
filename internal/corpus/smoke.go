@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go-basic/pkg/interpreter"
+	"github.com/scottdensmore/go-basic/pkg/interpreter"
 )
 
 // Status describes how a bounded smoke execution stopped.

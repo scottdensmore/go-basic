@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"go-basic/internal/corpus"
+	"github.com/scottdensmore/go-basic/internal/corpus"
 )
 
 func main() {

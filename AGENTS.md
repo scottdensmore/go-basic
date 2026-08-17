@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-`pkg/interpreter/` contains the product code: token definitions, lexer, AST, parser, and evaluator. Keep language behavior there rather than in command or test helpers. `cmd/go-basic/` is the thin CLI entry point; `cmd/corpus-*` and `internal/corpus/` implement the pinned external-corpus test tier. Unit tests live beside their implementation as `*_test.go`; `test/` contains black-box CLI tests and BASIC fixtures under `test/scripts/`. `SPEC.MD` defines the Microsoft 8K/6502 BASIC compatibility goal, while `README.md` documents user-facing behavior.
+`pkg/interpreter/` contains the product code: token definitions, lexer, AST, parser, and evaluator. Keep language behavior there rather than in command or test helpers. `cmd/go-basic/` is the thin CLI entry point; `cmd/corpus-*` and `internal/corpus/` implement the pinned external-corpus test tier. Unit tests live beside their implementation as `*_test.go`; `test/` contains black-box CLI tests and BASIC fixtures under `test/scripts/`. `README.md` documents user-facing behavior and the Microsoft 8K/6502 BASIC compatibility goal.
 
 ## Build, Test, and Development Commands
 

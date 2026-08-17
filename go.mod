@@ -1,3 +1,3 @@
-module go-basic
+module github.com/scottdensmore/go-basic
 
-go 1.25.13
+go 1.26.6
