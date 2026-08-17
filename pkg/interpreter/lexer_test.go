@@ -120,6 +120,18 @@ func TestLexerRecognizesBattleSyntax(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesArctangent(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("10 A=ATN(1)\n")
+	want := []TokenType{NUMBER, IDENT, ASSIGN, ATN, LPAREN, NUMBER, RPAREN, EOL, EOF}
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func TestLexerRecognizesKeywordsAdjacentToNumbers(t *testing.T) {
 	t.Parallel()
 

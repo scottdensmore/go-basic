@@ -1071,6 +1071,12 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 			return nil, err
 		}
 		return math.Tan(argument), nil
+	case "ATN":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		return math.Atan(argument), nil
 	case "INT":
 		argument, err := e.singleNumberArgument(expression)
 		if err != nil {
