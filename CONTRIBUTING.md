@@ -25,8 +25,9 @@ corpus runs reuse the verified `.cache/` checkout.
    `go-basic` CLI.
 2. Make the smallest product-code change that passes the test.
 3. Refactor only while the tests remain green.
-4. Update `README.md` and the compatibility documentation when behavior or
-   supported syntax changes.
+4. Update the relevant user guide, language reference, and compatibility
+   documentation when behavior or supported syntax changes. Keep `README.md`
+   focused on project orientation and links into those documents.
 5. Run the appropriate validation gates before opening a pull request.
 
 Keep interpreter behavior in `pkg/interpreter/`. The command under
@@ -57,6 +58,19 @@ make corpus-playable
 The full test suite uses the race detector and enforces at least 80% total
 statement coverage. Fuzzing is deliberately time-bounded; preserve useful
 regression seeds when a fuzzer finds a defect.
+
+## Releases
+
+Tags matching `v*` trigger `.github/workflows/release.yml`. The workflow repeats
+the quality, fuzz, compatibility, and vulnerability gates, then publishes
+checksummed Linux (`amd64`, `arm64`), macOS (`amd64`, `arm64`), and Windows
+(`amd64`) archives.
+
+Build and verify the same artifact set locally before tagging:
+
+```bash
+make release-check VERSION=v0.1.0
+```
 
 ## Pull requests
 
