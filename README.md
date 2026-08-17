@@ -198,6 +198,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`82_Stars/stars.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/82_Stars/stars.bas)
 - [`83_Stock_Market/stockmarket.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/83_Stock_Market/stockmarket.bas)
 - [`84_Super_Star_Trek/superstartrek.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/84_Super_Star_Trek/superstartrek.bas) and [`superstartrekins.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/84_Super_Star_Trek/superstartrekins.bas)
+- [`85_Synonym/synonym.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/85_Synonym/synonym.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -425,6 +426,9 @@ prices, holdings, cash, and total assets, then exits normally.
 Super Star Trek's seeded transcript exercises sensors, navigation validation,
 shield control, movement, weapons validation, the library computer, and a
 normal resignation; its companion program renders the complete instructions.
+Synonym's seeded transcript rejects a wrong answer, exercises the help path,
+answers all ten distinct questions, verifies the randomized praise, and exits
+normally after completing the drill.
 
 ## Testing
 

@@ -1213,6 +1213,17 @@ func TestCLI(t *testing.T) {
 		})
 	})
 
+	t.Run("completes the original Synonym program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "synonym.bas"))
+		command.Stdin = strings.NewReader("NOPE\nHELP\nSUFFERING\nSTART\nPATTERN\nHOLE\n" +
+			"ALIKE\nROUGE\nSHOVE\nLITTLE\nDWELLING\nHALT\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertSynonymTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -3949,6 +3960,40 @@ func assertSuperStarTrekInstructions(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "GALACTIC REGIONS REFERRED TO IN THE GAME.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-65):])
+	}
+}
+
+func assertSynonymTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "SYNONYM\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"A SYNONYM OF A WORD MEANS ANOTHER WORD IN THE ENGLISH\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"WHAT IS A SYNONYM OF PAIN?      TRY AGAIN.",
+		"**** A SYNONYM OF PAIN IS SUFFERING.",
+		"WHAT IS A SYNONYM OF PAIN? GOOD!",
+		"WHAT IS A SYNONYM OF FIRST? CORRECT",
+		"WHAT IS A SYNONYM OF MODEL? RIGHT",
+		"WHAT IS A SYNONYM OF PIT? CHECK",
+		"WHAT IS A SYNONYM OF SIMILAR? CORRECT",
+		"WHAT IS A SYNONYM OF RED? CORRECT",
+		"WHAT IS A SYNONYM OF PUSH? RIGHT",
+		"WHAT IS A SYNONYM OF SMALL? FINE",
+		"WHAT IS A SYNONYM OF HOUSE? CORRECT",
+		"WHAT IS A SYNONYM OF STOP? CORRECT",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "WHAT IS A SYNONYM OF "), 12; got != want {
+		t.Fatalf("question prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nSYNONYM DRILL COMPLETED.\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-40):])
 	}
 }
 
