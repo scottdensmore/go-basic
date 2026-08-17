@@ -203,6 +203,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`88_3-D_Tic-Tac-Toe/qubit.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/88_3-D_Tic-Tac-Toe/qubit.bas)
 - [`89_Tic-Tac-Toe/tictactoe1.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/89_Tic-Tac-Toe/tictactoe1.bas) and [`tictactoe2.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/89_Tic-Tac-Toe/tictactoe2.bas)
 - [`90_Tower/tower.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/90_Tower/tower.bas)
+- [`91_Train/train.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/91_Train/train.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -445,6 +446,9 @@ rejects occupied squares, renders every board, and exits normally.
 Tower's transcript validates disk-count, disk-code, needle, and replay inputs,
 rejects blocked and unsafe moves, solves a three-disk puzzle in the optimal
 seven moves, verifies the congratulations, and exits normally.
+Train's seeded transcript answers two generated rate problems, verifies both
+the inaccurate and within-tolerance scoring paths and their exact solutions,
+then declines another problem and exits normally.
 
 ## Testing
 
