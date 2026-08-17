@@ -334,6 +334,17 @@ func TestCLI(t *testing.T) {
 		assertCheckersTranscript(t, path, string(output))
 	})
 
+	t.Run("plays a turn with the annotated Checkers program", func(t *testing.T) {
+		path := filepath.Join("scripts", "checkers-annotated.bas")
+		command := exec.Command(binary, path)
+		command.Stdin = strings.NewReader("0,2\n1,3\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertAnnotatedCheckersTranscript(t, path, string(output))
+	})
+
 	t.Run("plays the original Chemist program", func(t *testing.T) {
 		path := filepath.Join("scripts", "chemist.bas")
 		command := exec.Command(binary, "-seed", "0", path)
@@ -2017,6 +2028,15 @@ func changeOutput() string {
 
 func assertCheckersTranscript(t *testing.T, path, transcript string) {
 	t.Helper()
+	assertCheckersGameplay(t, transcript)
+	suffix := "FROM? go-basic: run " + path + ": BASIC line 1590: read input: EOF\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
+	}
+}
+
+func assertCheckersGameplay(t *testing.T, transcript string) {
+	t.Helper()
 	prefix := strings.Repeat(" ", 32) + "CHECKERS\n" +
 		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
 		"THIS IS THE GAME OF CHECKERS.  THE COMPUTER IS X,\n"
@@ -2039,7 +2059,12 @@ func assertCheckersTranscript(t *testing.T, path, transcript string) {
 	if got, want := strings.Count(transcript, "\x1eFROM"), 2; got != want {
 		t.Fatalf("computer moves: got %d, want %d", got, want)
 	}
-	suffix := "FROM? go-basic: run " + path + ": BASIC line 1590: read input: EOF\n"
+}
+
+func assertAnnotatedCheckersTranscript(t *testing.T, path, transcript string) {
+	t.Helper()
+	assertCheckersGameplay(t, transcript)
+	suffix := "FROM? go-basic: run " + path + ": BASIC line 1740: read input: EOF\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
