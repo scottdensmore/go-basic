@@ -12,8 +12,8 @@ import (
 	"go-basic/pkg/interpreter"
 )
 
-// Version is replaced by the release build through -ldflags.
-var Version = "dev"
+// version is replaced by the release build through -ldflags.
+var version = "dev"
 
 func main() {
 	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
@@ -36,7 +36,7 @@ func run(arguments []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if *showVersion {
-		if _, err := fmt.Fprintf(stdout, "go-basic version %s\n", Version); err != nil {
+		if _, err := fmt.Fprintf(stdout, "go-basic version %s\n", version); err != nil {
 			return 1
 		}
 		return 0

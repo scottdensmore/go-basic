@@ -9,9 +9,9 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	oldVersion := Version
-	Version = "test-version"
-	t.Cleanup(func() { Version = oldVersion })
+	oldVersion := version
+	version = "test-version"
+	t.Cleanup(func() { version = oldVersion })
 
 	tests := []struct {
 		name       string

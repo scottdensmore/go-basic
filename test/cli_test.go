@@ -1427,7 +1427,7 @@ func buildCLI(t *testing.T, version string) string {
 		name += ".exe"
 	}
 	path := filepath.Join(t.TempDir(), name)
-	command := exec.Command("go", "build", "-ldflags", "-X main.Version="+version, "-o", path, "../cmd/go-basic")
+	command := exec.Command("go", "build", "-ldflags", "-X main.version="+version, "-o", path, "../cmd/go-basic")
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("build CLI: %v\n%s", err, output)
 	}

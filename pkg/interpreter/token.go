@@ -75,7 +75,7 @@ const (
 	TAN TokenType = "TAN"
 	// ATN computes an arctangent value in radians.
 	ATN TokenType = "ATN"
-	// INPUT is recognized so the parser can report that it is unsupported.
+	// INPUT reads numeric and string values from the evaluator's input stream.
 	INPUT TokenType = "INPUT"
 	// AND performs Microsoft BASIC integer logical conjunction.
 	AND TokenType = "AND"

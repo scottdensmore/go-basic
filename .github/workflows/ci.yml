@@ -41,8 +41,10 @@ jobs:
       - name: Test with race detector and coverage
         run: make coverage-check
 
-      - name: Build CLI
-        run: make build
+      - name: Build CLI and release archives
+        run: |
+          make build
+          make release-check VERSION=ci
 
   lint:
     name: Lint
