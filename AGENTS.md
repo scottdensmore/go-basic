@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-`pkg/interpreter/` contains the product code: token definitions, lexer, AST, parser, and evaluator. Keep language behavior there rather than in command or test helpers. `cmd/go-basic/` is the thin CLI entry point. Unit tests live beside their implementation as `*_test.go`; `test/` contains black-box CLI tests and BASIC fixtures under `test/scripts/`. `SPEC.MD` defines the Microsoft 8K/6502 BASIC compatibility goal, while `README.md` documents user-facing behavior.
+`pkg/interpreter/` contains the product code: token definitions, lexer, AST, parser, and evaluator. Keep language behavior there rather than in command or test helpers. `cmd/go-basic/` is the thin CLI entry point; `cmd/corpus-*` and `internal/corpus/` implement the pinned external-corpus test tier. Unit tests live beside their implementation as `*_test.go`; `test/` contains black-box CLI tests and BASIC fixtures under `test/scripts/`. `SPEC.MD` defines the Microsoft 8K/6502 BASIC compatibility goal, while `README.md` documents user-facing behavior.
 
 ## Build, Test, and Development Commands
 
@@ -12,6 +12,8 @@
 - `make check`: enforce formatting, vet, 80% coverage, and golangci-lint.
 - `make fuzz`: fuzz the lexer and parser for ten seconds each.
 - `make build`: build the CLI as `bin/go-basic`.
+- `make corpus-smoke`: fetch and run all 112 byte-distinct pinned corpus variants.
+- `make corpus-playable`: run the complete deterministic CLI gameplay suite.
 
 Pushing a `v*` tag triggers `.github/workflows/release.yml`, which cross-compiles Linux, Windows, and macOS release binaries.
 
