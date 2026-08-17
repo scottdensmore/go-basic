@@ -204,6 +204,7 @@ changes and verifies exact transcripts or stable full-gameplay milestones:
 - [`89_Tic-Tac-Toe/tictactoe1.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/89_Tic-Tac-Toe/tictactoe1.bas) and [`tictactoe2.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/89_Tic-Tac-Toe/tictactoe2.bas)
 - [`90_Tower/tower.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/90_Tower/tower.bas)
 - [`91_Train/train.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/91_Train/train.bas)
+- [`92_Trap/trap.bas`](https://github.com/coding-horror/basic-computer-games/blob/main/92_Trap/trap.bas)
 
 Animal's deterministic transcript teaches and recalls a new animal, then ends
 at the next input prompt because the original program has no quit command.
@@ -449,6 +450,9 @@ seven moves, verifies the congratulations, and exits normally.
 Train's seeded transcript answers two generated rate problems, verifies both
 the inaccurate and within-tolerance scoring paths and their exact solutions,
 then declines another problem and exits normally.
+Trap's seeded transcript prints the instructions, exercises larger, smaller,
+and trapped hints including reversed bounds, guesses the exact number on its
+fourth turn, and stops at a stable limit before the automatic next round.
 
 ## Testing
 

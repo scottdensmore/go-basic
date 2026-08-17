@@ -1291,6 +1291,17 @@ func TestCLI(t *testing.T) {
 		assertTrainTranscript(t, string(output))
 	})
 
+	t.Run("wins the original Trap program", func(t *testing.T) {
+		path := filepath.Join("scripts", "trap.bas")
+		command := exec.Command(binary, "-seed", "0", "-max-statements", "65", path)
+		command.Stdin = strings.NewReader("YES\n1,50\n100,99\n90,100\n95,95\n")
+		output, err := command.CombinedOutput()
+		if exitCode(err) != 1 {
+			t.Fatalf("exit: got %v, output %q", err, output)
+		}
+		assertTrapTranscript(t, string(output), path)
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -4247,6 +4258,35 @@ func assertTrainTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "\nANOTHER PROBLEM (YES OR NO)? \n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-45):])
+	}
+}
+
+func assertTrapTranscript(t *testing.T, transcript, path string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 34) + "TRAP\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nINSTRUCTIONS? " +
+		"I AM THINKING OF A NUMBER BETWEEN 1 AND100\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU GET6GUESSES TO GET MY NUMBER.",
+		"GUESS #1? MY NUMBER IS LARGER THAN YOUR TRAP NUMBERS.",
+		"GUESS #2? MY NUMBER IS SMALLER THAN YOUR TRAP NUMBERS.",
+		"GUESS #3? YOU HAVE TRAPPED MY NUMBER.",
+		"GUESS #4? YOU GOT IT!!!",
+		"TRY AGAIN.",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "GUESS #"), 4; got != want {
+		t.Fatalf("guess prompts: got %d, want %d", got, want)
+	}
+	suffix := "go-basic: run " + path + ": BASIC line 440: statement limit 65 reached\n"
+	if !strings.HasSuffix(transcript, suffix) {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)-25):])
 	}
 }
 
