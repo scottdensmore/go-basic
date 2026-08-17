@@ -1312,6 +1312,16 @@ func TestCLI(t *testing.T) {
 		assert23MatchesTranscript(t, string(output))
 	})
 
+	t.Run("plays the original War program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "war.bas"))
+		command.Stdin = strings.NewReader("MAYBE\nYES\n" + strings.Repeat("YES\n", 25))
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertWarTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -4334,6 +4344,45 @@ func assert23MatchesTranscript(t *testing.T, transcript string) {
 	}
 	if !strings.HasSuffix(transcript, "\nGOOD BYE LOSER!\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
+}
+
+func assertWarTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "WAR\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"THIS IS THE CARD GAME OF WAR.  EACH CARD IS GIVEN BY SUIT-#\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YES OR NO, PLEASE.  DO YOU WANT DIRECTIONS?",
+		"THE COMPUTER GIVES YOU AND IT A 'CARD'.",
+		"YOU: H-A      COMPUTER: S-5",
+		"YOU: D-Q      COMPUTER: C-Q",
+		"YOU: H-7      COMPUTER: H-6",
+		"WE HAVE RUN OUT OF CARDS.  FINAL SCORE:  YOU: 9  THE COMPUTER: 15",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	for label, testCase := range map[string]struct {
+		needle string
+		want   int
+	}{
+		"rounds":        {"\nYOU: ", 26},
+		"player wins":   {"YOU WIN. YOU HAVE", 9},
+		"computer wins": {"THE COMPUTER WINS!!!", 15},
+		"ties":          {"TIE.  NO SCORE CHANGE.", 2},
+		"continue":      {"DO YOU WANT TO CONTINUE? ", 25},
+	} {
+		if got := strings.Count(transcript, testCase.needle); got != testCase.want {
+			t.Fatalf("%s: got %d, want %d", label, got, testCase.want)
+		}
+	}
+	if !strings.HasSuffix(transcript, "THANKS FOR PLAYING.  IT WAS FUN.\n\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-45):])
 	}
 }
 
