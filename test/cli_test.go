@@ -1302,6 +1302,16 @@ func TestCLI(t *testing.T) {
 		assertTrapTranscript(t, string(output), path)
 	})
 
+	t.Run("plays the original 23 Matches program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "23-matches.bas"))
+		command.Stdin = strings.NewReader("4\n1\n2\n3\n1\n1\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assert23MatchesTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -4287,6 +4297,43 @@ func assertTrapTranscript(t *testing.T, transcript, path string) {
 	suffix := "go-basic: run " + path + ": BASIC line 440: statement limit 65 reached\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)-25):])
+	}
+}
+
+func assert23MatchesTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 31) + "23 MATCHES\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		" THIS IS A GAME CALLED '23 MATCHES'.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"HEADS! I WIN! HA! HA!",
+		"I TAKE 2 MATCHES",
+		"VERY FUNNY! DUMMY!",
+		"DO YOU WANT TO PLAY OR GOOF AROUND?",
+		"THERE ARE NOW20MATCHES REMAINING.",
+		"MY TURN ! I REMOVE3MATCHES",
+		"THERE ARE NOW15MATCHES REMAINING.",
+		"MY TURN ! I REMOVE2MATCHES",
+		"THERE ARE NOW10MATCHES REMAINING.",
+		"MY TURN ! I REMOVE1MATCHES",
+		"THERE ARE NOW4MATCHES REMAINING.",
+		"YOU POOR BOOB! YOU TOOK THE LAST MATCH! I GOTCHA!!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "HOW MANY DO YOU WISH TO REMOVE"), 5; got != want {
+		t.Fatalf("initial prompts: got %d, want %d", got, want)
+	}
+	if got, want := strings.Count(transcript, "HOW MANY MATCHES DO YOU WANT"), 1; got != want {
+		t.Fatalf("retry prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nGOOD BYE LOSER!\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
 	}
 }
 
