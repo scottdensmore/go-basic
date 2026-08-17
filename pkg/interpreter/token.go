@@ -81,6 +81,8 @@ const (
 	AND TokenType = "AND"
 	// OR performs Microsoft BASIC integer logical disjunction.
 	OR TokenType = "OR"
+	// NOT performs Microsoft BASIC 16-bit integer logical negation.
+	NOT TokenType = "NOT"
 	// IF conditionally transfers control.
 	IF TokenType = "IF"
 	// THEN introduces an IF target line.
@@ -165,6 +167,7 @@ var keywords = map[string]TokenType{
 	"input":   INPUT,
 	"and":     AND,
 	"or":      OR,
+	"not":     NOT,
 	"if":      IF,
 	"then":    THEN,
 	"goto":    GOTO,

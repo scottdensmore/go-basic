@@ -132,6 +132,22 @@ func TestLexerRecognizesArctangent(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesNotAndOnGosub(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("10 IF NOT A THEN 20\n30 ON X GOSUB 100,200\n")
+	want := []TokenType{
+		NUMBER, IF, NOT, IDENT, THEN, NUMBER, EOL,
+		NUMBER, ON, IDENT, GOSUB, NUMBER, COMMA, NUMBER, EOL,
+		EOF,
+	}
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func TestLexerRecognizesKeywordsAdjacentToNumbers(t *testing.T) {
 	t.Parallel()
 

@@ -88,6 +88,17 @@ func (os *OnGotoStatement) String() string {
 	return fmt.Sprintf("ON %s GOTO ...", os.Selector.String())
 }
 
+// OnGosubStatement calls a subroutine using a one-based computed target index.
+type OnGosubStatement struct {
+	Selector Expression
+	Targets  []int
+}
+
+func (os *OnGosubStatement) statementNode() {}
+func (os *OnGosubStatement) String() string {
+	return fmt.Sprintf("ON %s GOSUB ...", os.Selector.String())
+}
+
 // EndStatement terminates program execution successfully.
 type EndStatement struct{}
 
@@ -281,6 +292,9 @@ type PrefixExpression struct {
 
 func (pe *PrefixExpression) expressionNode() {}
 func (pe *PrefixExpression) String() string {
+	if pe.Operator == string(NOT) {
+		return fmt.Sprintf("(NOT %s)", pe.Right.String())
+	}
 	return fmt.Sprintf("(%s%s)", pe.Operator, pe.Right.String())
 }
 

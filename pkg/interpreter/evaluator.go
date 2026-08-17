@@ -302,12 +302,7 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 		if value == nil {
 			return errors.New("invalid GOSUB statement")
 		}
-		returnPosition := executionPosition{LineIndex: e.CurrentLineIndex, StatementIndex: e.statementIndex + 1}
-		if err := e.jumpTo(value.TargetLine); err != nil {
-			return err
-		}
-		e.returnStack = append(e.returnStack, returnPosition)
-		return nil
+		return e.gosub(value.TargetLine)
 	case *ReturnStatement:
 		if value == nil {
 			return errors.New("invalid RETURN statement")
@@ -323,6 +318,8 @@ func (e *Evaluator) evalStatement(statement Statement) error {
 		return nil
 	case *OnGotoStatement:
 		return e.evalOnGotoStatement(value)
+	case *OnGosubStatement:
+		return e.evalOnGosubStatement(value)
 	case *EndStatement:
 		if value == nil {
 			return errors.New("invalid statement")
@@ -595,21 +592,49 @@ func (e *Evaluator) evalOnGotoStatement(statement *OnGotoStatement) error {
 	if statement == nil || statement.Selector == nil || len(statement.Targets) == 0 {
 		return errors.New("invalid ON GOTO statement")
 	}
-	selector, err := e.evalNumber(statement.Selector)
+	target, selected, err := e.selectOnTarget(statement.Selector, statement.Targets, "ON GOTO")
+	if err != nil || !selected {
+		return err
+	}
+	return e.jumpTo(target)
+}
+
+func (e *Evaluator) evalOnGosubStatement(statement *OnGosubStatement) error {
+	if statement == nil || statement.Selector == nil || len(statement.Targets) == 0 {
+		return errors.New("invalid ON GOSUB statement")
+	}
+	target, selected, err := e.selectOnTarget(statement.Selector, statement.Targets, "ON GOSUB")
+	if err != nil || !selected {
+		return err
+	}
+	return e.gosub(target)
+}
+
+func (e *Evaluator) selectOnTarget(selectorExpression Expression, targets []int, operation string) (int, bool, error) {
+	selector, err := e.evalNumber(selectorExpression)
 	if err != nil {
-		return fmt.Errorf("ON GOTO selector: %w", err)
+		return 0, false, fmt.Errorf("%s selector: %w", operation, err)
 	}
 	if selector != math.Trunc(selector) {
-		return errors.New("ON GOTO selector must be an integer")
+		return 0, false, fmt.Errorf("%s selector must be an integer", operation)
 	}
 	if selector < 0 {
-		return errors.New("ON GOTO selector must be non-negative")
+		return 0, false, fmt.Errorf("%s selector must be non-negative", operation)
 	}
 	index := int(selector) - 1
-	if index < 0 || index >= len(statement.Targets) {
-		return nil
+	if index < 0 || index >= len(targets) {
+		return 0, false, nil
 	}
-	return e.jumpTo(statement.Targets[index])
+	return targets[index], true, nil
+}
+
+func (e *Evaluator) gosub(target int) error {
+	returnPosition := executionPosition{LineIndex: e.CurrentLineIndex, StatementIndex: e.statementIndex + 1}
+	if err := e.jumpTo(target); err != nil {
+		return err
+	}
+	e.returnStack = append(e.returnStack, returnPosition)
+	return nil
 }
 
 func (e *Evaluator) assignScalar(name string, value any) error {
@@ -823,10 +848,18 @@ func (e *Evaluator) evalExpression(expression Expression) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		if value.Operator != "-" {
+		switch value.Operator {
+		case "-":
+			return -right, nil
+		case "NOT":
+			integer, err := logicalInteger(right)
+			if err != nil {
+				return nil, fmt.Errorf("NOT operand: %w", err)
+			}
+			return float64(^integer), nil
+		default:
 			return nil, fmt.Errorf("unsupported prefix operator %q", value.Operator)
 		}
-		return -right, nil
 	case *InfixExpression:
 		return e.evalInfixExpression(value)
 	case *CallExpression:
