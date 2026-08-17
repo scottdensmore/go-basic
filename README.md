@@ -6,17 +6,28 @@
 [![Go version](https://img.shields.io/github/go-mod/go-version/scottdensmore/go-basic)](go.mod)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+![A vintage computer running BASIC, connected to an abstract software pipeline](docs/assets/go-basic-hero.jpg)
+
 A cross-platform interpreter for classic, line-numbered BASIC, written in Go.
 It targets Microsoft 8K BASIC behavior and is continuously exercised against
 all 112 byte-distinct original BASIC programs in the pinned
 [BASIC Computer Games](https://github.com/coding-horror/basic-computer-games)
 corpus.
 
+## Why go-basic?
+
+- Run classic BASIC programs on Linux, macOS, and Windows.
+- Get actionable source, BASIC-line, and runtime diagnostics.
+- Reproduce programs with controlled random seeds and statement limits.
+- Depend on a small Go codebase with no third-party runtime dependencies.
+- Verify compatibility against every distinct source in a pinned historical
+  corpus.
+
 ## Quick start
 
-go-basic requires Go 1.26.6 or newer. Download a checksummed archive from the
+Download a checksummed archive from the
 [latest release](https://github.com/scottdensmore/go-basic/releases/latest), or
-build it from source:
+build from source with Go 1.26.6 or newer:
 
 ```bash
 git clone https://github.com/scottdensmore/go-basic.git
@@ -36,87 +47,27 @@ Hello World
 5 25
 ```
 
-On Windows, run `bin\go-basic.exe test\scripts\test.bas` after building with
-`go build -o bin\go-basic.exe ./cmd/go-basic`.
+## Documentation
 
-## Usage
-
-```text
-go-basic [-version] [-seed number] [-max-statements number] source.bas
-```
-
-| Option | Purpose |
+| Guide | What it covers |
 | --- | --- |
-| `-version` | Print build version information and exit. |
-| `-seed number` | Seed `RND` for reproducible runs. |
-| `-max-statements number` | Stop before executing more than this many statements; `0` is unlimited. |
+| [Getting started](docs/getting-started.md) | Installation, CLI options, input, reproducibility, and errors |
+| [How it works](docs/how-it-works.md) | Source preparation, lexing, parsing, evaluation, and package boundaries |
+| [Language reference](docs/language-reference.md) | Supported syntax, statements, operators, functions, and extensions |
+| [Compatibility](docs/compatibility.md) | Pinned corpus, acceptance tiers, results, and known upstream exception |
+| [Contributing](CONTRIBUTING.md) | Development workflow, testing expectations, and pull requests |
 
-Programs read `INPUT` values from standard input and write program output to
-standard output. Parse and runtime failures are written to standard error with
-the source file and BASIC line context.
+## Supported at a glance
 
-## Language support
+go-basic supports numeric and string values, arrays, arithmetic and 16-bit
+logical operators, subroutines and loops, interactive input and formatted
+printing, `DATA`/`READ`, user-defined numeric functions, and the common
+Microsoft BASIC numeric and string function set.
 
-| Area | Supported behavior |
-| --- | --- |
-| Values | Numeric and string scalars; explicitly or implicitly dimensioned numeric and string arrays |
-| Arithmetic | `+`, `-`, `*`, `/`, right-associative `^` |
-| Logic | Comparisons plus Microsoft-style 16-bit `NOT`, `AND`, and `OR` |
-| Control flow | `IF...THEN`, `FOR...NEXT`, `GOTO`, `GOSUB...RETURN`, computed `ON...GOTO` and `ON...GOSUB`, `END`, `STOP` |
-| Input/output | `INPUT`, `PRINT`, comma print zones, semicolon suppression, `TAB` |
-| Data | `DIM`, `DATA`, `READ`, `RESTORE` |
-| Numeric functions | `ABS`, `SGN`, `INT`, `SIN`, `COS`, `TAN`, `ATN`, `SQR`, `LOG`, `EXP`, `RND` |
-| String functions | `LEFT$`, `RIGHT$`, `MID$`, `LEN`, `STR$`, `VAL`, `CHR$`, `ASC` |
-| Other | `LET`, `DEF FN`, `REM`, colon-separated statements, and the `SLEEP` extension |
-
-The corpus methodology, acceptance criteria, and known upstream exception are
-documented in [docs/compatibility.md](docs/compatibility.md).
-
-## Development
-
-The repository has no third-party runtime dependencies. Common workflows are:
-
-```bash
-make fmt             # format Go packages
-make test            # race-enabled unit and black-box CLI tests
-make check           # formatting, vet, coverage, and lint
-make fuzz            # bounded lexer and parser fuzzing
-make vuln            # pinned govulncheck scan
-make build           # build bin/go-basic
-make corpus-smoke    # all 112 pinned byte-distinct corpus variants
-make corpus-playable # complete deterministic CLI gameplay suite
-```
-
-`make check` enforces an 80% total statement-coverage minimum. Tool binaries
-are pinned by the Makefile and installed under the ignored `.tools/` directory;
-the downloaded corpus is pinned by commit and cached under ignored `.cache/`.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the change workflow and validation
-expectations.
-
-## Project layout
-
-```text
-cmd/go-basic/       CLI entry point
-cmd/corpus-*/       pinned corpus tooling
-internal/corpus/    corpus acquisition, discovery, and bounded execution
-pkg/interpreter/    lexer, parser, AST, structured lowering, and evaluator
-test/               black-box CLI tests and BASIC fixtures
-.github/workflows/  CI and release automation
-```
-
-## Releases
-
-Tags matching `v*` trigger the release workflow. It runs the complete quality,
-fuzz, compatibility, and vulnerability gates, then publishes archives for Linux
-(`amd64`, `arm64`), macOS (`amd64`, `arm64`), and Windows (`amd64`) with
-`SHA256SUMS`.
-
-Maintainers can build and verify the same artifact set locally:
-
-```bash
-make release-check VERSION=v0.1.0
-```
+The [language reference](docs/language-reference.md) is the source of truth for
+the implemented language surface. Passing the external corpus is strong
+compatibility evidence, not a claim of universal support for every BASIC
+dialect or hardware-specific feature.
 
 ## License
 

@@ -75,5 +75,6 @@ vulnerability gates before publishing artifacts.
 
 Passing the corpus is strong evidence for the supported language surface, but
 it is not a claim that every Microsoft BASIC dialect or hardware-specific
-feature is implemented. Supported behavior is summarized in the
-[README](../README.md) and enforced by the product and compatibility tests.
+feature is implemented. Supported behavior is documented in the
+[language reference](language-reference.md) and enforced by the product and
+compatibility tests.
