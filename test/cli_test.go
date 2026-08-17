@@ -1354,6 +1354,16 @@ func TestCLI(t *testing.T) {
 		}
 	})
 
+	t.Run("wins the original Word program", func(t *testing.T) {
+		command := exec.Command(binary, "-seed", "0", filepath.Join("scripts", "word.bas"))
+		command.Stdin = strings.NewReader("BAD\nDUMMY\nHONEY\nDOPEY\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertWordTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -4437,6 +4447,35 @@ func assertWeekdayTranscript(t *testing.T, transcript string, milestones []strin
 	}
 	if got, want := strings.Count(transcript, "ENTER DAY OF BIRTH (OR OTHER DAY OF INTEREST)? "), 1; got != want {
 		t.Fatalf("interest prompts: got %d, want %d", got, want)
+	}
+}
+
+func assertWordTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "WORD\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
+		"I AM THINKING OF A WORD -- YOU GUESS IT.  I WILL GIVE YOU\n" +
+		"CLUES TO HELP YOU GET IT.  GOOD LUCK!!\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"YOU MUST GUESS A 5 LETTER WORD.  START AGAIN.",
+		"THERE WERE2MATCHES AND THE COMMON LETTERS WERE...DY",
+		"FROM THE EXACT LETTER MATCHES, YOU KNOW................D---Y",
+		"THERE WERE3MATCHES AND THE COMMON LETTERS WERE...OEY",
+		"FROM THE EXACT LETTER MATCHES, YOU KNOW................DO-EY",
+		"YOU HAVE GUESSED THE WORD.  IT TOOK3GUESSES!",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "GUESS A FIVE LETTER WORD? "), 4; got != want {
+		t.Fatalf("guess prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nWANT TO PLAY AGAIN? ") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
 	}
 }
 
