@@ -1270,6 +1270,17 @@ func TestCLI(t *testing.T) {
 		})
 	})
 
+	t.Run("solves the original Tower program", func(t *testing.T) {
+		command := exec.Command(binary, filepath.Join("scripts", "tower.bas"))
+		command.Stdin = strings.NewReader("8\n3\n99\n11\n4\n3\n15\n13\n3\n13\n2\n" +
+			"11\n2\n15\n3\n11\n1\n13\n3\n11\n3\nMAYBE\nNO\n")
+		output, err := command.CombinedOutput()
+		if err != nil {
+			t.Fatalf("run CLI: %v\n%s", err, output)
+		}
+		assertTowerTranscript(t, string(output))
+	})
+
 	t.Run("prints its version", func(t *testing.T) {
 		output, err := exec.Command(binary, "-version").CombinedOutput()
 		if err != nil {
@@ -4166,6 +4177,35 @@ func assertTicTacToe2Transcript(t *testing.T, transcript string) {
 		t.Fatalf("computer moves: got %d, want %d", got, want)
 	}
 	if !strings.HasSuffix(transcript, "\nI WIN, TURKEY!!!\n") {
+		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
+	}
+}
+
+func assertTowerTranscript(t *testing.T, transcript string) {
+	t.Helper()
+	prefix := strings.Repeat(" ", 33) + "TOWERS\n" + strings.Repeat(" ", 15) +
+		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n\nTOWERS OF HANOI PUZZLE.\n"
+	if !strings.HasPrefix(transcript, prefix) {
+		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
+	}
+	for _, milestone := range []string{
+		"SORRY, BUT I CAN'T DO THAT JOB FOR YOU.",
+		"ILLEGAL ENTRY... YOU MAY ONLY TYPE 3,5,7,9,11,13, OR 15.",
+		"I'LL ASSUME YOU HIT THE WRONG KEY THIS TIME.  BUT WATCH IT,",
+		"THAT DISK IS BELOW ANOTHER ONE.  MAKE ANOTHER CHOICE.",
+		"YOU CAN'T PLACE A LARGER DISK ON TOP OF A SMALLER ONE,",
+		"CONGRATULATIONS!!",
+		"YOU HAVE PERFORMED THE TASK IN7MOVES.",
+		"'YES' OR 'NO' PLEASE",
+	} {
+		if !strings.Contains(transcript, milestone) {
+			t.Fatalf("transcript missing %q", milestone)
+		}
+	}
+	if got, want := strings.Count(transcript, "WHICH DISK WOULD YOU LIKE TO MOVE? "), 9; got != want {
+		t.Fatalf("disk prompts: got %d, want %d", got, want)
+	}
+	if !strings.HasSuffix(transcript, "\nTHANKS FOR THE GAME!\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
 	}
 }
