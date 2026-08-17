@@ -3,16 +3,37 @@ COVERAGE_MIN ?= 80
 GOLANGCI_LINT_VERSION ?= v2.12.2
 GOVULNCHECK_VERSION ?= v1.6.0
 CORPUS_COMMIT ?= 5301155192d91d74d337899cecc59dbda59c4c17
+VERSION ?= dev
 TOOLS_BIN := $(CURDIR)/.tools/bin
 GOLANGCI_LINT := $(TOOLS_BIN)/golangci-lint
 GOVULNCHECK := $(TOOLS_BIN)/govulncheck
 CORPUS_CACHE ?= $(CURDIR)/.cache/basic-computer-games/$(CORPUS_COMMIT)
+RELEASE_LDFLAGS := -s -w -X main.version=$(VERSION)
 
-.PHONY: build check clean corpus-fetch corpus-playable corpus-smoke coverage-check fmt fmt-check fuzz lint test tools vet vuln
+.PHONY: build check clean corpus-fetch corpus-playable corpus-smoke coverage-check fmt fmt-check fuzz lint release-build release-check test tools vet vuln
 
 build:
 	mkdir -p bin
 	$(GO) build -o bin/go-basic ./cmd/go-basic
+
+release-build:
+	rm -rf dist
+	mkdir -p dist/staging
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -trimpath -ldflags "$(RELEASE_LDFLAGS)" -o dist/staging/go-basic ./cmd/go-basic
+	tar -C dist/staging -czf dist/go-basic_$(VERSION)_linux_amd64.tar.gz go-basic
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -trimpath -ldflags "$(RELEASE_LDFLAGS)" -o dist/staging/go-basic ./cmd/go-basic
+	tar -C dist/staging -czf dist/go-basic_$(VERSION)_linux_arm64.tar.gz go-basic
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 $(GO) build -trimpath -ldflags "$(RELEASE_LDFLAGS)" -o dist/staging/go-basic ./cmd/go-basic
+	tar -C dist/staging -czf dist/go-basic_$(VERSION)_darwin_amd64.tar.gz go-basic
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 $(GO) build -trimpath -ldflags "$(RELEASE_LDFLAGS)" -o dist/staging/go-basic ./cmd/go-basic
+	tar -C dist/staging -czf dist/go-basic_$(VERSION)_darwin_arm64.tar.gz go-basic
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 $(GO) build -trimpath -ldflags "$(RELEASE_LDFLAGS)" -o dist/staging/go-basic.exe ./cmd/go-basic
+	zip -qj dist/go-basic_$(VERSION)_windows_amd64.zip dist/staging/go-basic.exe
+	rm -rf dist/staging
+	cd dist && sha256sum *.tar.gz *.zip > SHA256SUMS
+
+release-check: release-build
+	cd dist && sha256sum --check SHA256SUMS
 
 fmt:
 	$(GO) fmt ./...
@@ -71,4 +92,4 @@ check: fmt-check vet coverage-check lint
 clean:
 	$(GO) clean
 	rm -f coverage.out
-	rm -rf bin .tools
+	rm -rf bin dist .tools

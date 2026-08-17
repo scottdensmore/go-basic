@@ -34,6 +34,10 @@ A simple BASIC interpreter written in Go, targeting functionality equivalent to 
 
 You can build the interpreter for your current operating system using the standard `go build` command.
 
+Prebuilt archives for Linux, macOS, and Windows are available from
+[GitHub Releases](https://github.com/scottdensmore/go-basic/releases). Each
+release includes `SHA256SUMS` for verifying downloads.
+
 ### macOS & Linux
 
 ```bash
@@ -69,6 +73,15 @@ GOOS=darwin GOARCH=arm64 go build -o go-basic-mac-arm64 ./cmd/go-basic
 ```bash
 GOOS=darwin GOARCH=amd64 go build -o go-basic-mac-amd64 ./cmd/go-basic
 ```
+
+Maintainers can reproduce every release archive locally:
+
+```bash
+make release-check VERSION=v0.1.0
+```
+
+Pushing a `v*` tag runs the complete quality and corpus gates before publishing
+the checksummed archives and generated release notes.
 
 ## Running
 
