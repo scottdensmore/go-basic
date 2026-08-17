@@ -52,7 +52,12 @@ func run(arguments []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		_, _ = fmt.Fprintf(stderr, "go-basic: read %s: %v\n", path, err)
 		return 1
 	}
-	parser := interpreter.NewParser(interpreter.NewLexer(string(source)))
+	prepared, err := interpreter.PrepareSource(string(source))
+	if err != nil {
+		_, _ = fmt.Fprintf(stderr, "go-basic: prepare %s: %v\n", path, err)
+		return 1
+	}
+	parser := interpreter.NewParser(interpreter.NewLexer(prepared))
 	program := parser.ParseProgram()
 	if len(parser.Errors) != 0 {
 		_, _ = fmt.Fprintf(stderr, "go-basic: parse %s:\n%s\n", path, strings.Join(parser.Errors, "\n"))

@@ -660,7 +660,11 @@ func (p *Parser) parsePrefixExpression() Expression {
 }
 
 func (p *Parser) parseInfixExpression(left Expression) Expression {
-	expression := &InfixExpression{Left: left, Operator: p.current.Literal}
+	operator := p.current.Literal
+	if p.current.Type == AND || p.current.Type == OR {
+		operator = string(p.current.Type)
+	}
+	expression := &InfixExpression{Left: left, Operator: operator}
 	precedence := p.currentPrecedence()
 	p.nextToken()
 	expression.Right = p.parseExpression(precedence)
