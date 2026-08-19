@@ -40,11 +40,11 @@ Expected output:
 
 ```text
 Hello World
-1 1
-2 4
-3 9
-4 16
-5 25
+ 1   1 
+ 2   4 
+ 3   9 
+ 4   16 
+ 5   25 
 ```
 
 ## Documentation

@@ -22,7 +22,7 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 			source: `10 Total = 2 + 3 * 4
 20 PRINT total; " "; (total - 2) / 3
 `,
-			want: "14 4\n",
+			want: " 14   4 \n",
 		},
 		{
 			name: "explicit let assignments",
@@ -30,7 +30,7 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 20 LET B=A+3
 30 PRINT B
 `,
-			want: "5\n",
+			want: " 5 \n",
 		},
 		{
 			name: "positive loop",
@@ -39,7 +39,7 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 30 NEXT i
 40 PRINT
 `,
-			want: "123\n",
+			want: " 1  2  3 \n",
 		},
 		{
 			name: "comma separated next variables",
@@ -49,7 +49,7 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 40 NEXT Y,X
 50 PRINT
 `,
-			want: "11 12 21 22 \n",
+			want: " 1  1   1  2   2  1   2  2  \n",
 		},
 		{
 			name: "negative and fractional steps",
@@ -58,7 +58,7 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 30 NEXT i
 40 PRINT
 `,
-			want: "1 0.5 0 \n",
+			want: " 1   .5   0  \n",
 		},
 		{
 			name: "decimal arithmetic does not expose floating point noise",
@@ -66,39 +66,39 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 20 PRINT STR$(.1+.2);":";STR$(28.97-1.01)
 30 PRINT .6046602879796196
 `,
-			want: "0.3:27.96\n 0.3: 27.96\n0.6046602879796196\n",
+			want: " .3 : 27.96 \n .3: 27.96\n .604660288 \n",
 		},
 		{
 			name:   "scientific notation",
 			source: "10 PRINT 3.287828E-04;\" \";1E3;\" \";.5e+2\n",
-			want:   "0.0003287828 1000 50\n",
+			want:   " 3.287828E-04   1000   50 \n",
 		},
 		{
 			name: "functions and tabbing",
 			source: `10 PRINT TAB(3); SIN(0)
 `,
-			want: "   0\n",
+			want: "    0 \n",
 		},
 		{
 			name:   "cosine and tangent",
 			source: "10 PRINT COS(0); \" \"; TAN(0)\n",
-			want:   "1 0\n",
+			want:   " 1   0 \n",
 		},
 		{
 			name:   "arctangent",
 			source: "10 PRINT ATN(0); \" \"; ATN(1); \" \"; ATN(-1)\n",
-			want:   "0 0.7853981633974483 -0.7853981633974483\n",
+			want:   " 0   .785398163  -.785398163 \n",
 		},
 		{
 			name:   "natural logarithm",
 			source: "10 PRINT LOG(EXP(1)); \" \"; LOG(1)\n",
-			want:   "1 0\n",
+			want:   " 1   0 \n",
 		},
 		{
 			name: "integer floor and equality",
 			source: `10 PRINT INT(-1.2); " "; 1=2; " "; 2=2
 `,
-			want: "-2 0 -1\n",
+			want: "-2   0  -1 \n",
 		},
 		{
 			name: "absolute value and truncated array indices",
@@ -106,12 +106,12 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 20 A(1.9)=7
 30 PRINT ABS(-1.5); " "; A(1.5)
 `,
-			want: "1.5 7\n",
+			want: " 1.5   7 \n",
 		},
 		{
 			name:   "numeric sign",
 			source: "10 PRINT SGN(-2); \" \"; SGN(0); \" \"; SGN(2)\n",
-			want:   "-1 0 1\n",
+			want:   "-1   0   1 \n",
 		},
 		{
 			name: "conditionals jumps comments and end",
@@ -125,7 +125,7 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 80 END
 90 PRINT "after end"
 `,
-			want: "1right\n",
+			want: " 1 right\n",
 		},
 		{
 			name:   "multiple statements per line",
@@ -138,36 +138,36 @@ func TestEvaluatorRunsPrograms(t *testing.T) {
 20 DEF FNA(Z)=30*EXP(-Z*Z/100)
 30 PRINT INT(fna(SQR(9))); " "; Z
 `,
-			want: "27 99\n",
+			want: " 27   99 \n",
 		},
 		{
 			name: "numeric comparisons use Microsoft truth values",
 			source: `10 PRINT 1+2<2*2; " "; 2<=2; " "; 2>1; " "; 2>=2; " "; 1<>2; " "; 1=2
 `,
-			want: "-1 -1 -1 -1 -1 0\n",
+			want: "-1  -1  -1  -1  -1   0 \n",
 		},
 		{
 			name: "string variables default empty and compare lexically",
 			source: `10 PRINT A$=""; " "; "NO"<>"YES"; " "; "ACE">"KING"
 `,
-			want: "-1 -1 0\n",
+			want: "-1  -1   0 \n",
 		},
 		{
 			name: "AND uses Microsoft integer truth semantics",
 			source: `10 PRINT 5 AND 3; " "; -1 AND 2; " "; (3<>1) AND (4<>1)
 `,
-			want: "1 2 -1\n",
+			want: " 1   2  -1 \n",
 		},
 		{
 			name: "OR uses Microsoft integer truth semantics",
 			source: `10 PRINT 5 OR 2; " "; -1 OR 2; " "; (0<>1) OR (1=2)
 `,
-			want: "7 -1 -1\n",
+			want: " 7  -1  -1 \n",
 		},
 		{
 			name:   "NOT uses Microsoft integer truth semantics",
 			source: "10 PRINT NOT 0; \" \"; NOT -1; \" \"; NOT 1; \" \"; NOT 1=2 AND 1\n",
-			want:   "-1 0 -2 1\n",
+			want:   "-1   0  -2   1 \n",
 		},
 		{
 			name: "out of range ON GOTO falls through",
@@ -232,7 +232,7 @@ func TestEvaluatorRunsAmazingLanguageFeatures(t *testing.T) {
 	if err := evaluator.Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "SIZE? 7:3:4\nsecond\n"; got != want {
+	if got, want := output.String(), "SIZE?  7 : 3 : 4 \nsecond\n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -295,7 +295,7 @@ func TestEvaluatorContinuesWithinColonSeparatedSourceLines(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "123\n11\nA1A2\n"; got != want {
+	if got, want := output.String(), " 1  2  3 \n 11 \nA 1 A 2 \n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -308,7 +308,7 @@ func TestEvaluatorRunsKeywordsAdjacentToNumbers(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "13"; got != want {
+	if got, want := output.String(), " 1  3 "; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -349,12 +349,53 @@ func TestEvaluatorEmitsSpcSpacingAndReportsPosColumn(t *testing.T) {
 	}
 	want := "A" + strings.Repeat(" ", 5) + "B\n" +
 		"CD\n" +
-		"0\n" +
-		"EF2\n" +
-		"G" + strings.Repeat(" ", 13) + "14\n" +
-		strings.Repeat(" ", 6) + "6\n"
+		" 0 \n" +
+		"EF 2 \n" +
+		"G" + strings.Repeat(" ", 14) + "14 \n" +
+		strings.Repeat(" ", 7) + "6 \n"
 	if got := output.String(); got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
+func TestEvaluatorFormatsNumbersLikeMicrosoft(t *testing.T) {
+	t.Parallel()
+
+	for _, testCase := range []struct {
+		name   string
+		source string
+		want   string
+	}{
+		{name: "print pads each number with sign and trailing space", source: "10 PRINT 1;2;3\n", want: " 1  2  3 \n"},
+		{name: "negative sign replaces the leading space", source: "10 PRINT -7\n", want: "-7 \n"},
+		{name: "numbers separate adjacent literals", source: "10 PRINT \"A\";5;\"B\"\n", want: "A 5 B\n"},
+		{name: "zero", source: "10 PRINT 0\n", want: " 0 \n"},
+		{name: "fraction drops the leading zero", source: "10 PRINT .5\n", want: " .5 \n"},
+		{name: "negative fraction drops the leading zero", source: "10 PRINT -.5\n", want: "-.5 \n"},
+		{name: "nine significant digits", source: "10 PRINT 1/3\n", want: " .333333333 \n"},
+		{name: "nine significant digits with an integer part", source: "10 PRINT 100/3\n", want: " 33.3333333 \n"},
+		{name: "smallest fixed point magnitude", source: "10 PRINT .01\n", want: " .01 \n"},
+		{name: "below fixed point range uses exponent form", source: "10 PRINT .001\n", want: " 1E-03 \n"},
+		{name: "largest fixed point integer", source: "10 PRINT 999999999\n", want: " 999999999 \n"},
+		{name: "above fixed point range uses exponent form", source: "10 PRINT 1E9\n", want: " 1E+09 \n"},
+		{name: "large exponent", source: "10 PRINT 1E10\n", want: " 1E+10 \n"},
+		{name: "small exponent", source: "10 PRINT 1E-10\n", want: " 1E-10 \n"},
+		{name: "exponent form keeps significant digits", source: "10 PRINT 1234567890\n", want: " 1.23456789E+09 \n"},
+		{name: "trailing zeros are dropped", source: "10 PRINT 1.50\n", want: " 1.5 \n"},
+		{name: "binary residue stays hidden", source: "10 PRINT .1+.2\n", want: " .3 \n"},
+		{name: "strings are not padded", source: "10 PRINT STR$(5);\"|\";STR$(-5)\n", want: " 5|-5\n"},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			t.Parallel()
+
+			var output bytes.Buffer
+			if err := NewEvaluator(mustParse(t, testCase.source), &output).Run(); err != nil {
+				t.Fatalf("run: %v", err)
+			}
+			if got := output.String(); got != testCase.want {
+				t.Fatalf("output: got %q, want %q", got, testCase.want)
+			}
+		})
 	}
 }
 
@@ -373,7 +414,7 @@ func TestEvaluatorNamedNextUnwindsAbandonedInnerLoops(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "12\n"; got != want {
+	if got, want := output.String(), " 1  2 \n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -387,7 +428,7 @@ func TestEvaluatorRunsBagelsStringFunction(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "65:65\n"; got != want {
+	if got, want := output.String(), " 65 : 65 \n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -402,7 +443,7 @@ func TestEvaluatorRunsAwariExpressions(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "512:-4:4\nAZ\n"; got != want {
+	if got, want := output.String(), " 512 :-4 : 4 \nAZ\n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -422,7 +463,7 @@ func TestEvaluatorReadsProgramDataIntoScalarsAndArrays(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "<>\nCAT:12:DOG\n"; got != want {
+	if got, want := output.String(), "<>\nCAT: 12 :DOG\n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -454,7 +495,7 @@ func TestEvaluatorRestoreResetsProgramData(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "7:9:7\n"; got != want {
+	if got, want := output.String(), " 7 : 9 : 7 \n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -472,7 +513,7 @@ func TestEvaluatorAutoDimensionsArrays(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "0:7::OK:9\n"; got != want {
+	if got, want := output.String(), " 0 : 7 ::OK: 9 \n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -489,7 +530,7 @@ func TestEvaluatorRunsAnimalStringExpressions(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	want := "FI:SH:IS:ISH\n4: 3:-2:12:0\nCATFISH\n"
+	want := "FI:SH:IS:ISH\n 4 : 3:-2: 12 : 0 \nCATFISH\n"
 	if got := output.String(); got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
@@ -503,7 +544,7 @@ func TestEvaluatorPrintsImplicitAdjacentExpressions(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "YOU HAVE USED $25 MORE THAN YOU HAVE.\n"; got != want {
+	if got, want := output.String(), "YOU HAVE USED $ 25  MORE THAN YOU HAVE.\n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -521,13 +562,13 @@ func TestEvaluatorReadsScalarInput(t *testing.T) {
 			name:   "prompted number",
 			source: "10 INPUT \"BET\";M: PRINT M\n",
 			input:  "12.5\n",
-			want:   "BET? 12.5\n",
+			want:   "BET?  12.5 \n",
 		},
 		{
 			name:   "invalid number retries",
 			source: "10 INPUT \"BET\";M: PRINT M\n",
 			input:  "NOPE\n12.5\n",
-			want:   "BET? ?REDO FROM START\n? 12.5\n",
+			want:   "BET? ?REDO FROM START\n?  12.5 \n",
 		},
 		{
 			name:   "unprompted string",
@@ -545,13 +586,13 @@ func TestEvaluatorReadsScalarInput(t *testing.T) {
 			name:   "multiple values and quoted comma",
 			source: "10 INPUT A$,B: PRINT A$;\":\";B\n",
 			input:  "\"HELLO, WORLD\",2\n",
-			want:   "? HELLO, WORLD:2\n",
+			want:   "? HELLO, WORLD: 2 \n",
 		},
 		{
 			name:   "wrong value count retries",
 			source: "10 INPUT A,B: PRINT A;\":\";B\n",
 			input:  "1\n1,2\n",
-			want:   "? ?REDO FROM START\n? 1:2\n",
+			want:   "? ?REDO FROM START\n?  1 : 2 \n",
 		},
 	}
 
@@ -579,7 +620,7 @@ func TestEvaluatorReadsArrayInput(t *testing.T) {
 	if err := evaluator.Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "? 10:CAT\n"; got != want {
+	if got, want := output.String(), "?  10 :CAT\n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -598,7 +639,7 @@ func TestEvaluatorInjectsRandomNumbers(t *testing.T) {
 	if err := evaluator.Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "0.125 0.125 0.75\n"; got != want {
+	if got, want := output.String(), " .125   .125   .75 \n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -611,7 +652,7 @@ func TestEvaluatorRestartsRandomSequenceWithNegativeArgument(t *testing.T) {
 	if err := NewEvaluator(program, &output).Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if got, want := output.String(), "-1 -1 -1\n"; got != want {
+	if got, want := output.String(), "-1  -1  -1 \n"; got != want {
 		t.Fatalf("output: got %q, want %q", got, want)
 	}
 }
@@ -763,7 +804,7 @@ func TestEnvironmentDefaultsUndefinedNumbersToZero(t *testing.T) {
 	if err := evaluator.Run(); err != nil {
 		t.Fatalf("run: %v", err)
 	}
-	if output.String() != "0\n" {
+	if output.String() != " 0 \n" {
 		t.Fatalf("output: got %q", output.String())
 	}
 }
