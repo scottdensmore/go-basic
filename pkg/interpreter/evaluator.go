@@ -807,6 +807,11 @@ func (e *Evaluator) evalSleepStatement(statement *SleepStatement) error {
 	return nil
 }
 
+// maxPrintPadding is the widest padding TAB and SPC accept. Microsoft BASIC
+// takes both arguments as a byte, so a wider request is an illegal quantity
+// rather than a very large allocation.
+const maxPrintPadding = 255
+
 // TabValue represents a target output column from TAB.
 type TabValue struct {
 	Pos int
@@ -1096,6 +1101,12 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 		if argument < 0 {
 			return nil, errors.New("TAB position cannot be negative")
 		}
+		// Anything below the next whole value truncates into range. Comparing
+		// before the conversion also avoids int() of an out-of-range float,
+		// which is undefined in Go.
+		if argument >= maxPrintPadding+1 {
+			return nil, fmt.Errorf("TAB position cannot exceed %d", maxPrintPadding)
+		}
 		return TabValue{Pos: int(argument)}, nil
 	case "SPC":
 		argument, err := e.singleNumberArgument(expression)
@@ -1104,6 +1115,9 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 		}
 		if argument < 0 {
 			return nil, errors.New("SPC count cannot be negative")
+		}
+		if argument >= maxPrintPadding+1 {
+			return nil, fmt.Errorf("SPC count cannot exceed %d", maxPrintPadding)
 		}
 		return SpcValue{Count: int(argument)}, nil
 	case "POS":

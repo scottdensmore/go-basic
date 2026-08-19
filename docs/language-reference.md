@@ -125,8 +125,9 @@ exponent form such as `1E-03` or `1.23456789E+09`.
 Commas advance to 14-column print zones. `TAB(n)` advances when `n` is to the
 right of the current output column and otherwise emits no spacing. `SPC(n)`
 emits `n` spaces regardless of the current column, and `POS(x)` reports that
-column as a number. Both truncate their argument toward zero; a negative `SPC`
-count is a runtime error. `TAB` and `SPC` are print-list directives rather than
+column as a number. `TAB` and `SPC` truncate their argument toward zero and
+accept `0` through `255`, the byte range Microsoft takes; anything outside it
+is a runtime error. `TAB` and `SPC` are print-list directives rather than
 values, so using either outside `PRINT` is a type error.
 
 ## Annotated structured-source extension
