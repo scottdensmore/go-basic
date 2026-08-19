@@ -696,11 +696,14 @@ func (e *Evaluator) evalPrintStatement(statement *PrintStmt) error {
 			return err
 		}
 		text := formatValue(value)
-		if tab, ok := value.(TabValue); ok {
+		switch directive := value.(type) {
+		case TabValue:
 			text = ""
-			if tab.Pos > e.OutputColumn {
-				text = strings.Repeat(" ", tab.Pos-e.OutputColumn)
+			if directive.Pos > e.OutputColumn {
+				text = strings.Repeat(" ", directive.Pos-e.OutputColumn)
 			}
+		case SpcValue:
+			text = strings.Repeat(" ", directive.Count)
 		}
 		if _, err := io.WriteString(e.Out, text); err != nil {
 			return fmt.Errorf("write output: %w", err)
@@ -804,6 +807,11 @@ func (e *Evaluator) evalSleepStatement(statement *SleepStatement) error {
 // TabValue represents a target output column from TAB.
 type TabValue struct {
 	Pos int
+}
+
+// SpcValue represents a run of spaces from SPC.
+type SpcValue struct {
+	Count int
 }
 
 func (e *Evaluator) evalExpression(expression Expression) (any, error) {
@@ -1086,6 +1094,20 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 			return nil, errors.New("TAB position cannot be negative")
 		}
 		return TabValue{Pos: int(argument)}, nil
+	case "SPC":
+		argument, err := e.singleNumberArgument(expression)
+		if err != nil {
+			return nil, err
+		}
+		if argument < 0 {
+			return nil, errors.New("SPC count cannot be negative")
+		}
+		return SpcValue{Count: int(argument)}, nil
+	case "POS":
+		if _, err := e.singleNumberArgument(expression); err != nil {
+			return nil, err
+		}
+		return float64(e.OutputColumn), nil
 	case "SIN":
 		argument, err := e.singleNumberArgument(expression)
 		if err != nil {
@@ -1464,7 +1486,7 @@ func formatValue(value any) string {
 		return exact
 	case string:
 		return typed
-	case TabValue:
+	case TabValue, SpcValue:
 		return ""
 	default:
 		return fmt.Sprint(typed)
