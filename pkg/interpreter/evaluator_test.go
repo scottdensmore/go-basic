@@ -399,6 +399,22 @@ func TestEvaluatorFormatsNumbersLikeMicrosoft(t *testing.T) {
 	}
 }
 
+func TestEvaluatorAcceptsTabAndSpcAtTheByteBoundary(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 PRINT SPC(255);"A"
+20 PRINT TAB(255);"B"
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	want := strings.Repeat(" ", 255) + "A\n" + strings.Repeat(" ", 255) + "B\n"
+	if got := output.String(); got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorNamedNextUnwindsAbandonedInnerLoops(t *testing.T) {
 	t.Parallel()
 
@@ -673,6 +689,8 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "negative sleep", program: mustParse(t, "10 SLEEP -1\n"), want: "SLEEP duration cannot be negative"},
 		{name: "negative tab", program: mustParse(t, "10 PRINT TAB(-1)\n"), want: "TAB position cannot be negative"},
 		{name: "negative spc", program: mustParse(t, "10 PRINT SPC(-1)\n"), want: "SPC count cannot be negative"},
+		{name: "tab beyond line width", program: mustParse(t, "10 PRINT TAB(256)\n"), want: "TAB position cannot exceed 255"},
+		{name: "spc beyond line width", program: mustParse(t, "10 PRINT SPC(256)\n"), want: "SPC count cannot exceed 255"},
 		{name: "spc argument count", program: mustParse(t, "10 PRINT SPC(1,2)\n"), want: "SPC expects 1 argument, got 2"},
 		{name: "pos argument count", program: mustParse(t, "10 PRINT POS(0,1)\n"), want: "POS expects 1 argument, got 2"},
 		{name: "string arithmetic", program: mustParse(t, "10 PRINT \"x\"+1\n"), want: "expected number"},
