@@ -67,6 +67,10 @@ const (
 	SLEEP TokenType = "SLEEP"
 	// TAB moves PRINT output to a target column.
 	TAB TokenType = "TAB"
+	// SPC emits a run of spaces in a PRINT list.
+	SPC TokenType = "SPC"
+	// POS reports the current PRINT output column.
+	POS TokenType = "POS"
 	// SIN computes a sine value.
 	SIN TokenType = "SIN"
 	// COS computes a cosine value.
@@ -160,6 +164,8 @@ var keywords = map[string]TokenType{
 	"print":   PRINT,
 	"sleep":   SLEEP,
 	"tab":     TAB,
+	"spc":     SPC,
+	"pos":     POS,
 	"sin":     SIN,
 	"cos":     COS,
 	"tan":     TAN,

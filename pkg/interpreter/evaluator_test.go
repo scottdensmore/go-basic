@@ -333,6 +333,31 @@ func TestEvaluatorUsesMicrosoftPrintZones(t *testing.T) {
 	}
 }
 
+func TestEvaluatorEmitsSpcSpacingAndReportsPosColumn(t *testing.T) {
+	t.Parallel()
+
+	program := mustParse(t, `10 PRINT "A";SPC(5);"B"
+20 PRINT "C";SPC(0);"D"
+30 PRINT POS(0)
+40 PRINT "EF";: PRINT POS(0)
+50 PRINT "G",: PRINT POS(0)
+60 PRINT TAB(4);SPC(2);POS(0)
+`)
+	var output bytes.Buffer
+	if err := NewEvaluator(program, &output).Run(); err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	want := "A" + strings.Repeat(" ", 5) + "B\n" +
+		"CD\n" +
+		"0\n" +
+		"EF2\n" +
+		"G" + strings.Repeat(" ", 13) + "14\n" +
+		strings.Repeat(" ", 6) + "6\n"
+	if got := output.String(); got != want {
+		t.Fatalf("output: got %q, want %q", got, want)
+	}
+}
+
 func TestEvaluatorNamedNextUnwindsAbandonedInnerLoops(t *testing.T) {
 	t.Parallel()
 
@@ -606,6 +631,9 @@ func TestEvaluatorReportsRuntimeErrors(t *testing.T) {
 		{name: "division by zero", program: mustParse(t, "10 PRINT 1/0\n"), want: "division by zero"},
 		{name: "negative sleep", program: mustParse(t, "10 SLEEP -1\n"), want: "SLEEP duration cannot be negative"},
 		{name: "negative tab", program: mustParse(t, "10 PRINT TAB(-1)\n"), want: "TAB position cannot be negative"},
+		{name: "negative spc", program: mustParse(t, "10 PRINT SPC(-1)\n"), want: "SPC count cannot be negative"},
+		{name: "spc argument count", program: mustParse(t, "10 PRINT SPC(1,2)\n"), want: "SPC expects 1 argument, got 2"},
+		{name: "pos argument count", program: mustParse(t, "10 PRINT POS(0,1)\n"), want: "POS expects 1 argument, got 2"},
 		{name: "string arithmetic", program: mustParse(t, "10 PRINT \"x\"+1\n"), want: "expected number"},
 		{name: "mixed comparison", program: mustParse(t, "10 PRINT \"x\"=1\n"), want: "type mismatch in comparison"},
 		{name: "string assignment type mismatch", program: mustParse(t, "10 A$=1\n"), want: "string variable A$ requires a string value"},

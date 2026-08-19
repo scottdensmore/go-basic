@@ -58,7 +58,7 @@ and invalid logical operands are runtime errors.
 | Statement | Supported forms |
 | --- | --- |
 | Assignment | `LET A=1`, `A=1`, `A$(I)="X"` |
-| Output | `PRINT`, comma print zones, semicolon suppression, adjacent items, `TAB` |
+| Output | `PRINT`, comma print zones, semicolon suppression, adjacent items, `TAB`, `SPC` |
 | Input | `INPUT A`, `INPUT "PROMPT";A$`, multiple scalar or array targets |
 | Branching | `IF expression THEN line`, `IF expression THEN statement`, `GOTO` |
 | Subroutines | `GOSUB`, `RETURN`, computed `ON expression GOSUB` |
@@ -88,6 +88,7 @@ falls through without jumping; fractional or negative selectors are errors.
 | `LOG(x)` | Natural logarithm |
 | `EXP(x)` | Natural exponential |
 | `RND(x)` | Random value in `[0,1)` with classic repeat/reseed behavior |
+| `POS(x)` | Current output column, counting from zero; `x` is ignored |
 
 Supplying the CLI `-seed` option replaces the initial random source so a run
 can be reproduced.
@@ -113,7 +114,11 @@ without one, the prompt is simply `? `.
 
 `PRINT` starts a new line unless its final item is followed by `;` or `,`.
 Commas advance to 14-column print zones. `TAB(n)` advances when `n` is to the
-right of the current output column and otherwise emits no spacing.
+right of the current output column and otherwise emits no spacing. `SPC(n)`
+emits `n` spaces regardless of the current column, and `POS(x)` reports that
+column as a number. Both truncate their argument toward zero; a negative `SPC`
+count is a runtime error. `TAB` and `SPC` are print-list directives rather than
+values, so using either outside `PRINT` is a type error.
 
 ## Annotated structured-source extension
 

@@ -132,6 +132,21 @@ func TestLexerRecognizesArctangent(t *testing.T) {
 	}
 }
 
+func TestLexerRecognizesSpcAndPos(t *testing.T) {
+	t.Parallel()
+
+	lexer := NewLexer("10 PRINT SPC(3);POS(0)\n")
+	want := []TokenType{
+		NUMBER, PRINT, SPC, LPAREN, NUMBER, RPAREN, SEMICOLON, POS, LPAREN, NUMBER, RPAREN, EOL,
+		EOF,
+	}
+	for index, wantType := range want {
+		if token := lexer.NextToken(); token.Type != wantType {
+			t.Fatalf("token %d: got %s (%q), want %s", index, token.Type, token.Literal, wantType)
+		}
+	}
+}
+
 func TestLexerRecognizesNotAndOnGosub(t *testing.T) {
 	t.Parallel()
 
