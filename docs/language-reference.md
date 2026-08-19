@@ -112,6 +112,15 @@ can be reproduced.
 field-count or numeric-conversion error. A quoted prompt is followed by `? `;
 without one, the prompt is simply `? `.
 
+Numbers print the way Microsoft BASIC renders them: a leading space stands in
+for the sign of a non-negative value, and a trailing space follows every
+number, so `PRINT 1;2;3` writes `` 1  2  3 ``. `STR$` produces the same text
+without that trailing space. Values carry nine significant digits, matching
+Microsoft's five-byte floating point format, which also keeps binary residue
+out of the output. Fixed-point form omits the leading zero and any trailing
+zeros, so one half prints as `.5`; magnitudes outside `[0.01, 1e9)` use
+exponent form such as `1E-03` or `1.23456789E+09`.
+
 `PRINT` starts a new line unless its final item is followed by `;` or `,`.
 Commas advance to 14-column print zones. `TAB(n)` advances when `n` is to the
 right of the current output column and otherwise emits no spacing. `SPC(n)`

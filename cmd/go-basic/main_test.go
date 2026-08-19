@@ -50,7 +50,7 @@ func TestRun(t *testing.T) {
 				return []string{"-seed", "1", writeProgram(t, "10 PRINT RND(1);\",\";RND(1)\n")}
 			},
 			wantCode:   0,
-			wantStdout: "0.6046602879796196,0.9405090880450124\n",
+			wantStdout: " .604660288 , .940509088 \n",
 		},
 		{
 			name: "statement limit",

@@ -23,7 +23,7 @@ func TestCLI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("run CLI: %v\n%s", err, output)
 		}
-		want := "Hello World\n1 1\n2 4\n3 9\n4 16\n5 25\n"
+		want := "Hello World\n 1   1 \n 2   4 \n 3   9 \n 4   16 \n 5   25 \n"
 		if string(output) != want {
 			t.Fatalf("output: got %q, want %q", output, want)
 		}
@@ -585,8 +585,8 @@ func TestCLI(t *testing.T) {
 				fixture: "gomoko.bas",
 				input:   "6\n7\n0,0\n4,4\n7,2\n4,5\n-1,-1\n0\n",
 				wantBoards: []string{
-					"0000000\n0000000\n0000000\n0001000\n0000000\n0000000\n0200000\n",
-					"0000000\n0000000\n0000000\n0001120\n0000000\n0000000\n0200000\n",
+					" 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  1  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  2  0  0  0  0  0 \n",
+					" 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  1  1  2  0 \n 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  2  0  0  0  0  0 \n",
 				},
 			},
 			{
@@ -594,8 +594,8 @@ func TestCLI(t *testing.T) {
 				fixture: "gomoko-alternate.bas",
 				input:   "6\n7\n0,0\n4,4\n5,4\n4,5\n-1,-1\n0\n",
 				wantBoards: []string{
-					"0000000\n0000000\n0000000\n0001000\n0002000\n0000000\n0000000\n",
-					"0000000\n0000000\n0000000\n0001100\n0002200\n0000000\n0000000\n",
+					" 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  1  0  0  0 \n 0  0  0  2  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n",
+					" 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  1  1  0  0 \n 0  0  0  2  2  0  0 \n 0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0 \n",
 				},
 			},
 		}
@@ -654,8 +654,8 @@ func TestCLI(t *testing.T) {
 			fixture     string
 			firstReport string
 		}{
-			{"main", "hammurabi.bas", "IN YEAR1,0PEOPLE STARVED,5CAME TO THE CITY,"},
-			{"alternate", "hammurabi-alternate.bas", "IN YEAR 1,0 PEOPLE STARVED, 5 CAME TO THE CITY,"},
+			{"main", "hammurabi.bas", "IN YEAR 1 , 0 PEOPLE STARVED, 5 CAME TO THE CITY,"},
+			{"alternate", "hammurabi-alternate.bas", "IN YEAR  1 , 0  PEOPLE STARVED,  5  CAME TO THE CITY,"},
 		}
 
 		for _, variant := range variants {
@@ -1339,15 +1339,15 @@ func TestCLI(t *testing.T) {
 			input      string
 			milestones []string
 		}{
-			{"current", "8,16,2026\n8,16,2026\n", []string{"8/16/2026 IS A SUNDAY."}},
+			{"current", "8,16,2026\n8,16,2026\n", []string{"8 / 16 / 2026  IS A SUNDAY."}},
 			{"past Friday the thirteenth", "8,16,2026\n12,13,1985\n", []string{
-				"12/13/1985 WAS A FRIDAY THE THIRTEENTH---BEWARE!",
-				"YOUR AGE (IF BIRTHDATE)     40            8             3",
-				"YOU HAVE SLEPT              14            2             26",
-				"YOU HAVE WORKED/PLAYED      9             4             9",
-				"***  YOU MAY RETIRE IN2050 ***",
+				"12 / 13 / 1985  WAS A FRIDAY THE THIRTEENTH---BEWARE!",
+				"YOUR AGE (IF BIRTHDATE)      40            8             3",
+				"YOU HAVE SLEPT               14            2             26",
+				"YOU HAVE WORKED/PLAYED       9             4             9",
+				"***  YOU MAY RETIRE IN 2050  ***",
 			}},
-			{"future", "8,16,2026\n1,1,2030\n", []string{"1/1/2030 WILL BE A TUESDAY."}},
+			{"future", "8,16,2026\n1,1,2030\n", []string{"1 / 1 / 2030  WILL BE A TUESDAY."}},
 			{"unsupported calendar", "8,16,2026\n1,1,1500\n", []string{
 				"NOT PREPARED TO GIVE DAY OF WEEK PRIOR TO MDLXXXII.",
 			}},
@@ -1500,11 +1500,11 @@ func aceyDuceyOutput() string {
 	output.WriteString("ON WHETHER OR NOT YOU FEEL THE CARD WILL HAVE\n")
 	output.WriteString("A VALUE BETWEEN THE FIRST TWO.\n")
 	output.WriteString("IF YOU DO NOT WANT TO BET, INPUT A 0\n")
-	output.WriteString("YOU NOW HAVE 100 DOLLARS.\n\n")
-	output.WriteString("HERE ARE YOUR NEXT TWO CARDS: \n8\nKING\n\n")
-	output.WriteString("WHAT IS YOUR BET? 9\nYOU WIN!!!\n")
-	output.WriteString("YOU NOW HAVE 200 DOLLARS.\n\n")
-	output.WriteString("HERE ARE YOUR NEXT TWO CARDS: \n3\n5\n\n")
+	output.WriteString("YOU NOW HAVE  100  DOLLARS.\n\n")
+	output.WriteString("HERE ARE YOUR NEXT TWO CARDS: \n 8 \nKING\n\n")
+	output.WriteString("WHAT IS YOUR BET?  9 \nYOU WIN!!!\n")
+	output.WriteString("YOU NOW HAVE  200  DOLLARS.\n\n")
+	output.WriteString("HERE ARE YOUR NEXT TWO CARDS: \n 3 \n 5 \n\n")
 	output.WriteString("WHAT IS YOUR BET? KING\nSORRY, YOU LOSE\n\n\n")
 	output.WriteString("SORRY, FRIEND, BUT YOU BLEW YOUR WAD.\n\n\n")
 	output.WriteString("TRY AGAIN (YES OR NO)? \n\nO.K., HOPE YOU HAD FUN!\n")
@@ -1573,13 +1573,13 @@ func bagelsOutput() string {
 	output.WriteString("   FERMI  - ONE DIGIT CORRECT AND IN THE RIGHT POSITION\n")
 	output.WriteString("   BAGELS - NO DIGITS CORRECT\n")
 	output.WriteString("\nO.K.  I HAVE A NUMBER IN MIND.\n")
-	output.WriteString("GUESS #1" + strings.Repeat(" ", 6) + "? TRY GUESSING A THREE-DIGIT NUMBER.\n")
-	output.WriteString("GUESS #1" + strings.Repeat(" ", 6) + "? OH, I FORGOT TO TELL YOU THAT THE NUMBER I HAVE IN MIND\n")
+	output.WriteString("GUESS # 1" + strings.Repeat(" ", 5) + "? TRY GUESSING A THREE-DIGIT NUMBER.\n")
+	output.WriteString("GUESS # 1" + strings.Repeat(" ", 5) + "? OH, I FORGOT TO TELL YOU THAT THE NUMBER I HAVE IN MIND\n")
 	output.WriteString("HAS NO TWO DIGITS THE SAME.\n")
-	output.WriteString("GUESS #1" + strings.Repeat(" ", 6) + "? PICO \n")
-	output.WriteString("GUESS #2" + strings.Repeat(" ", 6) + "? YOU GOT IT!!!\n\n")
+	output.WriteString("GUESS # 1" + strings.Repeat(" ", 5) + "? PICO \n")
+	output.WriteString("GUESS # 2" + strings.Repeat(" ", 5) + "? YOU GOT IT!!!\n\n")
 	output.WriteString("PLAY AGAIN (YES OR NO)? \n")
-	output.WriteString("A1POINT BAGELS BUFF!!\n")
+	output.WriteString("A 1 POINT BAGELS BUFF!!\n")
 	output.WriteString("HOPE YOU HAD FUN.  BYE.\n")
 	return output.String()
 }
@@ -1614,10 +1614,10 @@ func assertBasketballTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "YOUR SHOT? "), 54; got != want {
 		t.Fatalf("shot prompts: got %d, want %d", got, want)
 	}
-	if !strings.Contains(transcript, "   ***** END OF FIRST HALF *****\n\nSCORE: DARTMOUTH:21  HARVARD:21") {
+	if !strings.Contains(transcript, "***** END OF FIRST HALF *****\n\nSCORE: DARTMOUTH: 21   HARVARD: 21") {
 		t.Fatal("transcript missing deterministic halftime score")
 	}
-	final := "\n   ***** END OF GAME *****\nFINAL SCORE: DARTMOUTH:42  HARVARD:53\n"
+	final := "\n   ***** END OF GAME *****\nFINAL SCORE: DARTMOUTH: 42   HARVARD: 53 \n"
 	if !strings.HasSuffix(transcript, final) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(final)):])
 	}
@@ -1640,7 +1640,7 @@ func batnumOutput() string {
 	output.WriteString("ENTER WIN OPTION - 1 TO TAKE LAST, 2 TO AVOID LAST: ? ")
 	output.WriteString("ENTER MIN AND MAX ? ")
 	output.WriteString("ENTER START OPTION - 1 COMPUTER FIRST, 2 YOU FIRST ? \n\n\n")
-	output.WriteString("YOUR MOVE ? COMPUTER TAKES1AND LEAVES2\n\n")
+	output.WriteString("YOUR MOVE ? COMPUTER TAKES 1 AND LEAVES 2 \n\n")
 	output.WriteString("YOUR MOVE ? CONGRATULATIONS, YOU WIN.\n")
 	output.WriteString(strings.Repeat("\n", 10))
 	output.WriteString("ENTER PILE SIZE? ")
@@ -1652,15 +1652,15 @@ func assertBattleTranscript(t *testing.T, path, transcript string) {
 	prefix := strings.Repeat(" ", 33) + "BATTLE\n" +
 		strings.Repeat(" ", 15) + "CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n" +
 		"THE FOLLOWING CODE OF THE BAD GUYS' FLEET DISPOSITION\n" +
-		"HAS BEEN CAPTURED BUT NOT DECODED:\n\n" +
-		"200000\n206666\n504110\n350400\n035040\n003500\n"
+		"HAS BEEN CAPTURED BUT NOT DECODED:\n\n " +
+		"2  0  0  0  0  0 \n 2  0  6  6  6  6 \n 5  0  4  1  1  0 \n 3  5  0  4  0  0 \n 0  3  5  0  4  0 \n 0  0  3  5  0  0 \n"
 	if !strings.HasPrefix(transcript, prefix) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
 		"INVALID INPUT.  TRY AGAIN.",
 		"SPLASH!  TRY AGAIN.",
-		"YOU ALREADY PUT A HOLE IN SHIP NUMBER2AT THAT POINT.",
+		"YOU ALREADY PUT A HOLE IN SHIP NUMBER 2 AT THAT POINT.",
 		"YOU HAVE TOTALLY WIPED OUT THE BAD GUYS' FLEET",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -1690,17 +1690,17 @@ func blackjackOutput() string {
 	output.WriteString("DO YOU WANT INSTRUCTIONS? NUMBER OF PLAYERS? \n")
 	output.WriteString("RESHUFFLING\n")
 	output.WriteString("BETS:\n")
-	output.WriteString("#1? BETS:\n")
-	output.WriteString("#1? PLAYER1   DEALER\n")
+	output.WriteString("# 1 ? BETS:\n")
+	output.WriteString("# 1 ? PLAYER 1    DEALER\n")
 	output.WriteString("       5    10   \n")
 	output.WriteString("       6   \n\n")
 	output.WriteString("NO DEALER BLACKJACK.\n")
-	output.WriteString("PLAYER1? TYPE H,S,D, OR /, PLEASE? RECEIVED A  2  HIT? TOTAL IS13\n")
-	output.WriteString("DEALER HAS A  Q CONCEALED FOR A TOTAL OF20\n\n\n")
-	output.WriteString("PLAYER1LOSES  10TOTAL=-10\n")
-	output.WriteString("DEALER'S TOTAL=10\n\n")
+	output.WriteString("PLAYER 1 ? TYPE H,S,D, OR /, PLEASE? RECEIVED A  2  HIT? TOTAL IS 13 \n")
+	output.WriteString("DEALER HAS A  Q CONCEALED FOR A TOTAL OF 20 \n\n\n")
+	output.WriteString("PLAYER 1 LOSES   10 TOTAL=-10 \n")
+	output.WriteString("DEALER'S TOTAL= 10 \n\n")
 	output.WriteString("BETS:\n")
-	output.WriteString("#1? ")
+	output.WriteString("# 1 ? ")
 	return output.String()
 }
 
@@ -1719,9 +1719,9 @@ func assertBombardmentTranscript(t *testing.T, transcript string) {
 		"ONE DOWN, THREE TO GO.",
 		"TWO DOWN, TWO TO GO.",
 		"THREE DOWN, ONE TO GO.",
-		"I PICKED10. YOUR TURN:",
-		"I PICKED8. YOUR TURN:",
-		"I PICKED5. YOUR TURN:",
+		"I PICKED 10 . YOUR TURN:",
+		"I PICKED 8 . YOUR TURN:",
+		"I PICKED 5 . YOUR TURN:",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -1746,7 +1746,7 @@ func bombsAwayOutput() string {
 	output.WriteString("150 MISSIONS IS HIGH EVEN FOR OLD-TIMERS.\n")
 	output.WriteString("NOW THEN, HOW MANY MISSIONS HAVE YOU FLOWN? \n")
 	output.WriteString("THAT'S PUSHING THE ODDS!\n\n")
-	output.WriteString("DIRECT HIT!!!! 24KILLED.\n")
+	output.WriteString("DIRECT HIT!!!!  24 KILLED.\n")
 	output.WriteString("MISSION SUCCESSFUL.\n\n\n\n")
 	output.WriteString("ANOTHER MISSION (Y OR N)? CHICKEN !!!\n\n")
 	return output.String()
@@ -1764,16 +1764,16 @@ func bounceOutput() string {
 	output.WriteString("YOU ALSO SPECIFY THE TIME INCREMENT TO BE USED IN\n")
 	output.WriteString("'STROBING' THE BALL'S FLIGHT (TRY .1 INITIALLY).\n\n")
 	output.WriteString("TIME INCREMENT (SEC)? \nVELOCITY (FPS)? \nCOEFFICIENT? \n")
-	output.WriteString("FEET\n\n")
-	output.WriteString("6    0000\n     0\n")
-	output.WriteString("5        0\n    0\n")
-	output.WriteString("4         0\n   0\n")
-	output.WriteString("3\n           0\n")
-	output.WriteString("2 0\n                000\n")
-	output.WriteString("1            0 0   0\n                      00\n")
-	output.WriteString("00            0     00  0000\n")
+	output.WriteString("FEET\n\n ")
+	output.WriteString("6   0000\n     0\n ")
+	output.WriteString("5       0\n    0\n ")
+	output.WriteString("4        0\n   0\n ")
+	output.WriteString("3 \n           0\n ")
+	output.WriteString("2 0\n                000\n ")
+	output.WriteString("1           0 0   0\n                      00\n")
+	output.WriteString(" 0 0          0     00  0000\n")
 	output.WriteString(" ...............................\n")
-	output.WriteString(" 0        1         2         3\n")
+	output.WriteString(" 0         1         2         3 \n")
 	output.WriteString("             SECONDS\n\n")
 	output.WriteString("TIME INCREMENT (SEC)? ")
 	return output.String()
@@ -1789,7 +1789,7 @@ func assertBowlingTranscript(t *testing.T, transcript string) {
 	}
 	for text, want := range map[string]int{
 		"TYPE ROLL TO GET THE BALL GOING.": 20,
-		"PLAYER:1FRAME:":                   20,
+		"PLAYER: 1 FRAME:":                 20,
 		"ROLL YOUR 2ND BALL":               10,
 		"SPARE!!!!":                        4,
 		"ERROR!!!":                         6,
@@ -1798,7 +1798,8 @@ func assertBowlingTranscript(t *testing.T, transcript string) {
 			t.Fatalf("%q count: got %d, want %d", text, got, want)
 		}
 	}
-	suffix := "FRAMES\n12345678910\n7677878687\n89109101098109\n1121221121\n\n" +
+	suffix := "FRAMES\n 1  2  3  4  5  6  7  8  9  10 \n 7  6  7  7  8  7  8  6  8  7 \n" +
+		" 8  9  10  9  10  10  9  8  10  9 \n 1  1  2  1  2  2  1  1  2  1 \n\n" +
 		"DO YOU WANT ANOTHER GAME\n? "
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
@@ -1814,8 +1815,8 @@ func assertBoxingTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"CPU'S ADVANTAGE IS4AND VULNERABILITY IS SECRET.",
-		"ROUND1BEGINS...",
+		"CPU'S ADVANTAGE IS 4 AND VULNERABILITY IS SECRET.",
+		"ROUND 1 BEGINS...",
 		"PLAYER SWINGS AND HE CONNECTS!",
 		"PLAYER SWINGS AND HE MISSES",
 		"CPU GETS PLAYER IN THE JAW (OUCH!)",
@@ -1847,7 +1848,7 @@ func assertBugTranscript(t *testing.T, transcript string) {
 		"I NOW HAVE A BODY.",
 		"YOU NEEDED A HEAD.",
 		"I NEEDED A HEAD.",
-		"I NOW HAVE6LEGS.",
+		"I NOW HAVE 6 LEGS.",
 		"MY BUG IS FINISHED.",
 		"*****YOUR BUG*****",
 		"*****MY BUG*****",
@@ -1879,7 +1880,7 @@ func assertBullfightTranscript(t *testing.T, transcript string) {
 		"THE TOREADORES DID A AWFUL JOB.",
 		"INCORRECT ANSWER - - PLEASE TYPE 'YES' OR 'NO'.",
 		"DON'T PANIC, YOU IDIOT!  PUT DOWN A CORRECT NUMBER",
-		"PASS NUMBER3",
+		"PASS NUMBER 3",
 		"IT IS THE MOMENT OF TRUTH.",
 		"YOU KILLED THE BULL!",
 		"THE CROWD CHEERS!",
@@ -1912,8 +1913,8 @@ func assertBullseyeTranscript(t *testing.T, transcript string) {
 		"WHEW!  10 POINTS.",
 		"MISSED THE TARGET!  TOO BAD.",
 		"BULLSEYE!!  40 POINTS!",
-		"ROUND12",
-		"TOTAL SCORE =210",
+		"ROUND 12",
+		"TOTAL SCORE = 210",
 		"WE HAVE A WINNER!!",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -1923,7 +1924,7 @@ func assertBullseyeTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "PLAYER'S THROW? "), 13; got != want {
 		t.Fatalf("throw prompts: got %d, want %d", got, want)
 	}
-	suffix := "PLAYER SCORED210POINTS.\n\nTHANKS FOR THE GAME.\n"
+	suffix := "PLAYER SCORED 210 POINTS.\n\nTHANKS FOR THE GAME.\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
@@ -1998,14 +1999,14 @@ func assertCalendarTranscript(t *testing.T, transcript string) {
 		t.Fatalf("output lines: got %d, want %d", got, want)
 	}
 	for _, week := range []string{
-		"            1       2       3       4       5       6       \n",
-		"30          31      \n",
+		"1       2       3       4       5       6      \n",
+		"30      31     \n",
 	} {
 		if !strings.Contains(transcript, week) {
 			t.Fatalf("transcript missing calendar week %q", week)
 		}
 	}
-	if !strings.HasSuffix(transcript, "30          31      \n\n\n\n\n\n") {
+	if !strings.HasSuffix(transcript, "30          31     \n\n\n\n\n\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-64):])
 	}
 }
@@ -2017,11 +2018,11 @@ func changeOutput() string {
 	output.WriteString("\n\n\n")
 	output.WriteString("I, YOUR FRIENDLY MICROCOMPUTER, WILL DETERMINE\n")
 	output.WriteString("THE CORRECT CHANGE FOR ITEMS COSTING UP TO $100.\n\n\n")
-	output.WriteString("COST OF ITEM? AMOUNT OF PAYMENT? SORRY, YOU HAVE SHORT-CHANGED ME $5\n")
+	output.WriteString("COST OF ITEM? AMOUNT OF PAYMENT? SORRY, YOU HAVE SHORT-CHANGED ME $ 5 \n")
 	output.WriteString("COST OF ITEM? AMOUNT OF PAYMENT? CORRECT AMOUNT, THANK YOU.\n")
-	output.WriteString("COST OF ITEM? AMOUNT OF PAYMENT? YOUR CHANGE, $27.96\n")
-	output.WriteString("2TEN DOLLAR BILL(S)\n1FIVE DOLLARS BILL(S)\n2ONE DOLLAR BILL(S)\n")
-	output.WriteString("1ONE HALF DOLLAR(S)\n1QUARTER(S)\n2DIME(S)\n1PENNY(S)\n")
+	output.WriteString("COST OF ITEM? AMOUNT OF PAYMENT? YOUR CHANGE, $ 27.96 \n ")
+	output.WriteString("2 TEN DOLLAR BILL(S)\n 1 FIVE DOLLARS BILL(S)\n 2 ONE DOLLAR BILL(S)\n ")
+	output.WriteString("1 ONE HALF DOLLAR(S)\n 1 QUARTER(S)\n 2 DIME(S)\n 1 PENNY(S)\n")
 	output.WriteString("THANK YOU, COME AGAIN.\n\n\nCOST OF ITEM? ")
 	return output.String()
 }
@@ -2044,8 +2045,8 @@ func assertCheckersGameplay(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"\x1eFROM15TO04",
-		"FROM? TO? \x1eFROM06TO15",
+		"\x1eFROM 1  5 TO 0  4",
+		"FROM? TO? \x1eFROM 0  6 TO 1  5",
 		".    O    .    .    .    .    .    . \n",
 		".    X    .    X    .    X    .    X \n",
 	} {
@@ -2078,7 +2079,7 @@ func assertChemistTranscript(t *testing.T, transcript string) {
 	if !strings.HasPrefix(transcript, prefix) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
-	if !strings.Contains(transcript, "47LITERS OF KRYPTOCYANIC ACID.  HOW MUCH WATER?  GOOD JOB!") {
+	if !strings.Contains(transcript, "47 LITERS OF KRYPTOCYANIC ACID.  HOW MUCH WATER?  GOOD JOB!") {
 		t.Fatal("transcript missing successful dilution")
 	}
 	for text, want := range map[string]int{
@@ -2107,10 +2108,10 @@ func assertChiefTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"SHUT UP, PALE FACE WITH WISE TONGUE.",
-		"I BET YOUR NUMBER WAS10. AM I RIGHT?",
-		"10PLUS 3 EQUALS13. THIS DIVIDED BY 5 EQUALS2.6;",
-		"THIS TIMES 8 EQUALS20.8. IF WE DIVIDE BY 5 AND ADD 5,",
-		"WE GET9.16, WHICH, MINUS 1, EQUALS8.16.",
+		"I BET YOUR NUMBER WAS 10 . AM I RIGHT?",
+		"10 PLUS 3 EQUALS 13 . THIS DIVIDED BY 5 EQUALS 2.6 ;",
+		"THIS TIMES 8 EQUALS 20.8 . IF WE DIVIDE BY 5 AND ADD 5,",
+		"WE GET 9.16 , WHICH, MINUS 1, EQUALS 8.16 .",
 		"YOU HAVE MADE ME MAD!!!",
 		"#########################",
 	} {
@@ -2140,8 +2141,8 @@ func assertChompTranscript(t *testing.T, transcript string) {
 		"TOO MANY ROWS (9 IS MAXIMUM). NOW,",
 		"TOO MANY COLUMNS (9 IS MAXIMUM). NOW,",
 		"NO FAIR. YOU'RE TRYING TO CHOMP ON EMPTY SPACE!",
-		"1      P * \n2      * * \n",
-		"1      P \n2      \n",
+		"1     P * \n 2     * * \n",
+		"1     P \n 2     \n",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2153,7 +2154,7 @@ func assertChompTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "       1 2 3 4 5 6 7 8 9\n"), 5; got != want {
 		t.Fatalf("boards: got %d, want %d", got, want)
 	}
-	suffix := "PLAYER2\nCOORDINATES OF CHOMP (ROW,COLUMN)? YOU LOSE, PLAYER2\n\n" +
+	suffix := "PLAYER 2 \nCOORDINATES OF CHOMP (ROW,COLUMN)? YOU LOSE, PLAYER 2 \n\n" +
 		"AGAIN (1=YES, 0=NO!)? "
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
@@ -2171,16 +2172,16 @@ func assertCivilWarTranscript(t *testing.T, transcript string) {
 	for _, milestone := range []string{
 		"YOU ARE THE CONFEDERACY.   GOOD LUCK!",
 		"THIS IS THE BATTLE OF BULL RUN",
-		"MONEY         $81000        $83300",
+		"MONEY         $ 81000       $ 83300",
 		"MORALE IS POOR",
 		"YOU ARE ON THE DEFENSIVE",
-		"UNION STRATEGY IS 3",
-		"CASUALTIES    11700         386",
-		"DESERTIONS    6300          5",
+		"UNION STRATEGY IS  3",
+		"CASUALTIES     11700         386",
+		"DESERTIONS     6300          5",
 		"YOU LOSE BULL RUN",
-		"THE CONFEDERACY HAS WON 0 BATTLES AND LOST 1",
-		"HISTORICAL LOSSES           1967          2708",
-		"SIMULATED LOSSES            18000         391",
+		"THE CONFEDERACY HAS WON  0  BATTLES AND LOST  1",
+		"HISTORICAL LOSSES            1967          2708",
+		"SIMULATED LOSSES             18000         391",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2190,8 +2191,8 @@ func assertCivilWarTranscript(t *testing.T, transcript string) {
 		t.Fatalf("battle prompts: got %d, want %d", got, want)
 	}
 	suffix := "UNION INTELLIGENCE SUGGESTS THAT THE SOUTH USED \n" +
-		"STRATEGIES 1, 2, 3, 4 IN THE FOLLOWING PERCENTAGES\n" +
-		"34222222\n"
+		"STRATEGIES 1, 2, 3, 4 IN THE FOLLOWING PERCENTAGES\n " +
+		"34  22  22  22 \n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
@@ -2208,9 +2209,9 @@ func assertCombatTranscript(t *testing.T, transcript string) {
 	for _, milestone := range []string{
 		"YOU SUNK ONE OF MY PATROL BOATS, BUT I WIPED OUT TWO",
 		"OF YOUR AIR FORCE BASES AND 3 ARMY BASES.",
-		"ARMY          10000         30000",
-		"NAVY          20000         13333",
-		"A. F.         7333          22000",
+		"ARMY           10000         30000",
+		"NAVY           20000         13333",
+		"A. F.          7333          22000",
 		"ONE OF YOUR PLANES CRASHED INTO MY HOUSE. I AM DEAD.",
 		"MY COUNTRY FELL APART.",
 	} {
@@ -2238,12 +2239,12 @@ func assertCrapsTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"5IS THE POINT. I WILL ROLL AGAIN",
-		"2 - NO POINT. I WILL ROLL AGAIN",
-		"11 - NO POINT. I WILL ROLL AGAIN",
-		"5- A WINNER.........CONGRATS!!!!!!!!",
-		"5AT 2 TO 1 ODDS PAYS YOU...LET ME SEE...20DOLLARS",
-		"YOU ARE NOW AHEAD $20",
+		"5 IS THE POINT. I WILL ROLL AGAIN",
+		"2  - NO POINT. I WILL ROLL AGAIN",
+		"11  - NO POINT. I WILL ROLL AGAIN",
+		"5 - A WINNER.........CONGRATS!!!!!!!!",
+		"5 AT 2 TO 1 ODDS PAYS YOU...LET ME SEE... 20 DOLLARS",
+		"YOU ARE NOW AHEAD $ 20",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2302,7 +2303,7 @@ func assertCubeTranscript(t *testing.T, transcript string) {
 		"TRIED TO FOOL ME; BET AGAIN?",
 		"IT'S YOUR MOVE:  ?",
 		"CONGRATULATIONS!",
-		"YOU NOW HAVE600DOLLARS.",
+		"YOU NOW HAVE 600 DOLLARS.",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2326,10 +2327,10 @@ func assertDepthChargeTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"YOU ARE THE CAPTAIN OF THE DESTROYER USS COMPUTER",
-		"MISSION IS TO DESTROY IT.  YOU HAVE4SHOTS.",
-		"TRIAL #1? SONAR REPORTS SHOT WAS SOUTHWEST AND TOO HIGH.",
-		"TRIAL #2?",
-		"B O O M ! ! YOU FOUND IT IN2TRIES!",
+		"MISSION IS TO DESTROY IT.  YOU HAVE 4 SHOTS.",
+		"TRIAL # 1 ? SONAR REPORTS SHOT WAS SOUTHWEST AND TOO HIGH.",
+		"TRIAL # 2 ?",
+		"B O O M ! ! YOU FOUND IT IN 2 TRIES!",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2372,14 +2373,14 @@ func assertDiceTranscript(t *testing.T, transcript string) {
 	if !strings.HasPrefix(transcript, prefix) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
-	first := "TOTAL SPOTS   NUMBER OF TIMES\n" +
-		"2             0\n3             0\n4             0\n5             2\n" +
-		"6             5\n7             0\n8             4\n9             0\n" +
-		"10            1\n11            0\n12            0\n"
-	second := "TOTAL SPOTS   NUMBER OF TIMES\n" +
-		"2             0\n3             1\n4             0\n5             2\n" +
-		"6             1\n7             1\n8             1\n9             0\n" +
-		"10            0\n11            0\n12            0\n"
+	first := "TOTAL SPOTS   NUMBER OF TIMES\n " +
+		"2             0 \n 3             0 \n 4             0 \n 5             2 \n " +
+		"6             5 \n 7             0 \n 8             4 \n 9             0 \n " +
+		"10            1 \n 11            0 \n 12            0 \n"
+	second := "TOTAL SPOTS   NUMBER OF TIMES\n " +
+		"2             0 \n 3             1 \n 4             0 \n 5             2 \n " +
+		"6             1 \n 7             1 \n 8             1 \n 9             0 \n " +
+		"10            0 \n 11            0 \n 12            0 \n"
 	for name, histogram := range map[string]string{"first": first, "second": second} {
 		if !strings.Contains(transcript, histogram) {
 			t.Fatalf("transcript missing %s histogram", name)
@@ -2418,10 +2419,10 @@ func assertDigitsTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "TEN NUMBERS, PLEASE? "), 4; got != want {
 		t.Fatalf("number prompts: got %d, want %d", got, want)
 	}
-	if got, want := strings.Count(transcript, "           RIGHT"), 6; got != want {
+	if got, want := strings.Count(transcript, "          RIGHT"), 6; got != want {
 		t.Fatalf("right guesses: got %d, want %d", got, want)
 	}
-	if got, want := strings.Count(transcript, "           WRONG"), 24; got != want {
+	if got, want := strings.Count(transcript, "          WRONG"), 24; got != want {
 		t.Fatalf("wrong guesses: got %d, want %d", got, want)
 	}
 	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRY AGAIN (1 FOR YES, 0 FOR NO)? \nTHANKS FOR THE GAME.\n") {
@@ -2439,9 +2440,9 @@ func assertEvenWinsTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"THE NUMBER OF MARBLES YOU TAKE MUST BE A POSITIVE",
-		"TOTAL=25",
+		"TOTAL= 25",
 		"THAT IS ALL OF THE MARBLES.",
-		" MY TOTAL IS18, YOUR TOTAL IS9",
+		"MY TOTAL IS 18 , YOUR TOTAL IS 9",
 		"     I WON.  DO YOU WANT TO PLAY",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -2466,11 +2467,11 @@ func assertGameOfEvenWinsTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"THE COMPUTER STARTS OUT KNOWING ONLY THE RULES OF THE",
-		"THERE ARE21CHIPS ON THE BOARD.",
-		"5IS AN ILLEGAL MOVE ... YOUR MOVE?",
+		"THERE ARE 21 CHIPS ON THE BOARD.",
+		"5 IS AN ILLEGAL MOVE ... YOUR MOVE?",
 		"COMPUTER TAKES 1 CHIP.",
 		"GAME OVER ... YOU WIN!!!",
-		"THERE ARE13CHIPS ON THE BOARD.",
+		"THERE ARE 13 CHIPS ON THE BOARD.",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2479,7 +2480,7 @@ func assertGameOfEvenWinsTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "... YOUR MOVE? "), 6; got != want {
 		t.Fatalf("move prompts: got %d, want %d", got, want)
 	}
-	if !strings.HasSuffix(transcript, "COMPUTER TAKES 1 CHIP LEAVING12... YOUR MOVE? ") {
+	if !strings.HasSuffix(transcript, "COMPUTER TAKES 1 CHIP LEAVING 12 ... YOUR MOVE? ") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
@@ -2507,7 +2508,7 @@ func assertFlipFlopTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "1 2 3 4 5 6 7 8 9 10\n"), 9; got != want {
 		t.Fatalf("rendered boards: got %d, want %d", got, want)
 	}
-	if !strings.Contains(transcript, "VERY GOOD.  YOU GUESSED IT IN ONLY8GUESSES.") {
+	if !strings.Contains(transcript, "VERY GOOD.  YOU GUESSED IT IN ONLY 8 GUESSES.") {
 		t.Fatal("transcript missing eight-move solution")
 	}
 	if !strings.HasSuffix(transcript, "DO YOU WANT TO TRY ANOTHER PUZZLE? ") {
@@ -2523,13 +2524,13 @@ func assertFootballTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"TEAM1PLAY CHART",
-		"TEAM2PLAY CHART",
-		"TEAM2RECEIVES KICK-OFF",
+		"TEAM 1 PLAY CHART",
+		"TEAM 2 PLAY CHART",
+		"TEAM 2 RECEIVES KICK-OFF",
 		"ILLEGAL PLAY NUMBER, CHECK AND",
-		"NET YARDS GAINED ON DOWN1ARE 57",
-		"TOUCHDOWN BY TEAM2*********************YEA TEAM",
-		"TEAM 2 SCORE IS7",
+		"NET YARDS GAINED ON DOWN 1 ARE  57",
+		"TOUCHDOWN BY TEAM 2 *********************YEA TEAM",
+		"TEAM 2 SCORE IS 7",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2538,7 +2539,7 @@ func assertFootballTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "THE BALL WAS RUN"), 4; got != want {
 		t.Fatalf("offensive plays: got %d, want %d", got, want)
 	}
-	if !strings.HasSuffix(transcript, "TEAM2WINS*******************\n") {
+	if !strings.HasSuffix(transcript, "TEAM 2 WINS*******************\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
 	}
 }
@@ -2570,7 +2571,7 @@ func assertFTBALLTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "NEXT PLAY? "), 28; got != want {
 		t.Fatalf("player play calls: got %d, want %d", got, want)
 	}
-	if !strings.HasSuffix(transcript, "FINAL SCORE:  DARTMOUTH: 0  HARVARD: 0\n") {
+	if !strings.HasSuffix(transcript, "FINAL SCORE:  DARTMOUTH:  0   HARVARD:  0 \n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-50):])
 	}
 }
@@ -2584,13 +2585,13 @@ func assertFurTraderTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"YOU HAVE $600 SAVINGS.",
+		"YOU HAVE $ 600  SAVINGS.",
 		"AND 190 FURS TO BEGIN THE EXPEDITION.",
 		"YOU HAVE CHOSEN THE EASIEST ROUTE.",
 		"SUPPLIES AT FORT HOCHELAGA COST $150.00.",
-		"YOUR BEAVER SOLD FOR $41YOUR FOX SOLD FOR $43",
-		"YOUR ERMINE SOLD FOR $33YOUR MINK SOLD FOR $33.2",
-		"YOU NOW HAVE $590.2 INCLUDING YOUR PREVIOUS SAVINGS",
+		"YOUR BEAVER SOLD FOR $ 41 YOUR FOX SOLD FOR $ 43",
+		"YOUR ERMINE SOLD FOR $ 33 YOUR MINK SOLD FOR $ 33.2",
+		"YOU NOW HAVE $ 590.2  INCLUDING YOUR PREVIOUS SAVINGS",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2617,7 +2618,7 @@ func assertGolfTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"PGA HANDICAPS RANGE FROM 0 TO 30.",
-		"YOU ARE AT THE TEE OFF HOLE1DISTANCE361YARDS, PAR4",
+		"YOU ARE AT THE TEE OFF HOLE 1 DISTANCE 361 YARDS, PAR 4",
 		"TOO MUCH CLUB. YOU'RE PAST THE HOLE.",
 		"BALL HIT TREE - BOUNCED INTO ROUGH",
 		"YOU DUBBED IT.",
@@ -2626,7 +2627,7 @@ func assertGolfTranscript(t *testing.T, transcript string) {
 		"PASSED BY CUP.",
 		"A PAR.  NICE GOING.",
 		"A BIRDIE.",
-		"YOUR SCORE ON HOLE18WAS10",
+		"YOUR SCORE ON HOLE 18 WAS 10",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2641,7 +2642,7 @@ func assertGolfTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "YOU HOLED IT."), 18; got != want {
 		t.Fatalf("holes completed: got %d, want %d", got, want)
 	}
-	if !strings.HasSuffix(transcript, "TOTAL PAR FOR18HOLES IS72  YOUR TOTAL IS84\n") {
+	if !strings.HasSuffix(transcript, "TOTAL PAR FOR 18 HOLES IS 72   YOUR TOTAL IS 84 \n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
@@ -2692,8 +2693,8 @@ func assertGuessTranscript(t *testing.T, path, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"I'M THINKING OF A NUMBER BETWEEN 1 AND100",
-		"THAT'S IT! YOU GOT IT IN6TRIES.",
+		"I'M THINKING OF A NUMBER BETWEEN 1 AND 100",
+		"THAT'S IT! YOU GOT IT IN 6 TRIES.",
 		"VERY GOOD.",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -2725,12 +2726,12 @@ func assertGunnerTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"MAXIMUM RANGE OF YOUR GUN IS57807 YARDS.",
+		"MAXIMUM RANGE OF YOUR GUN IS 57807  YARDS.",
 		"MINIMUM ELEVATION IS ONE DEGREE.",
 		"MAXIMUM ELEVATION IS 89 DEGREES.",
-		"SHORT OF TARGET BY 15091YARDS.",
-		"OVER TARGET BY 20047YARDS.",
-		"TOTAL ROUNDS EXPENDED WERE:7",
+		"SHORT OF TARGET BY  15091 YARDS.",
+		"OVER TARGET BY  20047 YARDS.",
+		"TOTAL ROUNDS EXPENDED WERE: 7",
 		"NICE SHOOTING !!",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -2803,7 +2804,7 @@ func assertHangmanTranscript(t *testing.T, transcript string) {
 		"FIRST, WE DRAW A HEAD",
 		"X   (. .)   ",
 		"MA---M---A-",
-		"RIGHT!!  IT TOOK YOU3GUESSES!",
+		"RIGHT!!  IT TOOK YOU 3 GUESSES!",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2872,7 +2873,7 @@ func assertHexapawnTranscript(t *testing.T, path, transcript string) {
 		"I MOVE FROM  2 TO  4",
 		"I MOVE FROM  3 TO  6",
 		"YOU CAN'T MOVE, SO I WIN.",
-		"I HAVE WON1AND YOU0OUT OF1GAMES.",
+		"I HAVE WON 1 AND YOU 0 OUT OF 1 GAMES.",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2901,9 +2902,9 @@ func assertHiLoTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"GOT IT!!!!!!!!!!   YOU WIN94DOLLARS.",
-		"YOUR TOTAL WINNINGS ARE NOW94DOLLARS.",
-		"YOU BLEW IT...TOO BAD...THE NUMBER WAS24",
+		"GOT IT!!!!!!!!!!   YOU WIN 94 DOLLARS.",
+		"YOUR TOTAL WINNINGS ARE NOW 94 DOLLARS.",
+		"YOU BLEW IT...TOO BAD...THE NUMBER WAS 24",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -2937,7 +2938,7 @@ func assertHighIQTranscript(t *testing.T, transcript string) {
 	for _, milestone := range []string{
 		"ILLEGAL MOVE, TRY AGAIN...",
 		"THE GAME IS OVER.",
-		"YOU HAD1PIECES REMAINING.",
+		"YOU HAD 1 PIECES REMAINING.",
 		"BRAVO!  YOU MADE A PERFECT SCORE!",
 		"SAVE THIS PAPER AS A RECORD OF YOUR ACCOMPLISHMENT!",
 	} {
@@ -2984,9 +2985,9 @@ func assertHockeyTranscript(t *testing.T, transcript string) {
 		"B5 LET'S A BIG SLAP SHOT GO!!",
 		"GLOVE SAVE R6 AND HE HANGS ON",
 		"THAT'S THE SIREN",
-		"FINAL SCORE:\nRED:0         BLUE:0",
+		"FINAL SCORE:\nRED: 0        BLUE: 0",
 		"SCORING SUMMARY",
-		"SHOTS ON NET\nRED:0\nBLUE:1",
+		"SHOTS ON NET\nRED: 0 \nBLUE: 1",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3007,7 +3008,7 @@ func assertHockeyTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "\a"), 30; got != want {
 		t.Fatalf("siren bells: got %d, want %d", got, want)
 	}
-	if !strings.HasSuffix(transcript, "SHOTS ON NET\nRED:0\nBLUE:1\n") {
+	if !strings.HasSuffix(transcript, "SHOTS ON NET\nRED: 0 \nBLUE: 1 \n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-35):])
 	}
 }
@@ -3022,12 +3023,12 @@ func assertHorseraceTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"UP TO 10 MAY PLAY.  A TABLE OF ODDS WILL BE PRINTED.",
-		"JOE MAW                     1             3.7:1",
-		"JOLLY                       5             9.25:1",
+		"JOE MAW                      1             3.7 :1",
+		"JOLLY                        5             9.25 :1",
 		"THE RACE RESULTS ARE:",
-		"1PLACE HORSE NO.5           AT 9.25:1",
-		"8PLACE HORSE NO.7           AT 18.5:1",
-		"ALICE WINS $92.5",
+		"1 PLACE HORSE NO. 5        AT  9.25 :1",
+		"8 PLACE HORSE NO. 7        AT  18.5 :1",
+		"ALICE WINS $ 92.5",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3051,14 +3052,14 @@ func assertHurkleTranscript(t *testing.T, path, transcript string) {
 	t.Helper()
 	prefix := strings.Repeat(" ", 33) + "HURKLE\n" + strings.Repeat(" ", 15) +
 		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n\n" +
-		"A HURKLE IS HIDING ON A10BY10GRID. HOMEBASE\n"
+		"A HURKLE IS HIDING ON A 10 BY 10 GRID. HOMEBASE\n"
 	if !strings.HasPrefix(transcript, prefix) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"GUESS #1? GO NORTHEAST",
-		"GUESS #2? GO SOUTH",
-		"YOU FOUND HIM IN3GUESSES!",
+		"GUESS # 1 ? GO NORTHEAST",
+		"GUESS # 2 ? GO SOUTH",
+		"YOU FOUND HIM IN 3 GUESSES!",
 		"LET'S PLAY AGAIN, HURKLE IS HIDING.",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -3068,7 +3069,7 @@ func assertHurkleTranscript(t *testing.T, path, transcript string) {
 	if got, want := strings.Count(transcript, "GUESS #"), 4; got != want {
 		t.Fatalf("guess prompts: got %d, want %d", got, want)
 	}
-	suffix := "GUESS #1? go-basic: run " + path + ": BASIC line 330: read input: EOF\n"
+	suffix := "GUESS # 1 ? go-basic: run " + path + ": BASIC line 330: read input: EOF\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
@@ -3078,16 +3079,16 @@ func assertKinemaTranscript(t *testing.T, path, transcript string) {
 	t.Helper()
 	prefix := strings.Repeat(" ", 33) + "KINEMA\n" + strings.Repeat(" ", 15) +
 		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n\n\n" +
-		"A BALL IS THROWN UPWARDS AT38METERS PER SECOND.\n"
+		"A BALL IS THROWN UPWARDS AT 38 METERS PER SECOND.\n"
 	if !strings.HasPrefix(transcript, prefix) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"HOW HIGH WILL IT GO (IN METERS)? CLOSE ENOUGH.\nCORRECT ANSWER IS 72.2",
-		"HOW LONG UNTIL IT RETURNS (IN SECONDS)? CLOSE ENOUGH.\nCORRECT ANSWER IS 7.6",
-		"WHAT WILL ITS VELOCITY BE AFTER2.8SECONDS? CLOSE ENOUGH.\nCORRECT ANSWER IS 10",
-		"3RIGHT OUT OF 3.  NOT BAD.",
-		"A BALL IS THROWN UPWARDS AT27METERS PER SECOND.",
+		"HOW HIGH WILL IT GO (IN METERS)? CLOSE ENOUGH.\nCORRECT ANSWER IS  72.2",
+		"HOW LONG UNTIL IT RETURNS (IN SECONDS)? CLOSE ENOUGH.\nCORRECT ANSWER IS  7.6",
+		"WHAT WILL ITS VELOCITY BE AFTER 2.8 SECONDS? CLOSE ENOUGH.\nCORRECT ANSWER IS  10",
+		"3 RIGHT OUT OF 3.  NOT BAD.",
+		"A BALL IS THROWN UPWARDS AT 27 METERS PER SECOND.",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3111,12 +3112,12 @@ func assertKingTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"YOU NOW HAVE 60700 RALLODS IN THE TREASURY.",
-		"40COUNTRYMEN CAME TO THE ISLAND.",
-		"YOU HARVESTED 800SQ. MILES OF CROPS.",
-		"MAKING39200RALLODS.",
-		"YOU MADE11580RALLODS FROM TOURIST TRADE.",
-		"YOU NOW HAVE 79000 RALLODS IN THE TREASURY.",
+		"YOU NOW HAVE  60700  RALLODS IN THE TREASURY.",
+		"40 COUNTRYMEN CAME TO THE ISLAND.",
+		"YOU HARVESTED  800 SQ. MILES OF CROPS.",
+		"MAKING 39200 RALLODS.",
+		"YOU MADE 11580 RALLODS FROM TOURIST TRADE.",
+		"YOU NOW HAVE  79000  RALLODS IN THE TREASURY.",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3151,7 +3152,7 @@ func assertLetterTranscript(t *testing.T, path, transcript string) {
 		t.Fatalf("low clues: got %d, want %d", got, want)
 	}
 	for _, milestone := range []string{
-		"YOU GOT IT IN4GUESSES!!",
+		"YOU GOT IT IN 4 GUESSES!!",
 		"GOOD JOB !!!!!",
 		"LET'S PLAY AGAIN.....",
 	} {
@@ -3180,7 +3181,7 @@ func assertLifeTranscript(t *testing.T, path, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for generation := 0; generation <= 2; generation++ {
-		milestone := "GENERATION:" + strconv.Itoa(generation) + "  POPULATION:3"
+		milestone := "GENERATION: " + strconv.Itoa(generation) + "               POPULATION: 3"
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
 		}
@@ -3215,13 +3216,13 @@ func assertLifeForTwoTranscript(t *testing.T, path, transcript string, bounded b
 	if got, want := strings.Count(transcript, prompt), 6; got != want {
 		t.Fatalf("piece prompts: got %d, want %d", got, want)
 	}
-	initialBoard := "0123450\n1 *     *     * 1\n2               2\n3               3\n" +
-		"4               4\n5 #     #     # 5\n0123450\n"
+	initialBoard := "0  1  2  3  4  5  0 \n 1  *     *     *  1 \n 2                 2 \n 3                 3 \n " +
+		"4                 4 \n 5  #     #     #  5 \n 0  1  2  3  4  5  0 \n"
 	if !strings.Contains(transcript, initialBoard) {
 		t.Fatal("transcript missing initial six-piece board")
 	}
-	emptyBoard := "0123450\n1               1\n2               2\n3               3\n" +
-		"4               4\n5               5\n0123450\n"
+	emptyBoard := "0  1  2  3  4  5  0 \n 1                 1 \n 2                 2 \n 3                 3 \n " +
+		"4                 4 \n 5                 5 \n 0  1  2  3  4  5  0 \n"
 	if !strings.Contains(transcript, emptyBoard) {
 		t.Fatal("transcript missing extinct board")
 	}
@@ -3310,8 +3311,8 @@ func assertLEMTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"OUTPUT: TOTAL TIME IN ELAPSED SECONDS",
-		" 0        364800       -19283024     0           5301.63807168750",
-		"245.354056071945743.5",
+		"  0        364800      -19283024      0           5301.63807  750 ",
+		"5245.35406  743.5",
 		"MISSION ABENDED",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -3339,9 +3340,9 @@ func assertLunarTranscript(t *testing.T, path, fuelWeight, transcript string) {
 		t.Fatalf("%q count: got %d, want %d", weight, got, want)
 	}
 	for _, milestone := range []string{
-		"ON MOON AT113.5528725660044SECONDS - IMPACT VELOCITY4008.790341237616MPH",
+		"ON MOON AT 113.552873 SECONDS - IMPACT VELOCITY 4008.79034 MPH",
 		"SORRY THERE WERE NO SURVIVORS. YOU BLEW IT!",
-		"IN FACT, YOU BLASTED A NEW LUNAR CRATER909.9954074609388FEET DEEP!",
+		"IN FACT, YOU BLASTED A NEW LUNAR CRATER 909.995407 FEET DEEP!",
 		"TRY AGAIN??",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -3367,9 +3368,9 @@ func assertRocketTranscript(t *testing.T, transcript string) {
 	for _, milestone := range []string{
 		"**** OUT OF FUEL ****",
 		"***** CONTACT *****",
-		"TOUCHDOWN AT45.495097567963924SECONDS.",
-		"LANDING VELOCITY=127.47548783981962FEET/SEC.",
-		"0UNITS OF FUEL REMAINING.",
+		"TOUCHDOWN AT 45.4950976 SECONDS.",
+		"LANDING VELOCITY= 127.475488 FEET/SEC.",
+		"0 UNITS OF FUEL REMAINING.",
 		"***** SORRY, BUT YOU BLEW IT!!!!",
 		"APPROPRIATE CONDOLENCES WILL BE SENT TO YOUR NEXT OF KIN.",
 	} {
@@ -3394,10 +3395,10 @@ func assertMastermindTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"BLACK        B\nWHITE        W",
-		"MOVE # 1 GUESS ? YOU HAVE 0 BLACKS AND 0 WHITES.",
-		"MOVE # 2 GUESS ? YOU GUESSED IT IN 2 MOVES!",
+		"MOVE #  1  GUESS ? YOU HAVE  0  BLACKS AND  0  WHITES.",
+		"MOVE #  2  GUESS ? YOU GUESSED IT IN  2  MOVES!",
 		"MY GUESS IS: B  BLACKS, WHITES ?",
-		"MY GUESS IS: W  BLACKS, WHITES ? I GOT IT IN 2 MOVES!",
+		"MY GUESS IS: W  BLACKS, WHITES ? I GOT IT IN  2  MOVES!",
 		"GAME OVER\nFINAL SCORE:",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -3407,7 +3408,7 @@ func assertMastermindTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "SCORE:"), 3; got != want {
 		t.Fatalf("score reports: got %d, want %d", got, want)
 	}
-	suffix := "FINAL SCORE:\n     COMPUTER 2\n     HUMAN    2\n\n"
+	suffix := "FINAL SCORE:\n     COMPUTER  2 \n     HUMAN     2 \n\n"
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}
@@ -3433,7 +3434,7 @@ func assertMathDiceTranscript(t *testing.T, path, transcript string) {
 	}
 	for _, milestone := range []string{
 		"NO, COUNT THE SPOTS AND GIVE ANOTHER ANSWER.",
-		"NO, THE ANSWER IS8",
+		"NO, THE ANSWER IS 8",
 		"THE DICE ROLL AGAIN...",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -3458,15 +3459,15 @@ func assertMugwumpTranscript(t *testing.T, path, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"YOU ARE9.4UNITS FROM MUGWUMP1",
-		"YOU ARE2.8UNITS FROM MUGWUMP2",
-		"YOU ARE6UNITS FROM MUGWUMP3",
-		"YOU ARE6UNITS FROM MUGWUMP4",
-		"YOU HAVE FOUND MUGWUMP1",
-		"YOU HAVE FOUND MUGWUMP2",
-		"YOU HAVE FOUND MUGWUMP3",
-		"YOU HAVE FOUND MUGWUMP4",
-		"YOU GOT THEM ALL IN5TURNS!",
+		"YOU ARE 9.4 UNITS FROM MUGWUMP 1",
+		"YOU ARE 2.8 UNITS FROM MUGWUMP 2",
+		"YOU ARE 6 UNITS FROM MUGWUMP 3",
+		"YOU ARE 6 UNITS FROM MUGWUMP 4",
+		"YOU HAVE FOUND MUGWUMP 1",
+		"YOU HAVE FOUND MUGWUMP 2",
+		"YOU HAVE FOUND MUGWUMP 3",
+		"YOU HAVE FOUND MUGWUMP 4",
+		"YOU GOT THEM ALL IN 5 TURNS!",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3506,7 +3507,7 @@ func assertNicomachusTranscript(t *testing.T, path, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"YOUR NUMBER WAS73, RIGHT? ",
+		"YOUR NUMBER WAS 73 , RIGHT?",
 		"EH?  I DON'T UNDERSTAND 'MAYBE'  TRY 'YES' OR 'NO'.",
 		"HOW ABOUT THAT!!",
 		"LET'S TRY ANOTHER.",
@@ -3535,9 +3536,9 @@ func assertNimTranscript(t *testing.T, transcript string) {
 		"DO YOU WANT INSTRUCTIONS? PLEASE ANSWER YES OR NO",
 		"ENTER WIN OPTION - 1 TO TAKE LAST, 2 TO AVOID LAST? ENTER WIN OPTION",
 		"DO YOU WANT TO MOVE FIRST? PLEASE ANSWER YES OR NO.",
-		"PILE  SIZE\n11\n24\n33",
-		"PILE  SIZE\n11\n21\n33",
-		"PILE  SIZE\n11\n20\n30",
+		"PILE  SIZE\n 1  1 \n 2  4 \n 3  3",
+		"PILE  SIZE\n 1  1 \n 2  1 \n 3  3",
+		"PILE  SIZE\n 1  1 \n 2  0 \n 3  0",
 		"MACHINE LOSES",
 		"do you want to play another game? PLEASE.  YES OR NO.",
 	} {
@@ -3562,12 +3563,12 @@ func numberOutput() string {
 		"YOU OCCASIONALLY WILL GET A JACKPOT WHICH WILL DOUBLE(!)\n" +
 		"YOUR POINT COUNT.  YOU WIN WHEN YOU GET 500 POINTS.\n\n" +
 		"GUESS A NUMBER FROM 1 TO 5? YOU HIT THE JACKPOT!!!\n" +
-		"YOU HAVE200POINTS.\n\n" +
+		"YOU HAVE 200 POINTS.\n\n" +
 		"GUESS A NUMBER FROM 1 TO 5? YOU HIT THE JACKPOT!!!\n" +
-		"YOU HAVE400POINTS.\n\n" +
-		"GUESS A NUMBER FROM 1 TO 5? YOU HAVE405POINTS.\n\n" +
+		"YOU HAVE 400 POINTS.\n\n" +
+		"GUESS A NUMBER FROM 1 TO 5? YOU HAVE 405 POINTS.\n\n" +
 		"GUESS A NUMBER FROM 1 TO 5? YOU HIT THE JACKPOT!!!\n" +
-		"!!!!YOU WIN!!!! WITH 810POINTS.\n"
+		"!!!!YOU WIN!!!! WITH  810 POINTS.\n"
 }
 
 func assertOneCheckTranscript(t *testing.T, transcript string) {
@@ -3580,10 +3581,10 @@ func assertOneCheckTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"AND HERE IS THE OPENING POSITION OF THE CHECKERS.\n\n" +
-			"11111111\n11111111\n11000011\n11000011\n11000011\n11000011\n11111111\n11111111",
+			" 1  1  1  1  1  1  1  1 \n 1  1  1  1  1  1  1  1 \n 1  1  0  0  0  0  1  1 \n 1  1  0  0  0  0  1  1 \n 1  1  0  0  0  0  1  1 \n 1  1  0  0  0  0  1  1 \n 1  1  1  1  1  1  1  1 \n 1  1  1  1  1  1  1  1",
 		"ILLEGAL MOVE.  TRY AGAIN...",
-		"01000000\n10000000\n00000001\n01000001\n00000000\n00000000\n01000100\n00000000",
-		"YOU MADE41JUMPS AND HAD7PIECES",
+		"0  1  0  0  0  0  0  0 \n 1  0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0  1 \n 0  1  0  0  0  0  0  1 \n 0  0  0  0  0  0  0  0 \n 0  0  0  0  0  0  0  0 \n 0  1  0  0  0  1  0  0 \n 0  0  0  0  0  0  0  0",
+		"YOU MADE 41 JUMPS AND HAD 7 PIECES",
 		"TRY AGAIN? PLEASE ANSWER 'YES' OR 'NO'.",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -3608,10 +3609,10 @@ func assertOrbitTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"180<== 00000     XXXXXXXXXXXXXXXXXXX     00000 ==>0",
-		"THIS IS HOUR1, AT WHAT ANGLE DO YOU WISH TO SEND",
-		"YOUR PHOTON BOMB EXPLODED148.22946725050062*10^2 MILES FROM THE",
-		"THIS IS HOUR2, AT WHAT ANGLE DO YOU WISH TO SEND",
-		"YOUR PHOTON BOMB EXPLODED0*10^2 MILES FROM THE",
+		"THIS IS HOUR 1 , AT WHAT ANGLE DO YOU WISH TO SEND",
+		"YOUR PHOTON BOMB EXPLODED 148.229467 *10^2 MILES FROM THE",
+		"THIS IS HOUR 2 , AT WHAT ANGLE DO YOU WISH TO SEND",
+		"YOUR PHOTON BOMB EXPLODED 0 *10^2 MILES FROM THE",
 		"YOU HAVE SUCCES" + "FULLY COMPLETED YOUR MISSION.",
 		"ANOTHER ROMULAN SHIP HAS GONE INTO ORBIT.",
 	} {
@@ -3639,7 +3640,7 @@ func assertPizzaTranscript(t *testing.T, transcript string) {
 		"1     A     B     C     D     1",
 		"DO YOU NEED MORE DIRECTIONS? 'YES' OR 'NO' PLEASE, NOW THEN,",
 		"THIS IS A.  I DID NOT ORDER A PIZZA.",
-		"I LIVE AT 1,1",
+		"I LIVE AT  1 , 1",
 		"THIS IS P, THANKS FOR THE PIZZA.",
 		"THIS IS D, THANKS FOR THE PIZZA.",
 		"THIS IS K, THANKS FOR THE PIZZA.",
@@ -3690,18 +3691,18 @@ func assertPokerTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"1--  7 OF HEARTS            2--  3 OF SPADES",
-		"3--  3 OF HEARTS            4--  KING OF HEARTS",
+		"1 --   7  OF HEARTS         2 --   3  OF SPADES",
+		"3 --   3  OF HEARTS         4 --  KING OF HEARTS",
 		"I CHECK.",
 		"NO SMALL CHANGE, PLEASE.",
 		"YOU CAN'T DRAW MORE THAN THREE CARDS.",
-		"1--  ACE OF CLUBS           2--  3 OF SPADES",
-		"I AM TAKING3CARDS",
+		"1 --  ACE OF CLUBS          2 --   3  OF SPADES",
+		"I AM TAKING 3 CARDS",
 		"I'LL SEE YOU.",
-		"YOU HAVE A PAIR OF 3'S",
+		"YOU HAVE A PAIR OF  3 'S",
 		"AND I HAVE SCHMALTZ, ACE HIGH",
 		"YOU WIN.",
-		"NOW I HAVE $190AND YOU HAVE $210",
+		"NOW I HAVE $ 190 AND YOU HAVE $ 210",
 		"ANSWER YES OR NO, PLEASE.",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -3725,13 +3726,13 @@ func assertQueenTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"8171615141312111",
-		"1581481381281181089888",
+		"81  71  61  51  41  31  21  11",
+		"158  148  138  128  118  108  98  88",
 		"PLEASE READ THE DIRECTIONS AGAIN.\nYOU HAVE BEGUN ILLEGALLY.",
-		"COMPUTER MOVES TO SQUARE52",
+		"COMPUTER MOVES TO SQUARE 52",
 		"Y O U   C H E A T . . .  TRY AGAIN",
-		"COMPUTER MOVES TO SQUARE83",
-		"COMPUTER MOVES TO SQUARE138",
+		"COMPUTER MOVES TO SQUARE 83",
+		"COMPUTER MOVES TO SQUARE 138",
 		"C O N G R A T U L A T I O N S . . .",
 		"YOU HAVE WON--VERY WELL PLAYED.",
 		"PLEASE ANSWER 'YES' OR 'NO'.\nANYONE ELSE CARE TO TRY? ",
@@ -3758,11 +3759,11 @@ func assertReverseTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"THIS IS THE GAME OF 'REVERSE'.  TO WIN, ALL YOU HAVE",
-		"HERE WE GO ... THE LIST IS:\n\n936142875",
-		"OOPS! TOO MANY! I CAN REVERSE AT MOST9",
-		"578241639", "875241639", "361425789", "631425789", "524136789",
-		"314256789", "413256789", "231456789", "321456789", "123456789",
-		"YOU WON IT IN10MOVES!!!",
+		"HERE WE GO ... THE LIST IS:\n\n 9  3  6  1  4  2  8  7  5",
+		"OOPS! TOO MANY! I CAN REVERSE AT MOST 9",
+		"5  7  8  2  4  1  6  3  9", "8  7  5  2  4  1  6  3  9", "3  6  1  4  2  5  7  8  9", "6  3  1  4  2  5  7  8  9", "5  2  4  1  3  6  7  8  9",
+		"3  1  4  2  5  6  7  8  9", "4  1  3  2  5  6  7  8  9", "2  3  1  4  5  6  7  8  9", "3  2  1  4  5  6  7  8  9", "1 2 3 4 5 6 7 8 9",
+		"YOU WON IT IN 10 MOVES!!!",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3786,12 +3787,12 @@ func assertRockScissorsPaperTranscript(t *testing.T, transcript string) {
 	for _, milestone := range []string{
 		"SORRY, BUT WE AREN'T ALLOWED TO PLAY THAT MANY.",
 		"1...2...3...WHAT'S YOUR CHOICE? INVALID.",
-		"GAME NUMBER1", "...ROCK\nYOU WIN!!!",
-		"GAME NUMBER2", "...PAPER\nWOW!  I WIN!!!",
-		"GAME NUMBER3", "...SCISSORS\nTIE GAME.  NO WINNER.",
-		"I HAVE WON1GAME(S).",
-		"YOU HAVE WON1GAME(S).",
-		"AND1GAME(S) ENDED IN A TIE.",
+		"GAME NUMBER 1", "...ROCK\nYOU WIN!!!",
+		"GAME NUMBER 2", "...PAPER\nWOW!  I WIN!!!",
+		"GAME NUMBER 3", "...SCISSORS\nTIE GAME.  NO WINNER.",
+		"I HAVE WON 1 GAME(S).",
+		"YOU HAVE WON 1 GAME(S).",
+		"AND 1 GAME(S) ENDED IN A TIE.",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3815,17 +3816,17 @@ func assertRouletteTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"HOW MANY BETS? HOW MANY BETS? ",
-		"NUMBER1? NUMBER1? ",
+		"NUMBER 1 ? NUMBER 1 ?",
 		"YOU MADE THAT BET ONCE ALREADY,DUM-DUM",
-		"NUMBER3? NUMBER3? SPINNING",
-		"24BLACK",
-		"YOU WIN350DOLLARS ON BET1",
-		"YOU WIN20DOLLARS ON BET2",
-		"YOU LOSE5DOLLARS ON BET3",
+		"NUMBER 3 ? NUMBER 3 ? SPINNING",
+		"24 BLACK",
+		"YOU WIN 350 DOLLARS ON BET 1",
+		"YOU WIN 20 DOLLARS ON BET 2",
+		"YOU LOSE 5 DOLLARS ON BET 3",
 		"99635         1365",
-		"CHECK NO. 65",
+		"CHECK NO.  65",
 		"AUGUST 16, 2026",
-		"PAY TO THE ORDER OF-----ADA LOVELACE-----$ 1365",
+		"PAY TO THE ORDER OF-----ADA LOVELACE-----$  1365",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3871,12 +3872,12 @@ func assertSalvoTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"DO YOU WANT TO START? BATTLESHIP\n103\n93\n83\n73\n63\nCRUISER\n37\n27\n17",
-		"DESTROYER<A>\n510\n69\nDESTROYER<B>\n31\n21",
-		"TURN1\nYOU HAVE7SHOTS.\n? ILLEGAL, ENTER AGAIN.",
-		"I HAVE4SHOTS.\n27\n38\n29\n36",
-		"TURN2\nYOU HAVE7SHOTS.\n? YOU SHOT THERE BEFORE ON TURN1",
-		"I HAVE0SHOTS.",
+		"DO YOU WANT TO START? BATTLESHIP\n 10  3 \n 9  3 \n 8  3 \n 7  3 \n 6  3 \nCRUISER\n 3  7 \n 2  7 \n 1  7",
+		"DESTROYER<A>\n 5  10 \n 6  9 \nDESTROYER<B>\n 3  1 \n 2  1",
+		"TURN 1 \nYOU HAVE 7 SHOTS.\n? ILLEGAL, ENTER AGAIN.",
+		"I HAVE 4 SHOTS.\n 2  7 \n 3  8 \n 2  9 \n 3  6",
+		"TURN 2 \nYOU HAVE 7 SHOTS.\n? YOU SHOT THERE BEFORE ON TURN 1",
+		"I HAVE 0 SHOTS.",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3892,7 +3893,7 @@ func assertSalvoTranscript(t *testing.T, transcript string) {
 			t.Fatalf("%s count: got %d, want %d", hit, got, want)
 		}
 	}
-	if !strings.HasSuffix(transcript, "I HAVE0SHOTS.\nYOU HAVE WON.\n") {
+	if !strings.HasSuffix(transcript, "I HAVE 0 SHOTS.\nYOU HAVE WON.\n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-50):])
 	}
 }
@@ -3911,10 +3912,10 @@ func assertSlalomTranscript(t *testing.T, transcript string) {
 		"THIS IS THE 1976 WINTER OLYMPIC GIANT SLALOM.",
 		"RATE YOURSELF AS A SKIER, (1=WORST, 3=BEST)? THE BOUNDS ARE 1-3",
 		"THE STARTER COUNTS DOWN...5...4...3...2...1...GO!",
-		"HERE COMES GATE # 1:\n17M.P.H.",
-		"YOU'VE TAKEN0.24496508529377975SECONDS.",
-		"OPTION? WHAT?\nOPTION? 13M.P.H.",
-		"YOU TOOK2.0543438395997002SECONDS.",
+		"HERE COMES GATE # 1:\n 17 M.P.H.",
+		"YOU'VE TAKEN .244965085 SECONDS.",
+		"OPTION? WHAT?\nOPTION?  13 M.P.H.",
+		"YOU TOOK 2.05434384 SECONDS.",
 		"YOU WON A SILVER MEDAL",
 		"PLEASE TYPE 'YES' OR 'NO'",
 	} {
@@ -3925,7 +3926,7 @@ func assertSlalomTranscript(t *testing.T, transcript string) {
 	if got, want := strings.Count(transcript, "DO YOU WANT TO RACE AGAIN? "), 2; got != want {
 		t.Fatalf("replay prompts: got %d, want %d", got, want)
 	}
-	if !strings.HasSuffix(transcript, "THANKS FOR THE RACE\nSILVER MEDALS:1\n") {
+	if !strings.HasSuffix(transcript, "THANKS FOR THE RACE\nSILVER MEDALS: 1 \n") {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-55):])
 	}
 }
@@ -3944,7 +3945,7 @@ func assertSlotsTranscript(t *testing.T, transcript string) {
 		"YOUR STANDINGS ARE $-10",
 		"YOUR STANDINGS ARE $-20",
 		"YOUR STANDINGS ARE $-30",
-		"DOUBLE!!\nYOU WON!\nYOUR STANDINGS ARE $0",
+		"DOUBLE!!\nYOU WON!\nYOUR STANDINGS ARE $ 0",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -3972,12 +3973,12 @@ func assertSplatTranscript(t *testing.T, transcript string) {
 	for _, milestone := range []string{
 		"SELECT YOUR OWN TERMINAL VELOCITY (YES OR NO)? YES OR NO?",
 		"WANT TO SELECT ACCELERATION DUE TO GRAVITY (YES OR NO)? YES OR NO?",
-		"ALTITUDE         =9507FT",
-		"TERM. VELOCITY   =176FT/SEC +/-5%",
-		"ACCELERATION     =32.16FT/SEC/SEC +/-5%",
-		"TERMINAL VELOCITY REACHED AT T PLUS5.445464321773443SECONDS.",
-		"49.875        1378.7375228253268",
-		"57            150.50666980515962",
+		"ALTITUDE         = 9507 FT",
+		"TERM. VELOCITY   = 176 FT/SEC +/-5%",
+		"ACCELERATION     = 32.16 FT/SEC/SEC +/-5%",
+		"TERMINAL VELOCITY REACHED AT T PLUS 5.44546432 SECONDS.",
+		" 49.875        1378.73752 ",
+		"57            150.50667 ",
 		"CHUTE OPEN",
 		"AMAZING!!! NOT BAD FOR YOUR 1ST SUCCESSFUL JUMP!!!",
 	} {
@@ -3997,17 +3998,17 @@ func assertStarsTranscript(t *testing.T, transcript, path string) {
 	t.Helper()
 	prefix := strings.Repeat(" ", 34) + "STARS\n" + strings.Repeat(" ", 15) +
 		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" +
-		"DO YOU WANT INSTRUCTIONS? I AM THINKING OF A WHOLE NUMBER FROM 1 TO100\n"
+		"DO YOU WANT INSTRUCTIONS? I AM THINKING OF A WHOLE NUMBER FROM 1 TO 100 \n"
 	if !strings.HasPrefix(transcript, prefix) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
 		"ONE STAR (*) MEANS FAR AWAY, SEVEN STARS (*******)",
-		"MEANS REALLY CLOSE!  YOU GET7GUESSES.",
+		"MEANS REALLY CLOSE!  YOU GET 7 GUESSES.",
 		"YOUR GUESS? *\n\nYOUR GUESS? **\n\nYOUR GUESS? ***\n\n" +
 			"YOUR GUESS? ****\n\nYOUR GUESS? *****\n\nYOUR GUESS? ******",
 		strings.Repeat("*", 79),
-		"YOU GOT IT IN7GUESSES!!!  LET'S PLAY AGAIN...",
+		"YOU GOT IT IN 7 GUESSES!!!  LET'S PLAY AGAIN...",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -4032,19 +4033,19 @@ func assertStockMarketTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"A BROKERAGE FEE OF 1% WILL BE CHARGED",
-		"INT. BALLISTIC MISSILES       IBM         117.75",
-		"NEW YORK STOCK EXCHANGE AVERAGE: 126.2",
+		"INT. BALLISTIC MISSILES       IBM          117.75",
+		"NEW YORK STOCK EXCHANGE AVERAGE:  126.2",
 		"YOU HAVE OVERSOLD A STOCK; TRY AGAIN.",
-		"YOU HAVE USED $108927.5 MORE THAN YOU HAVE.",
-		"IBM           118.75        10            1187.5        1",
-		"RCA           90.75         5             453.75        7.5",
-		"TOTAL CASH ASSETS ARE    $8390.31",
-		"TOTAL ASSETS ARE         $10031.56",
-		"IBM           131.25        5             656.25        12.5",
-		"RCA           92.5          3             277.5         1.75",
-		"NEW YORK STOCK EXCHANGE AVERAGE: 140.55NET CHANGE4.55",
-		"TOTAL CASH ASSETS ARE    $9157.81",
-		"TOTAL ASSETS ARE         $10091.56",
+		"YOU HAVE USED $ 108927.5  MORE THAN YOU HAVE.",
+		"IBM            118.75        10            1187.5        1",
+		"RCA            90.75         5             453.75        7.5",
+		"TOTAL CASH ASSETS ARE    $ 8390.31",
+		"TOTAL ASSETS ARE         $ 10031.56",
+		"IBM            131.25        5             656.25        12.5",
+		"RCA            92.5          3             277.5         1.75",
+		"NEW YORK STOCK EXCHANGE AVERAGE:  140.55 NET CHANGE 4.55",
+		"TOTAL CASH ASSETS ARE    $ 9157.81",
+		"TOTAL ASSETS ARE         $ 10091.56",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -4069,26 +4070,26 @@ func assertSuperStarTrekTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"THE USS ENTERPRISE --- NCC-1701",
-		"DESTROY THE20KLINGON WARSHIPS",
-		"ON STARDATE3827  THIS GIVES YOU27DAYS.",
+		"DESTROY THE 20 KLINGON WARSHIPS",
+		"ON STARDATE 3827   THIS GIVES YOU 27 DAYS.",
 		"IN THE GALACTIC QUADRANT, 'ALTAIR I'.",
 		"CONDITION          GREEN",
-		"QUADRANT          6,1",
+		"QUADRANT           6 , 1",
 		"ENTER ONE OF THE FOLLOWING:",
-		"LONG RANGE SCAN FOR QUADRANT6,1",
+		"LONG RANGE SCAN FOR QUADRANT 6 , 1",
 		": *** : 008 : 106 :",
 		"LT. SULU REPORTS, 'INCORRECT COURSE DATA, SIR!'",
 		"SHIELD CONTROL REPORTS  'THIS IS NOT THE FEDERATION TREASURY.'",
-		"'SHIELDS NOW AT500UNITS PER YOUR COMMAND.'",
-		"WARP ENGINES SHUT DOWN AT SECTOR3,4DUE TO BAD NAVAGATION",
-		"STARDATE          3801",
-		"TOTAL ENERGY      2982",
+		"'SHIELDS NOW AT 500 UNITS PER YOUR COMMAND.'",
+		"WARP ENGINES SHUT DOWN AT SECTOR 3 , 4 DUE TO BAD NAVAGATION",
+		"STARDATE           3801",
+		"TOTAL ENERGY       2982",
 		"SENSORS SHOW NO ENEMY SHIPS",
 		"ENSIGN CHEKOV REPORTS,  'INCORRECT COURSE DATA, SIR!'",
-		"STATUS REPORT:\nKLINGONS LEFT: 20",
-		"MISSION MUST BE COMPLETED IN26STARDATES",
-		"LIBRARY-COMPUTER         0",
-		"THERE WERE20KLINGON BATTLE CRUISERS LEFT AT",
+		"STATUS REPORT:\nKLINGONS LEFT:  20",
+		"MISSION MUST BE COMPLETED IN 26 STARDATES",
+		"LIBRARY-COMPUTER          0",
+		"THERE WERE 20 KLINGON BATTLE CRUISERS LEFT AT",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -4171,17 +4172,17 @@ func assertTargetTranscript(t *testing.T, transcript, path string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"RADIANS FROM X AXIS =5.938837541321806   FROM Z AXIS =1.539159724616171",
-		"X=61714.04435126647  Y=-22132.893117780306  Z=2074.8783041997776",
-		"ESTIMATED DISTANCE:65590",
-		"SHOT BEHIND TARGET117.67608333250246KILOMETERS.",
-		"SHOT TO RIGHT OF TARGET287.94441971766355KILOMETERS.",
-		"SHOT ABOVE TARGET214.56711296569665KILOMETERS.",
-		"DISTANCE FROM TARGET =377.88714638295664",
-		"ESTIMATED DISTANCE:65594",
+		"RADIANS FROM X AXIS = 5.93883754   FROM Z AXIS = 1.53915972",
+		"X= 61714.0444   Y=-22132.8931   Z= 2074.8783",
+		"ESTIMATED DISTANCE: 65590",
+		"SHOT BEHIND TARGET 117.676083 KILOMETERS.",
+		"SHOT TO RIGHT OF TARGET 287.94442 KILOMETERS.",
+		"SHOT ABOVE TARGET 214.567113 KILOMETERS.",
+		"DISTANCE FROM TARGET = 377.887146",
+		"ESTIMATED DISTANCE: 65594",
 		"* * * HIT * * *   TARGET IS NON-FUNCTIONAL",
-		"DISTANCE OF EXPLOSION FROM TARGET WAS1.6275889873371198e-11KILOMETERS.",
-		"MISSION ACCOMPLISHED IN 3 SHOTS.",
+		"DISTANCE OF EXPLOSION FROM TARGET WAS 1.62758899E-11 KILOMETERS.",
+		"MISSION ACCOMPLISHED IN  3  SHOTS.",
 		"NEXT TARGET...",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -4209,15 +4210,15 @@ func assert3DTicTacToeTranscript(t *testing.T, transcript string) {
 		"THE GAME IS TIC-TAC-TOE IN A 4 X 4 X 4 CUBE.",
 		"TO PRINT THE PLAYING BOARD, TYPE 0 (ZERO) AS YOUR MOVE.",
 		"DO YOU WANT TO MOVE FIRST? INCORRECT ANSWER.  PLEASE TYPE 'YES' OR 'NO'.?",
-		"INCORRECT MOVE, RETYPE IT--? MACHINE MOVES TO411",
+		"INCORRECT MOVE, RETYPE IT--? MACHINE MOVES TO 411",
 		"THAT SQUARE IS USED, TRY AGAIN.",
-		"MACHINE MOVES TO414",
-		"NICE TRY. MACHINE MOVES TO114",
-		"MACHINE TAKES141",
-		"MACHINE MOVES TO441",
-		"NICE TRY. MACHINE MOVES TO124",
-		"MACHINE TAKES232",
-		"MACHINE MOVES TO323, AND WINS AS FOLLOWS\n141232323414",
+		"MACHINE MOVES TO 414",
+		"NICE TRY. MACHINE MOVES TO 114",
+		"MACHINE TAKES 141",
+		"MACHINE MOVES TO 441",
+		"NICE TRY. MACHINE MOVES TO 124",
+		"MACHINE TAKES 232",
+		"MACHINE MOVES TO 323 , AND WINS AS FOLLOWS\n 141  232  323  414",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -4243,8 +4244,8 @@ func assertTicTacToe1Transcript(t *testing.T, transcript, path string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"COMPUTER MOVES9\nYOUR MOVE? COMPUTER MOVES2",
-		"YOUR MOVE? COMPUTER MOVES6\nAND WINS ********",
+		"COMPUTER MOVES 9 \nYOUR MOVE? COMPUTER MOVES 2",
+		"YOUR MOVE? COMPUTER MOVES 6 \nAND WINS ********",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -4303,7 +4304,7 @@ func assertTowerTranscript(t *testing.T, transcript string) {
 		"THAT DISK IS BELOW ANOTHER ONE.  MAKE ANOTHER CHOICE.",
 		"YOU CAN'T PLACE A LARGER DISK ON TOP OF A SMALLER ONE,",
 		"CONGRATULATIONS!!",
-		"YOU HAVE PERFORMED THE TASK IN7MOVES.",
+		"YOU HAVE PERFORMED THE TASK IN 7 MOVES.",
 		"'YES' OR 'NO' PLEASE",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -4327,14 +4328,14 @@ func assertTrainTranscript(t *testing.T, transcript string) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"A CAR TRAVELING63MPH",
-		"8HOURS LESS THAN A TRAIN TRAVELING AT32MPH.",
-		"SORRY.  YOU WERE OFF BY106PERCENT.",
-		"CORRECT ANSWER IS8.258064516129032HOURS.",
-		"A CAR TRAVELING41MPH",
-		"10HOURS LESS THAN A TRAIN TRAVELING AT25MPH.",
-		"GOOD! ANSWER WITHIN0PERCENT.",
-		"CORRECT ANSWER IS15.625HOURS.",
+		"A CAR TRAVELING 63 MPH",
+		"8 HOURS LESS THAN A TRAIN TRAVELING AT 32 MPH.",
+		"SORRY.  YOU WERE OFF BY 106 PERCENT.",
+		"CORRECT ANSWER IS 8.25806452 HOURS.",
+		"A CAR TRAVELING 41 MPH",
+		"10 HOURS LESS THAN A TRAIN TRAVELING AT 25 MPH.",
+		"GOOD! ANSWER WITHIN 0 PERCENT.",
+		"CORRECT ANSWER IS 15.625 HOURS.",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -4352,16 +4353,16 @@ func assertTrapTranscript(t *testing.T, transcript, path string) {
 	t.Helper()
 	prefix := strings.Repeat(" ", 34) + "TRAP\n" + strings.Repeat(" ", 15) +
 		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\nINSTRUCTIONS? " +
-		"I AM THINKING OF A NUMBER BETWEEN 1 AND100\n"
+		"I AM THINKING OF A NUMBER BETWEEN 1 AND 100 \n"
 	if !strings.HasPrefix(transcript, prefix) {
 		t.Fatalf("unexpected transcript prefix: %q", transcript[:min(len(transcript), len(prefix))])
 	}
 	for _, milestone := range []string{
-		"YOU GET6GUESSES TO GET MY NUMBER.",
-		"GUESS #1? MY NUMBER IS LARGER THAN YOUR TRAP NUMBERS.",
-		"GUESS #2? MY NUMBER IS SMALLER THAN YOUR TRAP NUMBERS.",
-		"GUESS #3? YOU HAVE TRAPPED MY NUMBER.",
-		"GUESS #4? YOU GOT IT!!!",
+		"YOU GET 6 GUESSES TO GET MY NUMBER.",
+		"GUESS # 1 ? MY NUMBER IS LARGER THAN YOUR TRAP NUMBERS.",
+		"GUESS # 2 ? MY NUMBER IS SMALLER THAN YOUR TRAP NUMBERS.",
+		"GUESS # 3 ? YOU HAVE TRAPPED MY NUMBER.",
+		"GUESS # 4 ? YOU GOT IT!!!",
 		"TRY AGAIN.",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -4390,13 +4391,13 @@ func assert23MatchesTranscript(t *testing.T, transcript string) {
 		"I TAKE 2 MATCHES",
 		"VERY FUNNY! DUMMY!",
 		"DO YOU WANT TO PLAY OR GOOF AROUND?",
-		"THERE ARE NOW20MATCHES REMAINING.",
-		"MY TURN ! I REMOVE3MATCHES",
-		"THERE ARE NOW15MATCHES REMAINING.",
-		"MY TURN ! I REMOVE2MATCHES",
-		"THERE ARE NOW10MATCHES REMAINING.",
-		"MY TURN ! I REMOVE1MATCHES",
-		"THERE ARE NOW4MATCHES REMAINING.",
+		"THERE ARE NOW 20 MATCHES REMAINING.",
+		"MY TURN ! I REMOVE 3 MATCHES",
+		"THERE ARE NOW 15 MATCHES REMAINING.",
+		"MY TURN ! I REMOVE 2 MATCHES",
+		"THERE ARE NOW 10 MATCHES REMAINING.",
+		"MY TURN ! I REMOVE 1 MATCHES",
+		"THERE ARE NOW 4 MATCHES REMAINING.",
 		"YOU POOR BOOB! YOU TOOK THE LAST MATCH! I GOTCHA!!",
 	} {
 		if !strings.Contains(transcript, milestone) {
@@ -4428,7 +4429,7 @@ func assertWarTranscript(t *testing.T, transcript string) {
 		"YOU: H-A      COMPUTER: S-5",
 		"YOU: D-Q      COMPUTER: C-Q",
 		"YOU: H-7      COMPUTER: H-6",
-		"WE HAVE RUN OUT OF CARDS.  FINAL SCORE:  YOU: 9  THE COMPUTER: 15",
+		"WE HAVE RUN OUT OF CARDS.  FINAL SCORE:  YOU:  9   THE COMPUTER:  15",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -4486,11 +4487,11 @@ func assertWordTranscript(t *testing.T, transcript string) {
 	}
 	for _, milestone := range []string{
 		"YOU MUST GUESS A 5 LETTER WORD.  START AGAIN.",
-		"THERE WERE2MATCHES AND THE COMMON LETTERS WERE...DY",
+		"THERE WERE 2 MATCHES AND THE COMMON LETTERS WERE...DY",
 		"FROM THE EXACT LETTER MATCHES, YOU KNOW................D---Y",
-		"THERE WERE3MATCHES AND THE COMMON LETTERS WERE...OEY",
+		"THERE WERE 3 MATCHES AND THE COMMON LETTERS WERE...OEY",
 		"FROM THE EXACT LETTER MATCHES, YOU KNOW................DO-EY",
-		"YOU HAVE GUESSED THE WORD.  IT TOOK3GUESSES!",
+		"YOU HAVE GUESSED THE WORD.  IT TOOK 3 GUESSES!",
 	} {
 		if !strings.Contains(transcript, milestone) {
 			t.Fatalf("transcript missing %q", milestone)
@@ -4505,6 +4506,19 @@ func assertWordTranscript(t *testing.T, transcript string) {
 }
 
 func awariBoard(top string, left, right int, bottom string) string {
-	return "    " + top + "\n " + strconv.Itoa(left) + strings.Repeat(" ", 23) + strconv.Itoa(right) +
-		"\n    " + bottom + "\n\n"
+	leftText := "  " + strconv.Itoa(left)
+	return awariBoardRow(top) +
+		leftText + strings.Repeat(" ", 28-len(leftText)) + strconv.Itoa(right) + " \n" +
+		awariBoardRow(bottom) + "\n"
+}
+
+// awariBoardRow renders one row of pits the way PRINT spaces numbers.
+func awariBoardRow(values string) string {
+	var row strings.Builder
+	row.WriteString("   ")
+	for _, value := range strings.Fields(values) {
+		row.WriteString("  " + value + " ")
+	}
+	row.WriteString("\n")
+	return row.String()
 }

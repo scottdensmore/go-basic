@@ -697,6 +697,9 @@ func (e *Evaluator) evalPrintStatement(statement *PrintStmt) error {
 		}
 		text := formatValue(value)
 		switch directive := value.(type) {
+		case float64:
+			// Microsoft PRINT pads a number with its sign and a trailing space.
+			text = basicNumberString(directive) + " "
 		case TabValue:
 			text = ""
 			if directive.Pos > e.OutputColumn {
@@ -1222,11 +1225,7 @@ func (e *Evaluator) evalCallExpression(expression *CallExpression) (any, error) 
 		if err != nil {
 			return nil, err
 		}
-		formatted := formatValue(argument)
-		if argument >= 0 {
-			formatted = " " + formatted
-		}
-		return formatted, nil
+		return basicNumberString(argument), nil
 	case "VAL":
 		argument, err := e.singleStringArgument(expression)
 		if err != nil {
@@ -1470,20 +1469,75 @@ func normalizeName(name string) string {
 	return strings.ToLower(name)
 }
 
+// significantDigits matches the precision of Microsoft's five-byte floating
+// point format. Rounding to that width also hides binary residue that the
+// original hardware could never have shown.
+const significantDigits = 9
+
+// basicNumberString renders a number the way Microsoft BASIC does, with a
+// leading space standing in for the sign of a non-negative value. PRINT adds a
+// trailing space to this; STR$ does not.
+func basicNumberString(number float64) string {
+	if number >= 0 {
+		return " " + formatNumber(number)
+	}
+	return formatNumber(number)
+}
+
+// formatNumber renders a number in Microsoft's fixed-point form, without a
+// leading zero or trailing zeros, and switches to exponent form outside
+// [0.01, 1e9).
+func formatNumber(number float64) string {
+	if number == 0 {
+		return "0"
+	}
+	sign := ""
+	if number < 0 {
+		sign = "-"
+		number = -number
+	}
+	mantissa, exponentText, _ := strings.Cut(strconv.FormatFloat(number, 'e', significantDigits-1, 64), "e")
+	exponent, err := strconv.Atoi(exponentText)
+	if err != nil {
+		return sign + strconv.FormatFloat(number, 'g', -1, 64)
+	}
+	digits := strings.TrimRight(strings.Replace(mantissa, ".", "", 1), "0")
+	if digits == "" {
+		digits = "0"
+	}
+	if exponent < -2 || exponent >= significantDigits {
+		return sign + exponentForm(digits, exponent)
+	}
+	return sign + fixedForm(digits, exponent)
+}
+
+func fixedForm(digits string, exponent int) string {
+	if exponent < 0 {
+		return "." + strings.Repeat("0", -exponent-1) + digits
+	}
+	if len(digits) <= exponent+1 {
+		return digits + strings.Repeat("0", exponent+1-len(digits))
+	}
+	return digits[:exponent+1] + "." + digits[exponent+1:]
+}
+
+func exponentForm(digits string, exponent int) string {
+	mantissa := digits[:1]
+	if len(digits) > 1 {
+		mantissa += "." + digits[1:]
+	}
+	sign := "+"
+	if exponent < 0 {
+		sign = "-"
+		exponent = -exponent
+	}
+	return fmt.Sprintf("%sE%s%02d", mantissa, sign, exponent)
+}
+
 func formatValue(value any) string {
 	switch typed := value.(type) {
 	case float64:
-		if typed == math.Trunc(typed) {
-			return fmt.Sprintf("%d", int64(typed))
-		}
-		exact := strconv.FormatFloat(typed, 'g', -1, 64)
-		// Hide insignificant binary residue without shortening meaningful values such as RND output.
-		rounded := strconv.FormatFloat(typed, 'g', 12, 64)
-		candidate, err := strconv.ParseFloat(rounded, 64)
-		if err == nil && math.Abs(candidate-typed) <= math.Abs(typed)*1e-14 {
-			return rounded
-		}
-		return exact
+		return formatNumber(typed)
 	case string:
 		return typed
 	case TabValue, SpcValue:
