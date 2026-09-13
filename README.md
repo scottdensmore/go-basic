@@ -1,7 +1,5 @@
 # go-basic
 
-[![CI](https://github.com/scottdensmore/go-basic/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/scottdensmore/go-basic/actions/workflows/ci.yml)
-[![Release](https://github.com/scottdensmore/go-basic/actions/workflows/release.yml/badge.svg)](https://github.com/scottdensmore/go-basic/actions/workflows/release.yml)
 [![Latest release](https://img.shields.io/github/v/release/scottdensmore/go-basic)](https://github.com/scottdensmore/go-basic/releases/latest)
 [![Go version](https://img.shields.io/github/go-mod/go-version/scottdensmore/go-basic)](go.mod)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

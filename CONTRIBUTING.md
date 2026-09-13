@@ -61,12 +61,10 @@ regression seeds when a fuzzer finds a defect.
 
 ## Releases
 
-Tags matching `v*` trigger `.github/workflows/release.yml`. The workflow repeats
-the quality, fuzz, compatibility, and vulnerability gates, then publishes
-checksummed Linux (`amd64`, `arm64`), macOS (`amd64`, `arm64`), and Windows
+Releases publish checksummed Linux (`amd64`, `arm64`), macOS (`amd64`, `arm64`), and Windows
 (`amd64`) archives.
 
-Build and verify the same artifact set locally before tagging:
+Build and verify the artifact set locally before tagging:
 
 ```bash
 make release-check VERSION=v0.1.0

@@ -28,7 +28,7 @@ This policy covers:
 - the lexer, parser, structured-source lowering, and evaluator under
   `pkg/interpreter`;
 - pinned corpus acquisition and execution tooling;
-- GitHub Actions workflows and published release artifacts.
+- published release artifacts.
 
 go-basic is a local command-line program, not a network service. It reads a
 source file selected by the user, may read program input from standard input,
@@ -38,7 +38,7 @@ and writes program output and diagnostics to the provided streams.
 
 BASIC source, program input, corpus archives, archive paths, and command-line
 arguments are potentially attacker-controlled. Important assets include the
-host filesystem and processes, developer and CI credentials, build integrity,
+host filesystem and processes, developer credentials, build integrity,
 and published release artifacts.
 
 Running a BASIC program intentionally grants it CPU time, memory, and output
@@ -57,8 +57,7 @@ The following properties must hold:
   and bounded.
 - Corpus extraction cannot escape its target directory, follow archive
   symlinks, or overwrite existing files.
-- Corpus and release workflows use pinned inputs, least-privilege permissions,
-  and immutable GitHub Action revisions.
+- Build and release procedures use pinned inputs and least-privilege permissions.
 - Release artifacts are produced only after the repository verification gates
   pass.
 
