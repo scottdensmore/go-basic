@@ -57,6 +57,19 @@ Hello World
 | [Security](SECURITY.md) | Supported versions, private reporting, trust boundaries, and limitations |
 | [Code of Conduct](CODE_OF_CONDUCT.md) | Expected behavior and reporting options for project spaces |
 
+## Continuous integration
+
+PRs and pushes to `main` run formatting, vet, the full race-enabled test suite
+with the existing 80% coverage gate, both bounded fuzz targets, the pinned
+112-variant corpus smoke tier, and CLI builds for Linux, macOS, and Windows.
+Tests execute on Linux; the macOS and Windows outputs are cross-compiled.
+CI selects an existing hosted Go toolchain and disables automatic toolchain
+and module downloads. The corpus fetch downloads only the pinned BASIC test
+data. No tools are installed, and no release archives, tags, or publishing jobs
+are produced or run. The separate `golangci-lint` and `govulncheck` commands
+require additional tool installation and are outside this workflow's coverage.
+Only failure logs are retained, for three days.
+
 ## Supported at a glance
 
 go-basic supports numeric and string values, arrays, arithmetic and 16-bit

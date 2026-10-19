@@ -1,0 +1,75 @@
+name: Build and test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    name: Go checks, corpus, and cross-platform builds
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GOTOOLCHAIN: local
+      GOPROXY: off
+      GOSUMDB: off
+      GOFLAGS: -mod=readonly
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select preinstalled Go without downloading tools
+        run: |
+          set -euo pipefail
+          go_bin="$(find "$RUNNER_TOOL_CACHE/go" -mindepth 3 -maxdepth 3 -type d -path '*/x64/bin' | sort -V | tail -1)"
+          test -n "$go_bin"
+          test -x "$go_bin/go"
+          "$go_bin/go" version
+          "$go_bin/go" list -m
+          echo "$go_bin" >> "$GITHUB_PATH"
+      - name: Check formatting and vet
+        run: |
+          set -euo pipefail
+          make fmt-check vet 2>&1 | tee "$RUNNER_TEMP/go-static.log"
+      - name: Run all tests with race detection and the existing coverage gate
+        run: |
+          set -euo pipefail
+          make coverage-check 2>&1 | tee "$RUNNER_TEMP/go-tests.log"
+      - name: Fuzz lexer and parser with the existing bounded targets
+        run: |
+          set -euo pipefail
+          make fuzz 2>&1 | tee "$RUNNER_TEMP/go-fuzz.log"
+      - name: Verify the pinned 112-variant BASIC corpus
+        run: |
+          set -euo pipefail
+          make corpus-smoke 2>&1 | tee "$RUNNER_TEMP/go-corpus.log"
+      - name: Build the CLI and cross-compile supported platforms
+        run: |
+          set -euo pipefail
+          make build
+          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64; do
+            os="${target%/*}"
+            arch="${target#*/}"
+            echo "Building $target"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -o "$RUNNER_TEMP/go-basic-$os-$arch" ./cmd/go-basic
+          done
+      - name: Verify tracked source was preserved
+        run: git diff --exit-code
+      - name: Retain failure logs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: go-failure-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/go-*.log
+          retention-days: 3
+
