@@ -837,28 +837,22 @@ func TestCLI(t *testing.T) {
 
 	t.Run("plays the original Life for Two programs", func(t *testing.T) {
 		variants := []struct {
-			name        string
-			arguments   []string
-			wantExit    int
-			wantBounded bool
+			name    string
+			fixture string
 		}{
-			{name: "main", arguments: []string{filepath.Join("scripts", "life-for-two.bas")}},
-			{
-				name:        "alternate",
-				arguments:   []string{"-max-statements", "1872", filepath.Join("scripts", "life-for-two-alternate.bas")},
-				wantExit:    1,
-				wantBounded: true,
-			},
+			{name: "main", fixture: "life-for-two.bas"},
+			{name: "alternate", fixture: "life-for-two-alternate.bas"},
 		}
 		for _, variant := range variants {
 			t.Run(variant.name, func(t *testing.T) {
-				command := exec.Command(binary, variant.arguments...)
+				path := filepath.Join("scripts", variant.fixture)
+				command := exec.Command(binary, path)
 				command.Stdin = strings.NewReader("1,1\n3,1\n5,1\n1,5\n3,5\n5,5\n")
 				output, err := command.CombinedOutput()
-				if exitCode(err) != variant.wantExit {
-					t.Fatalf("exit: got %v, output %q", err, output)
+				if err != nil {
+					t.Fatalf("run CLI: %v\n%s", err, output)
 				}
-				assertLifeForTwoTranscript(t, variant.arguments[len(variant.arguments)-1], string(output), variant.wantBounded)
+				assertLifeForTwoTranscript(t, string(output))
 			})
 		}
 	})
@@ -3204,7 +3198,7 @@ func assertLifeTranscript(t *testing.T, path, transcript string) {
 	}
 }
 
-func assertLifeForTwoTranscript(t *testing.T, path, transcript string, bounded bool) {
+func assertLifeForTwoTranscript(t *testing.T, transcript string) {
 	t.Helper()
 	prefix := strings.Repeat(" ", 33) + "LIFE2\n" + strings.Repeat(" ", 15) +
 		"CREATIVE COMPUTING  MORRISTOWN, NEW JERSEY\n\n\n\n" + strings.Repeat(" ", 10) +
@@ -3227,9 +3221,6 @@ func assertLifeForTwoTranscript(t *testing.T, path, transcript string, bounded b
 		t.Fatal("transcript missing extinct board")
 	}
 	suffix := "A DRAW\n"
-	if bounded {
-		suffix += "go-basic: run " + path + ": BASIC line 574: statement limit 1872 reached\n"
-	}
 	if !strings.HasSuffix(transcript, suffix) {
 		t.Fatalf("unexpected transcript ending: %q", transcript[max(0, len(transcript)-len(suffix)):])
 	}

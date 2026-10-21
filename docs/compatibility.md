@@ -59,12 +59,12 @@ statement limit. Other programs have no quit command and intentionally end at a
 well-defined next-input boundary. These are accepted only when their expected
 transcript or gameplay milestones have already been observed.
 
-The byte-different alternate Life for Two source jumps to a missing line 800
-after completing and declaring a draw. The main source exits normally; the
-alternate is accepted only after the complete draw behavior, then bounded
-before that upstream defect. It is tracked in
-[`go-basic#67`](https://github.com/scottdensmore/go-basic/issues/67) and
-[`basic-computer-games#957`](https://github.com/coding-horror/basic-computer-games/issues/957).
+The upstream alternate Life for Two source (`00_Alternate_Languages/56_Life_for_Two/lifefortwo.bas`)
+jumps to a missing line `800` on its two terminal branches (`574` and `575`,
+tracked upstream in [`basic-computer-games#957`](https://github.com/coding-horror/basic-computer-games/issues/957)).
+The local playable fixture (`test/scripts/life-for-two-alternate.bas`) corrects
+both terminal branches to `GOTO 999` so that both the main and alternate
+variants exit normally without a statement-limit exception.
 
 ## CI contract
 
