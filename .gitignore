@@ -23,3 +23,26 @@ vendor/
 
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+[Dd]esktop.ini
+
+# Go workspace and coverage reports
+go.work
+go.work.sum
+coverage.txt
+coverage.html
+
+# Editors and IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
